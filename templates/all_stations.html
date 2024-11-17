@@ -1,0 +1,119 @@
+
+{% extends "base1.html" %} {% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Stations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .station-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .station-card img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 20px;
+        }
+        .station-info {
+            flex-grow: 1;
+        }
+        .station-info h3 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+        .station-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .station-info .date {
+            font-size: 14px;
+            color: #999;
+        }
+        .button-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .btn {
+            padding: 12px 20px;
+            margin: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-add {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-update {
+            background-color: #007BFF;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .no-stations {
+            text-align: center;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>All Stations</h2>
+
+        {% if all_stations %}
+            {% for station in all_stations %}
+                <div class="station-card">
+                    <!-- Station Image -->
+                    <img src="{{ station.img_url }}" alt="Station Image">
+
+                    <!-- Station Info -->
+                    <div class="station-info">
+                        <h3>{{ station.station_name }}</h3>
+                        <p class="datetime"> {{ station.created_at.strftime('%Y-%m-%d %H:%M:%S') }} </p>
+                        <p class="location">Location: {{ station.station_location }}</p>
+                        <p class="remarks">Remarks: {{ station.remarks }}</p>
+                        <p class="is_active">Is Active: {{ station.is_active }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="no-stations">No stations available.</p>
+        {% endif %}
+
+        <!-- Add and Update Buttons -->
+<div class="d-flex justify-content-end mb-4">
+        <a class="btn btn-secondary text-uppercase" href="#!">Update Station →</a>
+        <a
+          class="btn btn-primary text-uppercase  float-right"
+          href="{{url_for('show_form')}}"
+          >Add station →</a
+        >
+    </div>
+    </div>
+
+</body>
+</html>
+{% endblock %}

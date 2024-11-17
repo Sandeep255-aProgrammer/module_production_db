@@ -1,0 +1,35 @@
+
+<h1>Inspection Form</h1>
+    <form action="/submit_inspection" method="post" enctype="multipart/form-data">
+
+        <!-- Text Fields -->
+        <label for="check_id">Check ID:</label>
+        <input type="text" id="check_id" name="check_id" required><br><br>
+
+        <label for="receiver_name">Receiver Name:</label>
+        <input type="text" id="receiver_name" name="receiver_name" required><br><br>
+
+        <label for="shipment_info">Shipment Info:</label>
+        <input type="text" id="shipment_info" name="shipment_info" required><br><br>
+
+        <label for="issue_found">Issue Found:</label>
+        <input type="text" id="issue_found" name="issue_found" required><br><br>
+
+        <label for="comments">Comments:</label>
+        <input type="text" id="comments" name="comments"><br><br>
+
+        <!-- Image Upload -->
+        <label for="image_upload">Upload an Image:</label>
+        <input type="file" id="image_upload" name="image_upload" accept="image/*"><br><br>
+
+        <!-- Inspection Result Dropdown -->
+        <label for="inspection_result">Inspection Result:</label>
+        <select id="inspection_result" name="inspection_result" required>
+            <option value="">Select Result</option>
+            <option value="good">Good</option>
+            <option value="bad">Bad</option>
+        </select><br><br>
+        <!-- Submit Button -->
+        <input type="submit" value="Submit Inspection">
+    </form>
+

@@ -1,0 +1,45 @@
+{% extends "base1.html" %} {% block content %}
+
+
+
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center"> Modules </h1>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">Module</th>
+                    <th scope="col">FEH_L</th>
+                    <th scope="col">FEH_R</th>
+                    <th scope="col">SEH</th>
+                    <th scope="col">Bottom Sensor</th>
+                    <th scope="col">Top Sensor</th>
+                    <th scope="col">VTRx+</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><a href="{{url_for('module_report')}}">2S_18_6_KIT-10001</a></td>
+                    <td>2SFEH18L-211000033</td>
+                    <td>2SFEH18R-211000012</td>
+                    <td>2SSEH-213000034</td>
+                    <td>34353_029_2-S_MAIN0</td>
+                    <td>34353_023_2-S_MAIN0</td>
+                    <td>VTRx+_12.0cm_16611019799</td>
+                </tr>
+                
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+
+
+
+
+
+
+
+{% endblock %}

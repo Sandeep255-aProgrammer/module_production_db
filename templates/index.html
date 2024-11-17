@@ -1,0 +1,11 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="box">
+  <h1>NISER_CMS Local DataBase</h1>
+  <!-- TODO: Hide the Login/Registration buttons for logged-in users -->
+  <a href="{{ url_for('login') }}" class="btn btn-primary btn-block btn-large"
+    >Login</a
+  >
+</div>
+
+{% endblock %}

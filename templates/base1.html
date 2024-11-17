@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NISER DataBase</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+   <style>
+    .long-box {
+      display: flex;
+      flex-direction: column; /* Stack the links vertically */
+      justify-content: space-between; /* Evenly distribute the links */
+      align-items: center; /* Center the links horizontally */
+      width: 100%; /* Make the box full width */
+      max-width: 900px; /* Limit the box width */
+      height: 800px; /* Set a fixed height for the box */
+      border: 2px solid #ffffff; /* Border for the box */
+      padding: 40px; /* Padding inside the box */
+      background-color: #f8f9fa; /* Light background color */
+      border-radius: 10px; /* Rounded corners */
+      overflow-y: auto; /* Add vertical scrolling if content overflows */
+    }
+
+    .link-box {
+      width: 100%; /* Make each link box take full width of the container */
+      text-align: center; /* Center the text of each link */
+      padding: 10px; /* Padding inside each link box */
+      border: 1px solid #f8f9fa; /* Border for each link */
+      margin-bottom: 10px; /* Space between each link */
+      border-radius: 5px; /* Rounded corners */
+      text-decoration: none; /* Remove underline */
+      color: #007bff; /* Link color */
+      font-size: 25px; /* Font size */
+      background-color: #ffffff; /* White background for the link */
+      transition: background-color 0.3s; /* Smooth hover effect */
+    }
+
+    .link-box:hover {
+      background-color: #FFA500; /* Light blue on hover */
+    }
+  </style>  
+
+</head>
+
+  <body class="bg-muted">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="/">NISER DataBase</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+          </li>
+          <!-- TODO: Hide the Login/Registration navigation for logged-in users -->
+          {% if not current_user.is_authenticated: %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+          </li>
+          {% else: %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('logout') }}"> Log Out ({{ current_user.username }})</a>
+          </li>
+          {% endif %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('stations') }}">Stations</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    {% block content %} {% endblock %}
+  </body>
+</html>

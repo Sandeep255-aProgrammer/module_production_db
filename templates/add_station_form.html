@@ -1,0 +1,19 @@
+{% from "bootstrap5/form.html" import render_form %}
+{% extends "base1.html" %} {% block content %}
+
+
+<main class="mb-4">
+  <div class="container">
+    <div class="row">
+      <!-- Adding Flash message here for users trying to register twice -->
+      <div class="col-lg-8 col-md-10 mx-auto">
+        <!--Rendering login form here-->
+        {{ ckeditor.load() }}
+        {{ ckeditor.config(name='station_comment') }}
+        {{render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+      </div>
+    </div>
+  </div>
+</main>
+
+{% endblock %}
