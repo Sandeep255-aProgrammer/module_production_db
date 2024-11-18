@@ -4,20 +4,16 @@ from wtforms.validators import DataRequired, URL
 from flask_ckeditor import CKEditorField
 
 
-# WTForm for creating a blog post
-class CreatePostForm(FlaskForm):
-    title = StringField("Blog Post Title", validators=[DataRequired()])
-    subtitle = StringField("Subtitle", validators=[DataRequired()])
-    img_url = FileField("Blog Image URL", validators=[DataRequired()])
-    body = CKEditorField("Blog Content", validators=[DataRequired()])
-    date = DateField("Expary Date", format='%Y-%m-%d')
-    cooling_point = BooleanField("6 cp" , validators=[DataRequired()])
-    cooling_points = SelectField(
-        'Cooling Point',
-        choices=[('6 cp', '6 cp'), ('5 cp', '5 cp')],
-        validators=[DataRequired()]
-    )
-    submit = SubmitField("Submit Post")
+
+'''
+This is the py file for making forms , it is based on wtforms module so visit the website to learn more about this module like fields , FileField etc 
+
+
+'''
+
+
+
+
 
 
 # Create a form to register new users
@@ -34,11 +30,6 @@ class LoginForm(FlaskForm):
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Let Me In!")
 
-
-# Create a form to add comments
-class CommentForm(FlaskForm):
-    comment_text = CKEditorField("Comment", validators=[DataRequired()])
-    submit = SubmitField("Submit Comment")
 
 # create Station Add forms
 class AddStationForm(FlaskForm):
@@ -204,7 +195,7 @@ class NoiseTestForm(FlaskForm):
     submit= SubmitField("Save")
 #BufNim Test
 
-class BufNimForm(FlaskForm):
+class BurNimForm(FlaskForm):
     check_id = StringField("Check ID", validators=[DataRequired()])
     receiver_name= StringField("Receiver Name ", validators=[DataRequired()])
     shipment_info = StringField("Shipment Info ", validators=[DataRequired()])

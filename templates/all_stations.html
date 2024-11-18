@@ -87,14 +87,14 @@
             {% for station in all_stations %}
                 <div class="station-card">
                     <!-- Station Image -->
-                    <img src="{{ station.img_url }}" alt="Station Image">
+                    <img src="{{ station.img_path }}" alt="Station Image">
 
                     <!-- Station Info -->
                     <div class="station-info">
                         <h3>{{ station.station_name }}</h3>
                         <p class="datetime"> {{ station.created_at.strftime('%Y-%m-%d %H:%M:%S') }} </p>
                         <p class="location">Location: {{ station.station_location }}</p>
-                        <p class="remarks">Remarks: {{ station.remarks }}</p>
+                        <p>Remarks: {{ station.remarks }}</p>
                         <p class="is_active">Is Active: {{ station.is_active }}</p>
                     </div>
                 </div>
