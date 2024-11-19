@@ -1,0 +1,99 @@
+Material_Name
+Receiver_Name
+Date
+Upload Image
+Comment
+Save
+
+Sensor ID
+Receiver Name
+Shipment Info
+Upload Image
+Comment
+Save
+
+Sensor ID
+Sensor Type
+Expary Date
+Cooling Point
+Polytec 601 partA / Batch No :
+part A Expiry Date
+Polytec 601 partB / Batch No :
+part B Expiry Date
+Comment
+Save
+
+Sensor ID
+Sensor Type
+Cooling Point
+HV Plot
+IV Plot
+Upload Image
+Comment
+Save
+
+Bare_Module ID/Name
+Top Sensor ID
+Bottom Sensor ID
+Main Bridge ID
+Stump Bridge ID
+Module Spacing
+Cooling Point
+Jig No.
+Polytec TC437 partA / Batch No :
+part A Expiry Date
+Polytec TC437 partB / Batch No :
+part B Expiry Date
+Upload Image
+Comment
+Save
+
+Module No.
+Delta x
+Delta y
+Rotation
+Upload Data (csv/excel)
+Upload Image
+Comment
+Save
+
+Skeleton ID
+FEH_LID
+FEH_RID
+VTRx+_ID
+Ground Balancer ID
+Upload Image
+Comment
+Save
+
+Module ID
+Bare_Module ID
+Skeleton ID
+Polytec TC437 partA / Batch No :
+part A Expiry Date
+Polytec TC437 partB / Batch No :
+part B Expiry Date
+Upload Image
+Comment
+Save
+
+Module_ID
+Comment
+Save
+
+Module ID
+Pull Test Result (gram)
+Upload Image/Data
+Comment
+Save
+
+Module ID
+Upload Result (root file)
+Upload Image
+Comment
+Save
+
+Module ID
+Comment
+Save
+

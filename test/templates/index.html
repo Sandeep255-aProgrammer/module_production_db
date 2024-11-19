@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Form</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Show or hide fields based on dropdown selection
+            function toggleFields() {
+                var selectedOption = $('#choice').val();
+                if (selectedOption == '1') {
+                    $('#name_field').show();
+                    $('#school_field').hide();
+                } else {
+                    $('#name_field').hide();
+                    $('#school_field').show();
+                }
+            }
+
+            // Initial check when the page loads
+            toggleFields();
+
+            // Change event on dropdown to trigger toggle
+            $('#choice').change(function() {
+                toggleFields();
+            });
+        });
+    </script>
+</head>
+<body>
+
+    <h1>Dynamic Form</h1>
+
+    <form method="POST" action="/">
+        {{ form.hidden_tag() }}
+        
+        <div>
+            {{ form.choice.label }}<br>
+            {{ form.choice() }}
+        </div>
+
+        <div id="name_field">
+            {{ form.name.label }}<br>
+            {{ form.name() }}
+        </div>
+
+        <div id="school_field" style="display: none;">
+            {{ form.school_name.label }}<br>
+            {{ form.school_name() }}
+        </div>
+
+        <div>
+            <button type="submit">Submit</button>
+        </div>
+    </form>
+
+</body>
+</html>
+

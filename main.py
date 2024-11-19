@@ -30,7 +30,8 @@ from forms import (
     HybridGluingForm,
     WireBondingForm,
     NoiseTestForm,
-    BurNimForm
+    BurNimForm,
+    ModuleData
 )
 
 
@@ -174,9 +175,10 @@ def show_form():
                               remarks = station_remarks,
                               img_path = img_path,
                               is_active = station_is_active,
-                              iteration_number = station_iteration_number,
+                              iteration_number = station_iteration_number, 
                               operator = station_operator)
         db.session.add(new_station)
+#iteration_number = station_iteration_number,
         db.session.commit()
         return redirect(url_for('stations'))
     if current_user.is_authenticated:
@@ -237,4 +239,5 @@ def add_data():
 
 
 if __name__ == "__main__":
-    app.run(port=5555,debug=True)
+    app.run(host='0.0.0.0', port=5555, debug=True)
+
