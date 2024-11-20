@@ -133,6 +133,41 @@ def show_module():
 def module_report():
     return render_template("module_report.html")
 
+# wire_bonding.html is rendered when you click on the wire_bonding module in the wire_bonding.html page
+@app.route('/wire_bonding', methods=['GET', 'POST'])
+@login_required
+def wire_bonding():
+    if request.method == 'POST':
+        # Process Top Table Data
+        top_data = []
+        for i in range(1, 21):
+            top_data.append({
+                'raw_pull_force': request.form.get(f'top_raw_pull_force_{i}', type=float),
+                'distance_between_feet': request.form.get(f'top_distance_between_feet_{i}', type=float),
+                'type_of_break': request.form.get(f'top_type_of_break_{i}'),
+                'correction_factor': request.form.get(f'top_correction_factor_{i}', type=float),
+                'corrected_force': request.form.get(f'top_corrected_force_{i}', type=float),
+            })
+
+        # Process Bottom Table Data
+        bottom_data = []
+        for i in range(1, 21):
+            bottom_data.append({
+                'raw_pull_force': request.form.get(f'bottom_raw_pull_force_{i}', type=float),
+                'distance_between_feet': request.form.get(f'bottom_distance_between_feet_{i}', type=float),
+                'type_of_break': request.form.get(f'bottom_type_of_break_{i}'),
+                'correction_factor': request.form.get(f'bottom_correction_factor_{i}', type=float),
+                'corrected_force': request.form.get(f'bottom_corrected_force_{i}', type=float),
+            })
+
+        # Example: Save or process the data
+        flash("Wire Bonding data submitted successfully!", "success")
+        return redirect(url_for('workflow'))
+
+    form = WireBondingForm()
+    return render_template('wire_bonding.html', form=form)
+
+
 
 '''
  this portion is the activated when stations is clicked basically it shows all the stations that are available in the database and gives a options to add more stations 
@@ -205,6 +240,9 @@ def download():
 def add_data():
     num = request.args.get('num')
     step_no = int(num)
+    form = None
+    template_name = "visual_inspection.html"  # Default template for most steps
+
     if step_no == 0:
         form = MaterialReceiver()
     elif step_no == 1:
@@ -221,18 +259,23 @@ def add_data():
         form = SkeletonTestForm()
     elif step_no == 7:
         form = HybridGluingForm()
-    elif step_no == 11:
-        form = ModuleData()
-    elif step_no == 8:
+    elif step_no == 8:  # Wire Bonding
         form = WireBondingForm()
+        template_name = "wire_bonding.html"  # Use a unique template for Wire Bonding
     elif step_no == 9:
         form = NoiseTestForm()
     elif step_no == 10:
         form = BurNimForm()
+    elif step_no == 11:
+        form = ModuleData()
+
     if form.validate_on_submit():
         # Handle the form submission logic here
-        pass
-    return render_template("visual_inspection.html", form=form)
+        flash(f"Step {step_no} data submitted successfully!", "success")
+        return redirect(url_for('workflow'))  # Redirect to workflow after submission
+
+    return render_template(template_name, form=form)
+
 
 
 
