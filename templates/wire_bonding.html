@@ -1,0 +1,117 @@
+{% extends "base1.html" %}
+{% block content %}
+<main class="mb-4">
+  <div class="container">
+    <h2 class="text-center">Wire Bonding</h2>
+    <form method="POST" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+
+      <!-- Module ID, Delta Height, Loop Height -->
+      <div class="form-group">
+        <label for="module_id">Module ID</label>
+        <input type="text" name="module_id" id="module_id" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="delta_height">Delta Height</label>
+        <input type="number" name="delta_height" id="delta_height" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="loop_height">Loop Height</label>
+        <input type="number" name="loop_height" id="loop_height" class="form-control" required>
+      </div>
+      <!-- Top Table -->
+      <h3 class="mt-4 text-center">Top Table</h3>
+      <table class="table table-bordered text-center">
+        <thead>
+          <tr>
+            <th>Strip No.</th>
+            <th>Raw Pull Force(gr)</th>
+            <th>Distance Between Feet</th>
+            <th>Type of Break</th>
+            <th>Correction Factor</th>
+            <th>Corrected Force</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in range(1, 21) %}
+          <tr>
+            <td>{{ i }}</td>
+            <td><input type="number" name="top_raw_pull_force_{{ i }}" class="form-control"></td>
+            <td><input type="number" name="top_distance_between_feet_{{ i }}" class="form-control"></td>
+            <td><select name="top_type_of_break_{{ i }}" class="form-control">
+                <option value="">Select</option>
+                <option value="1">1 - Wire cut</option>
+                <option value="2">2 - Lift-off on sensor</option>
+                <option value="3">3 - Heel break on sensor</option>
+                <option value="4">4 - Lift-off on hybrid</option>
+                <option value="5">5 - Heel break on hybrid</option>
+                <option value="0">0 - Wire doesn't break</option>
+                <option value="6">6 - Others</option>
+              </select>
+            </td>
+            <td><input type="number" name="top_correction_factor_{{ i }}" class="form-control"></td>
+            <td><input type="number" name="top_corrected_force_{{ i }}" class="form-control"></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Bottom Table -->
+      <h3 class="mt-4 text-center">Bottom Table</h3>
+      <table class="table table-bordered text-center">
+        <thead>
+          <tr>
+            <th>Strip No.</th>
+            <th>Raw Pull Force(gr)</th>
+            <th>Distance Between Feet</th>
+            <th>Type of Break</th>
+            <th>Correction Factor</th>
+            <th>Corrected Force</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in range(1, 21) %}
+          <tr>
+            <td>{{ i }}</td>
+            <td><input type="number" name="bottom_raw_pull_force_{{ i }}" class="form-control"></td>
+            <td><input type="number" name="bottom_distance_between_feet_{{ i }}" class="form-control"></td>
+            <td><select name="bottom_type_of_break_{{ i }}" class="form-control">
+              <option value="">Select</option>
+              <option value="1">1 - Wire cut</option>
+              <option value="2">2 - Lift-off on sensor</option>
+              <option value="3">3 - Heel break on sensor</option>
+              <option value="4">4 - Lift-off on hybrid</option>
+              <option value="5">5 - Heel break on hybrid</option>
+              <option value="0">0 - Wire doesn't break</option>
+              <option value="6">6 - Others</option>
+            </select>
+          </td>
+            <td><input type="number" name="bottom_correction_factor_{{ i }}" class="form-control"></td>
+            <td><input type="number" name="bottom_corrected_force_{{ i }}" class="form-control"></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Standard Deviation Table -->
+      <h3 class="mt-4 text-center">Standard Deviation</h3>
+      <table class="table table-bordered text-center">
+        <thead>
+          <tr>
+            <th>Standard Deviation (Top)</th>
+            <th>Standard Deviation (Bottom)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="number" name="std_dev_top" class="form-control"></td>
+            <td><input type="number" name="std_dev_bottom" class="form-control"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+  </div>
+</main>
+{% endblock %}

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField ,FileField ,DateField , BooleanField , SelectField,  DateTimeField
-from wtforms.validators import DataRequired, URL
+from wtforms import StringField, SubmitField, PasswordField ,FileField ,DateField , BooleanField , SelectField,  DateTimeField,FormField, FloatField , FieldList
+from wtforms.validators import DataRequired, URL, Optional
 from flask_ckeditor import CKEditorField
 
 
@@ -10,10 +10,6 @@ This is the py file for making forms , it is based on wtforms module so visit th
 
 
 '''
-
-
-
-
 
 
 # Create a form to register new users
@@ -50,8 +46,8 @@ class AddStationForm(FlaskForm):
 
 #Material reception
 class MaterialReceiver(FlaskForm):
-    material_name = StringField("Material_Name", validators=[DataRequired()])
-    receiver_name = StringField("Receiver_Name", validators=[DataRequired()])
+    material_name = SelectField("Material Name", choices=[('sensor', 'Sensor'), ('hybrid', 'Hybrid'), ('bridge', 'Bridge'),('glue','Glue'),('kapton tapes','Kapton Tapes'), ('optical fibre','Optical Fibre') ,('other', 'Other Consumables')], validators=[DataRequired()])
+    other_material_name = StringField("Other Material Name")
     date = DateField("Date", format='%Y-%m-%d')
     image = FileField("Upload Image" ,validators=[DataRequired()])
     comment= CKEditorField("Comment", validators=[DataRequired()])
@@ -59,11 +55,21 @@ class MaterialReceiver(FlaskForm):
 # VisualInspectionForm done
 
 class VisualInspection(FlaskForm):
-    check_id = StringField("Sensor ID", validators=[DataRequired()])
-    receiver_name= StringField("Receiver Name ", validators=[DataRequired()])
-    shipment_info = StringField("Shipment Info ", validators=[DataRequired()])
-    image = FileField("Upload Image" ,validators=[DataRequired()])
-    comment= CKEditorField("Comment", validators=[DataRequired()])
+    # Dropdown menu for selecting the item type
+    item_type = SelectField(
+        "Item Type",
+        choices=[
+            ('sensor', 'Sensor'),
+            ('hybrid', 'Hybrid'),
+            ('bridge', 'Bridge')
+        ],
+        validators=[DataRequired()]
+    )
+    check_id = StringField("Item ID", validators=[DataRequired()])
+    receiver_name = StringField("Receiver Name", validators=[DataRequired()])
+    shipment_info = StringField("Shipment Info", validators=[DataRequired()])
+    image = FileField("Upload Image", validators=[DataRequired()])
+    comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
 # KaptonGluing
@@ -174,12 +180,28 @@ class ModuleData(FlaskForm):
     image = FileField("Upload Image")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
+    
 #Wire Bonding
 
 class WireBondingForm(FlaskForm):
-    check_id = StringField("Check ID", validators=[DataRequired()])
-    receiver_name= StringField("Receiver Name ", validators=[DataRequired()])
-    shipment_info = StringField("Shipment Info ", validators=[DataRequired()])
+    # check_id = StringField("Check ID", validators=[DataRequired()])
+    # receiver_name= StringField("Receiver Name ", validators=[DataRequired()])
+    # shipment_info = StringField("Shipment Info ", validators=[DataRequired()])
+    # Add the type of break dropdown menu with options
+    type_of_break = SelectField(
+        "Type of Break",
+        choices=[
+            ("", "Select"),  # Default option
+            ("1", "1 - Wire cut"),
+            ("2", "2 - Lift-off on sensor"),
+            ("3", "3 - Heel break on sensor"),
+            ("4", "4 - Lift-off on hybrid"),
+            ("5", "5 - Heel break on hybrid"),
+            ("0", "0 - Wire doesn't break"),
+            ("6", "6 - Others"),
+        ],
+        validators=[DataRequired()],
+    )
     image = FileField("Upload Image" ,validators=[DataRequired()])
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
