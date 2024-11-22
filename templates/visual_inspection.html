@@ -16,4 +16,45 @@
   </div>
 </main>
 
+<!-- JavaScript for Conditional Display for selecting other consumables in the Material Reciever-->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      var materialNameField = document.querySelector('select[name="material_name"]');
+      var otherMaterialNameField = document.querySelector('input[name="other_material_name"]').parentElement;
+  
+      function toggleOtherMaterialField() {
+          if (materialNameField.value === 'other') {
+              otherMaterialNameField.style.display = 'block';
+          } else {
+              otherMaterialNameField.style.display = 'none';
+          }
+      }
+  
+      materialNameField.addEventListener('change', toggleOtherMaterialField);
+      toggleOtherMaterialField(); // Initial call to set the correct state
+  });
+  </script>
+
+  <!-- JavaScript for Dynamic Label Update for the different item ID-->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      var itemTypeField = document.querySelector('select[name="item_type"]');
+      var checkIdLabel = document.querySelector('label[for="check_id"]');
+  
+      function updateCheckIdLabel() {
+          var selectedItemType = itemTypeField.value;
+          if (selectedItemType === 'sensor') {
+              checkIdLabel.textContent = 'Sensor ID';
+          } else if (selectedItemType === 'hybrid') {
+              checkIdLabel.textContent = 'Hybrid ID';
+          } else if (selectedItemType === 'bridge') {
+              checkIdLabel.textContent = 'Bridge ID';
+          }
+      }
+  
+      itemTypeField.addEventListener('change', updateCheckIdLabel);
+      updateCheckIdLabel(); // Initial call to set the correct state
+  });
+  </script>
+  
 {% endblock %}
