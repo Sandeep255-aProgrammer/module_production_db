@@ -13,7 +13,8 @@ from flask_ckeditor import CKEditor
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 import datetime
 
-
+utc_now = datetime.datetime.now()
+current_date =f"{utc_now.year}-{utc_now.month}-{utc_now.day}" 
 ''' 
 below  import all the forms required , which is defined in the forms.py
 ''' 
@@ -30,7 +31,9 @@ from forms import (
     HybridGluingForm,
     WireBondingForm,
     NoiseTestForm,
-    BurNimForm
+    BurNimForm,BurnimForm1, BurnimForm2, BurnimForm3, BurnimForm4, BurnimForm5, \
+    BurnimForm6, BurnimForm7, BurnimForm8, BurnimForm9, BurnimForm10 ,
+    ModuleData
 )
 
 
@@ -40,8 +43,29 @@ now import all the stups related to the database tike the table and db , all are
 
 '''
 
-from database_table import User , Station , db
+#from database_table import User , Station , db
+from database_table import (
+    db ,
+    User,
+    Station ,
+    MaterialReceiverTable,
+    VisualInspectionSensorTable,
+    VisualInspectionHybridTable,
+    VisualInspectionBridgeTable,
+    KaptonGluingTable,
+    HvIvFormTable,
+    SensorGluingTable,
+    NeedleMetrologyTable,
+    SkeletonTestTable,
+    HybridGluingTable,
+    ModuleDataTable,
+    WireBondingTable,
+    NoiseTestTable,
+    BurNimTable
+)
 
+
+from save_form_database import SaveToDataBase
 
 
 '''
@@ -51,7 +75,9 @@ from database_table import User , Station , db
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret-key-goes-here'
+# define the Folder path here 
 app.config["UPLOAD_FOLDER"]= "static/uploads/station_image"
+app.config["UPLOAD_WORKFLOW_FILES"]= "static/WORKFLOW_FILES"
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 
@@ -59,7 +85,13 @@ db_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'DATABASE')
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(db_dir, "nisers.db")}'
 db.init_app(app)
 
-
+# Define save_get_file_url function which take the the form file data , save the data in a given folder and returns path
+def save_get_file_url(file):
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(app.config['UPLOAD_WORKFLOW_FILES'],filename)
+    file.save(file_path)
+    return file_path
+    
 
 #Flask log-in  ,this part is crucial for authenticaton 
 
@@ -176,12 +208,11 @@ def wire_bonding():
 @app.route('/stations')
 @login_required
 def stations():
-    print(current_user.username)
     with app.app_context():
         result = db.session.execute(db.select(Station).order_by(Station.id))
         all_stations = result.scalars().all()
         return render_template("all_stations.html",all_stations = all_stations,user_name = current_user.username)
-    #return render_template("stations1.html")
+   
 '''
 This show_form functions adds the new station to the database and redirect to the the method stations page after successfull completion 
 
@@ -209,11 +240,13 @@ def show_form():
                               remarks = station_remarks,
                               img_path = img_path,
                               is_active = station_is_active,
-                              iteration_number = station_iteration_number,
+                              iteration_number = station_iteration_number, 
                               operator = station_operator)
         db.session.add(new_station)
+#iteration_number = station_iteration_number,
         db.session.commit()
         return redirect(url_for('stations'))
+# this steps make sure the operator filed is auto filled with by the current user name 
     if current_user.is_authenticated:
         form.station_operator.data = current_user.username  # Set station_operator to current user's name
         form.station_operator.render_kw = {'readonly': True}
@@ -240,35 +273,191 @@ def download():
 def add_data():
     num = request.args.get('num')
     step_no = int(num)
-    form = None
-    template_name = "visual_inspection.html"  # Default template for most steps
+    sensor_ids = db.session.query(VisualInspectionSensorTable.sensor_id).distinct().all()
+    bare_module_ids = db.session.query(SensorGluingTable.bare_module_id).distinct().all()
+    module_ids = db.session.query(HybridGluingTable.module_id).distinct().all()
+    skeleton_ids = db.session.query(SkeletonTestTable.skeleton_id).distinct().all()
 
     if step_no == 0:
         form = MaterialReceiver()
+        if form.validate_on_submit():
+            sensors_quantity = form.sensors_quantity.data
+            hybrid_quantity = form.hybrid_quantity.data
+            optical_fibres_quantity = form.optical_fibres_quantity.data
+            kaptontapes_quantity = form.kaptontapes_quantity.data
+            bridges_quantity = form.bridges_quantity.data
+            others = form.others.data
+            receiver_name = form.receiver_name.data
+            #date = form.date.data
+            image = form.image.data
+            comment = form.comment.data
+            if image and image.filename != '':
+                image_url = save_get_file_url(image)
+            else:
+                image_url = None
+            new_material_receiving = MaterialReceiverTable(
+                                       sensors_quantity = sensors_quantity ,
+                                       hybrid_quantity = hybrid_quantity ,
+                                       optical_fibres_quantity = optical_fibres_quantity ,
+                                       kaptontapes_quantity = kaptontapes_quantity ,
+                                       receiver_name = receiver_name,
+                                       bridges_quantity = bridges_quantity ,
+                                       others = others ,
+                                       
+                                       image_url = image_url , comment = comment )
+            db.session.add(new_material_receiving)
+            db.session.commit()
+            return redirect(url_for('work_flow'))
+        
+       
+    
     elif step_no == 1:
         form = VisualInspection()
+        inspection_number = None
+        if form.validate_on_submit():
+            inspection_number = int(form.inspection_type.data)
+            if inspection_number == 1:
+                return redirect(url_for('sensor_inspection'))
+            elif inspection_number == 3:
+                return redirect(url_for('hybrid_inspection'))
+            elif inspection_number == 2:
+                return redirect(url_for('bridge_inspection'))
+        return render_template("visual_inspection.html", form=form) 
+            
     elif step_no == 2:
         form = KaptonGluing()
+        # add sensor ids from VisualInspectionsencor table to the sensor id choices 
+        #sensor_ids = db.session.query(VisualInspectionSensorTable.sensor_id).distinct().all()
+        form.sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
+        if form.validate_on_submit():
+            SaveToDataBase().save_kapton_gluing_form(form,db, app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
+        
+        
     elif step_no == 3:
         form = HvIvForm()
+        form.sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
+        if form.validate_on_submit():
+            SaveToDataBase().save_hv_iv_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
     elif step_no == 4:
         form = SensorGluing()
+        form.top_sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
+        form.bottom_sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
+        if form.validate_on_submit():
+            SaveToDataBase().save_sensor_gluing_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
     elif step_no == 5:
         form = NeedleMetrologyForm()
+        form.bare_module_id.choices = [(bare_module.bare_module_id, bare_module.bare_module_id) for bare_module in bare_module_ids]
+        if form.validate_on_submit():
+            SaveToDataBase().save_needle_metrology_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
     elif step_no == 6:
         form = SkeletonTestForm()
+        if form.validate_on_submit():
+            SaveToDataBase().save_skeleton_test_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
     elif step_no == 7:
         form = HybridGluingForm()
-    elif step_no == 8:  # Wire Bonding
-        form = WireBondingForm()
-        template_name = "wire_bonding.html"  # Use a unique template for Wire Bonding
-    elif step_no == 9:
-        form = NoiseTestForm()
-    elif step_no == 10:
-        form = BurNimForm()
+        form.bare_module_id.choices = [(bare_module.bare_module_id, bare_module.bare_module_id) for bare_module in bare_module_ids]
+        form.skeleton_id.choices =[(skeleton.skeleton_id, skeleton.skeleton_id) for skeleton in skeleton_ids]
+        if form.validate_on_submit():
+            SaveToDataBase().save_hybrid_gluing_form( form ,db ,app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
     elif step_no == 11:
         form = ModuleData()
+    elif step_no == 8:  # Wire Bonding
+        #form = WireBondingForm()
+        template_name = "wire_bonding.html"  # Use a unique template for Wire Bonding
+        return redirect(url_for('wire_bonding'))
+    elif step_no == 9:
+        form = NoiseTestForm()
+        form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
+        if form.validate_on_submit():
+            pass
+        
+        
+    elif step_no == 10:
+        form = BurNimForm()
+        if form.validate_on_submit():
+            module_quantity = int(form.module_quantity.data)
+            return redirect(url_for('burnim_data_upload',module_quantity = module_quantity))
+    
+    return render_template("visual_inspection.html", form=form)
 
+@app.route('/sensor_inspection', methods=["GET", "POST"])
+def sensor_inspection():
+    form = VisualInspectionSensor()
+    if form.validate_on_submit():
+        sensor_id = form.sensor_id.data
+        sensor_image = form.sensor_image.data
+        comment = form.comment.data
+        image_url = save_get_file_url(sensor_image)
+        new_sensor_inspection = VisualInspectionSensorTable(
+                                          sensor_id = sensor_id,
+                                          sensor_image = image_url,
+                                          comment = comment )
+        db.session.add(new_sensor_inspection)
+        db.session.commit()
+        return redirect(url_for('work_flow'))
+    return render_template("visual_inspection.html", form=form)
+@app.route('/hybrid_inspection', methods=["GET", "POST"])
+def hybrid_inspection():
+    form = VisualInspectionHybrid()
+    if form.validate_on_submit():
+        hybrid_id = form.hybrid_id.data
+        hybrid_image = form.hybrid_image.data
+        comment = form.comment.data
+        image_url = save_get_file_url(hybrid_image)
+        new_hybrid_inspection = VisualInspectionHybridTable(
+                                          hybrid_id = hybrid_id,
+                                          hybrid_image = image_url,
+                                          comment = comment )
+        db.session.add(new_hybrid_inspection)
+        db.session.commit()
+        return redirect(url_for('work_flow'))
+    return render_template("visual_inspection.html", form=form)
+@app.route('/bridge_inspection', methods=["GET", "POST"])
+def bridge_inspection():
+    form = VisualInspectionBridge()
+    if form.validate_on_submit():
+        SaveToDataBase().save_visual_inspection_bridge_form(form ,db ,app.config['UPLOAD_WORKFLOW_FILES'])
+        return redirect(url_for('work_flow'))
+    return render_template("visual_inspection.html", form=form)
+@app.route('/burnim_data_upload', methods=["GET", "POST"])
+def burnim_data_upload():
+    module_ids = db.session.query(HybridGluingTable.module_id).distinct().all()
+    module_quantity = int(request.args.get('module_quantity', 1))  
+    form = None
+    if module_quantity == 1:
+        form = BurnimForm1(module_ids)
+    elif module_quantity == 2:
+        form = BurnimForm2(module_ids)
+    elif module_quantity == 3:
+        form = BurnimForm3(module_ids)
+    elif module_quantity == 4:
+        form = BurnimForm4(module_ids)
+    elif module_quantity == 5:
+        form = BurnimForm5(module_ids)
+    elif module_quantity == 6:
+        form = BurnimForm6(module_ids)
+    elif module_quantity == 7:
+        form = BurnimForm7(module_ids)
+    elif module_quantity == 8:
+        form = BurnimForm8(module_ids)
+    elif module_quantity == 9:
+        form = BurnimForm9(module_ids)
+    elif module_quantity == 10:
+        form = BurnimForm10(module_ids)
+
+    
+    if form and form.validate_on_submit():
+        SaveToDataBase().save_burnim_test_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'], module_quantity)
+        return redirect(url_for('work_flow'))
+
+    return render_template("visual_inspection.html", form=form)
+'''
     if form.validate_on_submit():
         # Handle the form submission logic here
         flash(f"Step {step_no} data submitted successfully!", "success")
@@ -276,8 +465,9 @@ def add_data():
 
     return render_template(template_name, form=form)
 
-
+'''
 
 
 if __name__ == "__main__":
-    app.run(port=5555,debug=True)
+    app.run(host='0.0.0.0', port=5555, debug=True)
+
