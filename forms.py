@@ -69,8 +69,8 @@ class VisualInspection(FlaskForm):
         validators=[DataRequired()]
     )
     check_id = StringField("Item ID", validators=[DataRequired()])
-    receiver_name = StringField("Receiver Name", validators=[DataRequired()])
-    shipment_info = StringField("Shipment Info", validators=[DataRequired()])
+   # receiver_name = StringField("Receiver Name", validators=[DataRequired()])
+   # shipment_info = StringField("Shipment Info", validators=[DataRequired()])
     image = FileField("Upload Image", validators=[DataRequired()])
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
