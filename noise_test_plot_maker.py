@@ -18,7 +18,7 @@ class MakePlot():
             return None
         sides = ["R", "L"]
         folderList = [x.GetName() for x in filename_.GetListOfKeys()]
-        #print(folderList)
+        print(folderList)
         folderList = [folder for folder in folderList if "Detector" not in folder]
         if not folderList:
             print(" the folder is empty, can't produce the images")
@@ -58,7 +58,7 @@ class MakePlot():
     
                 outCanvasName = filename.replace(".root", f"_{folder}_FEH{i}")
                 #print("save the file no")
-                file_url = f"WORKFLOW_FILES/NOISE_TEST_IMAGE_{outCanvasName}.png"
+                file_url = f"NOISE_TEST_IMAGE_{outCanvasName}.png"
                 canvas.SaveAs(file_url)
                 out_file_url.append(file_url)
                 #canvas.SaveAs(f"{outCanvasName}.pdf")

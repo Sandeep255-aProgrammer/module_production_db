@@ -238,7 +238,7 @@ class WireBondingForm(FlaskForm):
 #NoiseTest
 
 class NoiseTestForm(FlaskForm):
-    check_id = StringField("Module ID", validators=[DataRequired()])
+    module_id = StringField("Module ID", validators=[DataRequired()])
     root_file = FileField("Upload Result (root file)" ,validators=[DataRequired()])
     image = FileField("Upload Image" ,validators=[DataRequired()])
     comment = CKEditorField("Comment", validators=[DataRequired()])
