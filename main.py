@@ -20,12 +20,10 @@ below  import all the forms required , which is defined in the forms.py
 ''' 
 
 from forms import (
+    MaterialReceiverTypeForm,
     AddStationForm ,
     MaterialReceiver,
     VisualInspection,
-    VisualInspectionSensor,
-VisualInspectionHybrid,
-    VisualInspectionBridge,
     KaptonGluing,
     HvIvForm,
     SensorGluing,
@@ -168,6 +166,41 @@ def show_module():
 def module_report():
     return render_template("module_report.html")
 
+# wire_bonding.html is rendered when you click on the wire_bonding module in the wire_bonding.html page
+@app.route('/wire_bonding', methods=['GET', 'POST'])
+@login_required
+def wire_bonding():
+    if request.method == 'POST':
+        # Process Top Table Data
+        top_data = []
+        for i in range(1, 21):
+            top_data.append({
+                'raw_pull_force': request.form.get(f'top_raw_pull_force_{i}', type=float),
+                'distance_between_feet': request.form.get(f'top_distance_between_feet_{i}', type=float),
+                'type_of_break': request.form.get(f'top_type_of_break_{i}'),
+                'correction_factor': request.form.get(f'top_correction_factor_{i}', type=float),
+                'corrected_force': request.form.get(f'top_corrected_force_{i}', type=float),
+            })
+
+        # Process Bottom Table Data
+        bottom_data = []
+        for i in range(1, 21):
+            bottom_data.append({
+                'raw_pull_force': request.form.get(f'bottom_raw_pull_force_{i}', type=float),
+                'distance_between_feet': request.form.get(f'bottom_distance_between_feet_{i}', type=float),
+                'type_of_break': request.form.get(f'bottom_type_of_break_{i}'),
+                'correction_factor': request.form.get(f'bottom_correction_factor_{i}', type=float),
+                'corrected_force': request.form.get(f'bottom_corrected_force_{i}', type=float),
+            })
+
+        # Example: Save or process the data
+        flash("Wire Bonding data submitted successfully!", "success")
+        return redirect(url_for('workflow'))
+
+    form = WireBondingForm()
+    return render_template('wire_bonding.html', form=form)
+
+
 
 '''
  this portion is the activated when stations is clicked basically it shows all the stations that are available in the database and gives a options to add more stations 
@@ -245,8 +278,9 @@ def add_data():
     bare_module_ids = db.session.query(SensorGluingTable.bare_module_id).distinct().all()
     module_ids = db.session.query(HybridGluingTable.module_id).distinct().all()
     skeleton_ids = db.session.query(SkeletonTestTable.skeleton_id).distinct().all()
+
     if step_no == 0:
-        form = MaterialReceiver()
+        form = MaterialReceiverTypeForm()
         if form.validate_on_submit():
             sensors_quantity = form.sensors_quantity.data
             hybrid_quantity = form.hybrid_quantity.data
@@ -275,6 +309,7 @@ def add_data():
             db.session.add(new_material_receiving)
             db.session.commit()
             return redirect(url_for('work_flow'))
+   #     return render_template("material_reciever.html", form=form)
         
        
     
@@ -332,12 +367,12 @@ def add_data():
         if form.validate_on_submit():
             SaveToDataBase().save_hybrid_gluing_form( form ,db ,app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
-    elif step_no == 8:
-        form = WireBondingForm()
-        if form.validate_on_submit():
-            pass
     elif step_no == 11:
         form = ModuleData()
+    elif step_no == 8:  # Wire Bonding
+        #form = WireBondingForm()
+        template_name = "wire_bonding.html"  # Use a unique template for Wire Bonding
+        return redirect(url_for('wire_bonding'))
     elif step_no == 9:
         form = NoiseTestForm()
         form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
@@ -424,9 +459,17 @@ def burnim_data_upload():
         return redirect(url_for('work_flow'))
 
     return render_template("visual_inspection.html", form=form)
+'''
+    if form.validate_on_submit():
+        # Handle the form submission logic here
+        flash(f"Step {step_no} data submitted successfully!", "success")
+        return redirect(url_for('workflow'))  # Redirect to workflow after submission
 
+    return render_template(template_name, form=form)
+
+'''
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5555, debug=True)
+    app.run(host='0.0.0.0', port=9999, debug=True)
 
