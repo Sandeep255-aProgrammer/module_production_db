@@ -20,6 +20,7 @@ below  import all the forms required , which is defined in the forms.py
 ''' 
 
 from forms import (
+    MaterialReceiverTypeForm,
     AddStationForm ,
     MaterialReceiver,
     VisualInspection,
@@ -279,7 +280,7 @@ def add_data():
     skeleton_ids = db.session.query(SkeletonTestTable.skeleton_id).distinct().all()
 
     if step_no == 0:
-        form = MaterialReceiver()
+        form = MaterialReceiverTypeForm()
         if form.validate_on_submit():
             sensors_quantity = form.sensors_quantity.data
             hybrid_quantity = form.hybrid_quantity.data
@@ -308,6 +309,7 @@ def add_data():
             db.session.add(new_material_receiving)
             db.session.commit()
             return redirect(url_for('work_flow'))
+   #     return render_template("material_reciever.html", form=form)
         
        
     

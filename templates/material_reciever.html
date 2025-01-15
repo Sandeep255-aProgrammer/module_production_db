@@ -1,0 +1,79 @@
+{% from "bootstrap5/form.html" import render_form %}
+{% extends "base1.html" %} {% block content %}
+
+
+<main class="mb-4">
+  <div class="container">
+    <div class="row">
+      <!-- Adding Flash message here for users trying to register twice -->
+      <div class="col-lg-8 col-md-10 mx-auto">
+        <!--Rendering login form here-->
+        {{ ckeditor.load() }}
+        {{ ckeditor.config(name='comment') }}
+        {{render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- JavaScript for Conditional Display for selecting other consumables in the Material Reciever-->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      var materialNameField = document.querySelector('select[name="material_name"]');
+      var otherMaterialNameField = document.querySelector('input[name="other_material_name"]').parentElement;
+  
+      function toggleOtherMaterialField() {
+          if (materialNameField.value === 'other') {
+              otherMaterialNameField.style.display = 'block';
+          } else {
+              otherMaterialNameField.style.display = 'none';
+          }
+      }
+  
+      materialNameField.addEventListener('change', toggleOtherMaterialField);
+      toggleOtherMaterialField(); // Initial call to set the correct state
+  });
+  </script>
+
+  <!-- JavaScript for Dynamic Label Update for the different item ID-->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      var itemTypeField = document.querySelector('select[name="item_type"]');
+      var checkIdLabel = document.querySelector('label[for="check_id"]');
+  
+      function updateCheckIdLabel() {
+          var selectedItemType = itemTypeField.value;
+          if (selectedItemType === 'sensor') {
+              checkIdLabel.textContent = 'Sensor ID';
+              sensorIdContainer.style.display = 'block';
+          } else if (selectedItemType === 'FEH') {
+              checkIdLabel.textContent = 'Hybrid ID';
+          } else if (selectedItemType === 'SEH') {
+              checkIdLabel.textContent = 'Bridge ID';
+          }
+          else if (selectedItemType === 'main_bridge') {
+              checkIdLabel.textContent = 'Bridge ID';
+          }
+          else if (selectedItemType === 'stump_bridge') {
+              checkIdLabel.textContent = 'Bridge ID';
+          }
+          else if (selectedItemType === 'glue') {
+              checkIdLabel.textContent = 'Bridge ID';
+          }
+          else if (selectedItemType === 'kapton_tapes') {
+              checkIdLabel.textContent = 'Bridge ID';
+          }
+          else if (selectedItemType === 'optical_fibre') {
+              checkIdLabel.textContent = 'Bridge ID';
+          }
+          else if (selectedItemType === 'wire_bonder') {
+              checkIdLabel.textContent = 'Bridge ID';
+          }
+      }
+  
+      itemTypeField.addEventListener('change', updateCheckIdLabel);
+      updateCheckIdLabel(); // Initial call to set the correct state
+  });
+  </script>
+  
+{% endblock %}
