@@ -54,7 +54,7 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
-            var url_path = {{url_for('add_data')}};
+            var url_path = "{{url_for('add_data')}}";
             // Submit POST request using AJAX
             $('button#submit').bind('click', function () {
                 $.ajax({
