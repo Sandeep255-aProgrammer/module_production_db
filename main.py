@@ -34,7 +34,7 @@ from forms import (
     NoiseTestForm,
     BurNimForm,BurnimForm1, BurnimForm2, BurnimForm3, BurnimForm4, BurnimForm5, \
     BurnimForm6, BurnimForm7, BurnimForm8, BurnimForm9, BurnimForm10 ,
-    ModuleData
+    ModuleData , SensorForm
 )
 
 
@@ -273,6 +273,8 @@ def download():
 @app.route('/add_data', methods=["GET", "POST"])
 def add_data():
     num = request.args.get('num')
+    if not num:
+        num = 0
     step_no = int(num)
     sensor_ids = db.session.query(VisualInspectionSensorTable.sensor_id).distinct().all()
     bare_module_ids = db.session.query(SensorGluingTable.bare_module_id).distinct().all()
@@ -282,6 +284,8 @@ def add_data():
     if step_no == 0:
         form = MaterialReceiverTypeForm()
         if form.validate_on_submit():
+            material_type = form.material_type.data
+            return redirect(url_for('add_materials',material_type=material_type))
             sensors_quantity = form.sensors_quantity.data
             hybrid_quantity = form.hybrid_quantity.data
             optical_fibres_quantity = form.optical_fibres_quantity.data
@@ -388,6 +392,22 @@ def add_data():
     
     return render_template("visual_inspection.html", form=form)
 
+
+
+@app.route('/add_materials', methods = ["GET","POST"])
+def add_materials():
+    material_type = request.args.get("material_type")
+    #material_type = form_data.material_type.data
+    print(material_type)
+    form = SensorForm() 
+    if form.validate_on_submit():
+        print("validating form in test route")
+        print(form.data)
+        for item in form.sensor_id.data:
+            print("lastnames",item) 
+        return form.data
+    return render_template("dynamic_form.html", form=form)
+    #return redirect(url_for('add_data',num = 0))
 @app.route('/sensor_inspection', methods=["GET", "POST"])
 def sensor_inspection():
     form = VisualInspectionSensor()

@@ -10,3 +10,7 @@ flask_sqlalchemy==3.1.1
 SQLAlchemy==2.0.25
 gunicorn==21.2.0
 psycopg2-binary==2.9.9
+click==7.1.2
+itsdangerous==1.1.0
+Jinja2==2.11.2
+MarkupSafe==1.1.1

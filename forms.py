@@ -37,6 +37,7 @@ class AddStationForm(FlaskForm):
     station_is_active = BooleanField("Is station active in this status")
     station_operator = StringField("Operator", validators=[DataRequired()])
     station_iteration_number = StringField("Iteration Number", validators=[DataRequired()])
+
     submit= SubmitField("Save Station")
 
     # Link to the User table via the `username` field
@@ -47,10 +48,13 @@ class AddStationForm(FlaskForm):
 #Material receiver
 class MaterialReceiverTypeForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()]); humidity = FloatField("Humidity", validators=[DataRequired()]); dew_point = FloatField("Dew Point", validators=[DataRequired()])
-    item_type = SelectField('Item Type', choices=[('sensor', 'Sensor'), ('FEH', 'FEH'),("SEH","SEH"), ('main_bridge', 'Main Bridge'),("stump_bridge","Stump Bridge"),('glue','Glue'),('kapton_tapes','Kapton Tapes'), ('optical fibre','Optical Fibre'),("wire_bonder","Wire Bonder") ,('other', 'Other Consumables')], validators=[DataRequired()])
+    material_type = SelectField('Item Type', choices=[('sensor', 'Sensor'), ('FEH', 'FEH'),("SEH","SEH"), ('main_bridge', 'Main Bridge'),("stump_bridge","Stump Bridge"),('glue','Glue'),('kapton_tapes','Kapton Tapes'), ('optical fibre','Optical Fibre'),("wire_bonder","Wire Bonder") ,('other', 'Other Consumables')], validators=[DataRequired()])
     submit = SubmitField('Add')
-
-
+class SensorForm(FlaskForm):
+    recieved_from = StringField(validators=[DataRequired()])
+    recied_date = DateField(validators=[DataRequired()])
+    sensor_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    
 class MaterialReceiver(FlaskForm):
     material_name = SelectField("Material Name", choices=[('sensor', 'Sensor'), ('FEH', 'FEH'),("SEH","SEH"), ('main_bridge', 'Main Bridge'),("stump_bridge","Stump Bridge"),('glue','Glue'),('kapton_tapes','Kapton Tapes'), ('optical fibre','Optical Fibre'),("wire_bonder","Wire Bonder") ,('other', 'Other Consumables')], validators=[DataRequired()])
     temp = FloatField("Temperature (°C)", validators=[DataRequired()]); humidity = FloatField("Humidity", validators=[DataRequired()]); dew_point = FloatField("Dew Point", validators=[DataRequired()])
@@ -79,6 +83,7 @@ class VisualInspection(FlaskForm):
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
+    testfield_list = FieldList(StringField(),min_entries=1)
     item_type = SelectField(
         "Item Type",
         choices=[
