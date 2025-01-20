@@ -34,7 +34,8 @@ from forms import (
     NoiseTestForm,
     BurNimForm,BurnimForm1, BurnimForm2, BurnimForm3, BurnimForm4, BurnimForm5, \
     BurnimForm6, BurnimForm7, BurnimForm8, BurnimForm9, BurnimForm10 ,
-    ModuleData , SensorForm
+    ModuleData , SensorForm ,
+    FEHForm, SEHForm, MainBridgeForm, StumpBridgeForm, GlueForm, KaptonTapesForm, OpticalFibreForm, WireBonderForm, OtherConsumablesForm
 )
 
 
@@ -405,7 +406,7 @@ def add_materials():
         print(form.data)
         for item in form.sensor_id.data:
             print("lastnames",item) 
-        return form.data
+        return form.sensor_img.data.filename
     return render_template("dynamic_form.html", form=form)
     #return redirect(url_for('add_data',num = 0))
 @app.route('/sensor_inspection', methods=["GET", "POST"])

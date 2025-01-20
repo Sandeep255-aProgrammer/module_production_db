@@ -24,6 +24,8 @@
                             <h3 class="text-center mb-4 mt-2">Form</h3>
                             <form method="POST" action="/">
                                 <ul id="form">
+                                    {{ ckeditor.load() }}
+                                   {{ ckeditor.config(name='Comment') }}
                                     {% for field_item in form %}
                                         {% if field_item is iterable %}
                                         <li>
@@ -54,16 +56,31 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
-            var url_path = "{{url_for('add_data')}}";
+            var url_path = "{{url_for('add_data',num=0)}}";
             // Submit POST request using AJAX
             $('button#submit').bind('click', function () {
+               //var formData = new FormData();
+
+		// Append the file
+                var form_data = new FormData($('#sensor_img')[0]);
+		//formData.append('sensor_img', $('#sensor_img')[0].files[0]);
+
+		// Append other form fields
+		//formData.append('recieved_from', $('#recieved_from').val());
+		//formData.append('recied_date', $('#recied_date').val());
+		//formData.append('sensor_id', $('#sensor_id').val());
+		// Repeat this for each other field in the form
+
                 $.ajax({
                     type: 'POST',
-                    url: '/add_materials',
+                    url: "/add_materials",
                     data: $("form").serialize(),
+                    contentType: false,
                     success: function (response) {
                         $('div#status').stop(true, true).show().text(Object.values(response)
                         ).fadeOut(10000);
+
+                    window.location.href = url_path;
                     },
                     error: function (request, status, error) {
                         $('div#status').show().text("Data not saved: " + error)

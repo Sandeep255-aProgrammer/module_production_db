@@ -50,11 +50,101 @@ class MaterialReceiverTypeForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()]); humidity = FloatField("Humidity", validators=[DataRequired()]); dew_point = FloatField("Dew Point", validators=[DataRequired()])
     material_type = SelectField('Item Type', choices=[('sensor', 'Sensor'), ('FEH', 'FEH'),("SEH","SEH"), ('main_bridge', 'Main Bridge'),("stump_bridge","Stump Bridge"),('glue','Glue'),('kapton_tapes','Kapton Tapes'), ('optical fibre','Optical Fibre'),("wire_bonder","Wire Bonder") ,('other', 'Other Consumables')], validators=[DataRequired()])
     submit = SubmitField('Add')
+
+
 class SensorForm(FlaskForm):
     recieved_from = StringField(validators=[DataRequired()])
     recied_date = DateField(validators=[DataRequired()])
     sensor_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
-    
+    sensor_img = FileField(validators=[DataRequired()])
+    Comment = StringField( validators=[DataRequired()])    
+    #submit  = SubmitField('Submit')
+from flask_wtf import FlaskForm
+from wtforms import StringField, DateField, FieldList, FileField, SubmitField
+from wtforms.validators import DataRequired
+
+
+# FEH Form
+class FEHForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    feh_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    feh_img = FileField(validators=[DataRequired()])
+    comment = StringField(validators=[DataRequired()])
+    submit = SubmitField('Submit FEH')
+
+# SEH Form
+class SEHForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    seh_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    seh_img = FileField(validators=[DataRequired()])
+    comment = StringField(validators=[DataRequired()])
+    submit = SubmitField('Submit SEH')
+
+# Main Bridge Form
+class MainBridgeForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    main_bridge_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    main_bridge_img = FileField(validators=[DataRequired()])
+    comment = StringField(validators=[DataRequired()])
+    submit = SubmitField('Submit Main Bridge')
+
+# Stump Bridge Form
+class StumpBridgeForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    stump_bridge_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    stump_bridge_img = FileField(validators=[DataRequired()])
+    comment = StringField(validators=[DataRequired()])
+    submit = SubmitField('Submit Stump Bridge')
+
+# Glue Form
+class GlueForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    glue_type = StringField(validators=[DataRequired()])
+    glue_img = FileField(validators=[DataRequired()])
+    comment = StringField(validators=[DataRequired()])
+    submit = SubmitField('Submit Glue')
+
+# Kapton Tapes Form
+class KaptonTapesForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    kapton_tape_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    kapton_tape_img = FileField(validators=[DataRequired()])
+    comment = StringField(validators=[DataRequired()])
+    submit = SubmitField('Submit Kapton Tapes')
+
+# Optical Fibre Form
+class OpticalFibreForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    optical_fibre_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    optical_fibre_img = FileField(validators=[DataRequired()])
+    comment = StringField(validators=[DataRequired()])
+    submit = SubmitField('Submit Optical Fibre')
+
+# Wire Bonder Form
+class WireBonderForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    wire_bonder_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    wire_bonder_img = FileField(validators=[DataRequired()])
+    comment = StringField(validators=[DataRequired()])
+    submit = SubmitField('Submit Wire Bonder')
+
+# Other Consumables Form
+class OtherConsumablesForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    other_item_description = StringField(validators=[DataRequired()])
+    other_item_img = FileField(validators=[DataRequired()])
+    comment = StringField(validators=[DataRequired()])
+    submit = SubmitField('Submit Other Consumables')
+
 class MaterialReceiver(FlaskForm):
     material_name = SelectField("Material Name", choices=[('sensor', 'Sensor'), ('FEH', 'FEH'),("SEH","SEH"), ('main_bridge', 'Main Bridge'),("stump_bridge","Stump Bridge"),('glue','Glue'),('kapton_tapes','Kapton Tapes'), ('optical fibre','Optical Fibre'),("wire_bonder","Wire Bonder") ,('other', 'Other Consumables')], validators=[DataRequired()])
     temp = FloatField("Temperature (°C)", validators=[DataRequired()]); humidity = FloatField("Humidity", validators=[DataRequired()]); dew_point = FloatField("Dew Point", validators=[DataRequired()])
