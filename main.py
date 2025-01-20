@@ -93,6 +93,20 @@ def save_get_file_url(file):
     file_path = os.path.join(app.config['UPLOAD_WORKFLOW_FILES'],filename)
     file.save(file_path)
     return file_path
+
+FORM_MAPPING = {
+    "sensor": SensorForm,
+    "FEH": FEHForm,
+    "SEH": SEHForm,
+    "main_bridge": MainBridgeForm,
+    "stump_bridge": StumpBridgeForm,
+    "glue": GlueForm,
+    "kapton_tapes": KaptonTapesForm,
+    "optical_fibre": OpticalFibreForm,
+    "wire_bonder": WireBonderForm,
+    "other": OtherConsumablesForm,
+}
+
     
 
 #Flask log-in  ,this part is crucial for authenticaton 
@@ -397,6 +411,35 @@ def add_data():
 
 @app.route('/add_materials', methods = ["GET","POST"])
 def add_materials():
+    # Get the material type from the query parameters
+    material_type = request.args.get("material_type")
+    
+    # Get the corresponding form class based on material_type
+    form_class = FORM_MAPPING.get(material_type)
+    
+    if not form_class:
+        return f"Invalid material_type: {material_type}", 400  # Return an error if the type is invalid
+    
+    # Create an instance of the form
+    form = form_class()
+    
+    # Validate and process the form submission
+    if form.validate_on_submit():
+        print("Validating form in add_materials route")
+        print(form.data)
+        
+        # Process specific fields for SensorForm as an example
+        if material_type == "sensor":
+            for item in form.sensor_id.data:
+                print("Sensor ID:", item)
+        
+        # Example of returning the uploaded file name
+        return f"Uploaded file: {form.sensor_img.data.filename}"
+    
+    # Render the template with the dynamically chosen form
+    return render_template("dynamic_form.html", form=form)
+'''
+def add_materials():
     material_type = request.args.get("material_type")
     #material_type = form_data.material_type.data
     print(material_type)
@@ -409,6 +452,7 @@ def add_materials():
         return form.sensor_img.data.filename
     return render_template("dynamic_form.html", form=form)
     #return redirect(url_for('add_data',num = 0))
+'''
 @app.route('/sensor_inspection', methods=["GET", "POST"])
 def sensor_inspection():
     form = VisualInspectionSensor()
