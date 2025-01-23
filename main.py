@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request,jsonify, url_for, redirect, flash, send_from_directory
+from flask import Flask, session ,render_template, request,jsonify, url_for, redirect, flash, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -20,6 +20,7 @@ current_date =f"{utc_now.year}-{utc_now.month}-{utc_now.day}"
 below  import all the forms required , which is defined in the forms.py
 ''' 
 
+
 from forms import (
     MaterialReceiverTypeForm,
     AddStationForm ,
@@ -35,10 +36,13 @@ from forms import (
     NoiseTestForm,
     BurNimForm,BurnimForm1, BurnimForm2, BurnimForm3, BurnimForm4, BurnimForm5, \
     BurnimForm6, BurnimForm7, BurnimForm8, BurnimForm9, BurnimForm10 ,
-    ModuleData , SensorForm
+    ModuleData , SensorForm  ,WireBond,
+    FEHForm, SEHForm, MainBridgeForm, StumpBridgeForm, GlueForm, KaptonTapesForm, OpticalFibreForm, WireBonderForm, OtherConsumablesForm
+      ,SensorIdListForm, FEHIdListForm, SEHIdListForm, MainBridgeIdListForm, StumpBridgeIdListForm, GlueBatchIdListForm, KaptonTapeIdListForm, OpticalFibreIdListForm, WireBonderDetailsForm, JigIDForm , OtherConsumablesListForm
 )
 
-
+add_received_materials_forms = [SensorForm,FEHForm, SEHForm, MainBridgeForm, StumpBridgeForm, GlueForm, KaptonTapesForm, OpticalFibreForm, WireBonderForm, JigIDForm,OtherConsumablesForm]
+Material_receiver_ids_forms = [SensorIdListForm, FEHIdListForm, SEHIdListForm, MainBridgeIdListForm, StumpBridgeIdListForm, GlueBatchIdListForm, KaptonTapeIdListForm, OpticalFibreIdListForm, WireBonderDetailsForm,  JigIDForm,OtherConsumablesListForm]
 
 ''' 
 now import all the stups related to the database tike the table and db , all are defined in the database_table.html
@@ -95,6 +99,20 @@ def save_get_file_url(file):
     file_path = os.path.join(app.config['UPLOAD_WORKFLOW_FILES'],filename)
     file.save(file_path)
     return file_path
+
+FORM_MAPPING = {
+    "sensor": SensorForm,
+    "FEH": FEHForm,
+    "SEH": SEHForm,
+    "main_bridge": MainBridgeForm,
+    "stump_bridge": StumpBridgeForm,
+    "glue": GlueForm,
+    "kapton_tapes": KaptonTapesForm,
+    "optical_fibre": OpticalFibreForm,
+    "wire_bonder": WireBonderForm,
+    "other": OtherConsumablesForm,
+}
+
     
 
 #Flask log-in  ,this part is crucial for authenticaton 
@@ -264,6 +282,7 @@ def wire_bonding():
 
         flash("Wire Bonding data submitted successfully!", "success")
         return redirect(url_for('work_flow'))
+        return redirect(url_for('work_flow'))
 
     form = WireBondingForm()
     return render_template('wire_bonding.html', form=form)
@@ -349,8 +368,10 @@ def add_data():
     skeleton_ids = db.session.query(SkeletonTestTable.skeleton_id).distinct().all()
 
     if step_no == 0:
+        return render_template("material_type.html")
         form = MaterialReceiverTypeForm()
         if form.validate_on_submit():
+        
             material_type = form.material_type.data
             return redirect(url_for('add_materials',material_type=material_type))
             sensors_quantity = form.sensors_quantity.data
@@ -459,48 +480,86 @@ def add_data():
     
     return render_template("visual_inspection.html", form=form)
 
-@app.route('/add_materials', methods=["GET", "POST"])
+
+
+@app.route('/add_received_materials', methods = ["GET","POST"])
+def add_received_materials():
+    index_number = int(request.args.get("num"))
+    if index_number == 9:
+       return redirect(url_for('add_material_ids' ))
+         
+
+    basic_form = add_received_materials_forms[index_number]()
+    #session['basic_form_data'] = basic_form.data
+    session['index_number'] = index_number
+    if basic_form.validate_on_submit():
+        print("basic form is validated ")
+        return redirect(url_for('add_material_ids' ))
+        
+    return render_template("visual_inspection.html", form=basic_form)
+@app.route('/add_material_ids',methods = ["GET","POST"])
+def add_material_ids():
+    index_number = session.get('index_number')
+    if index_number is None or index_number >= len(Material_receiver_ids_forms):
+        return "Invalid index number", 400
+
+    id_form = Material_receiver_ids_forms[index_number]()
+    #basic_form_data = request.args.get('basic_form_data')
+    #print("----is it None",basic_form_data)
+    if request.method == "POST":
+        form = Material_receiver_ids_forms[index_number]()
+        for fieldlist in form:
+            try:
+                _ = (entry for entry in fieldlist)
+            except TypeError:
+                print("got some type error")
+                print(fieldlist.name,fieldlist.data)
+                continue
+            for entry in fieldlist:
+                print(entry.name , entry.data)
+    if id_form.validate():
+        print("id form submitted")
+        print(id_form.data)
+        return redirect(url_for("work_flow"))
+    print("after--------------")
+    return render_template("dynamic_form.html", form=id_form ,data_post_url = 'add_material_ids',type= type )
+    '''
+    if not form_class:
+        return f"Invalid material_type: {material_type}", 400  # Return an error if the type is invalid
+    
+    # Create an instance of the form
+    form = form_class()
+    
+    # Validate and process the form submission
+    if form.validate_on_submit():
+        print("Validating form in add_materials route")
+        print(form.data)
+        
+        # Process specific fields for SensorForm as an example
+        if material_type == "sensor":
+            for item in form.sensor_id.data:
+                print("Sensor ID:", item)
+        
+        # Example of returning the uploaded file name
+        return f"Uploaded file: {form.sensor_img.data.filename}"
+    
+    # Render the template with the dynamically chosen form
+    '''
+    return render_template("visual_inspection.html", form=form)
+'''
 def add_materials():
     material_type = request.args.get("material_type")
     form = SensorForm()
     
     if form.validate_on_submit():
-        try:
-            # Process form data
-            print("Form data received:", form.data)
-            
-            # Process combined file/folder uploads
-            if 'uploads' in request.files:
-                uploaded_files = request.files.getlist('uploads')
-                for file in uploaded_files:
-                    if file.filename == '':
-                        continue
-                    
-                    if allowed_file(file.filename):
-                        # Preserve directory structure
-                        filename = secure_filename(file.filename)
-                        # Handle cross-platform path separators
-                        relative_path = filename.replace('\\', '/')
-                        save_path = os.path.join(UPLOAD_FOLDER, relative_path)
-                        
-                        # Create directories if needed
-                        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-                        file.save(save_path)
-                        print(f"Saved: {relative_path}")
-                    else:
-                        print(f"Skipped invalid file type: {file.filename}")
-
-            # Process sensor IDs
-            if form.sensor_id.data:
-                for item in form.sensor_id.data:
-                    print("Processing sensor ID:", item)
-
-            return jsonify({'message': 'Materials added successfully!'})
-
-        except Exception as e:
-            print(f"Error: {str(e)}")
-            return jsonify({'error': str(e)}), 500
-
+        sensor_img = request.files.get('sensor_img')
+        if sensor_img:
+            filename = secure_filename(sensor_img.filename)
+        print("validating form in test route")
+        print(form.data)
+        for item in form.sensor_id.data:
+            print("lastnames",item) 
+        return form.sensor_img.data.filename
     return render_template("dynamic_form.html", form=form)
     #return redirect(url_for('add_data',num = 0))
 
@@ -588,4 +647,12 @@ def burnim_data_upload():
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=9999, debug=True)
+
+
+
+
+
+
+
+
 

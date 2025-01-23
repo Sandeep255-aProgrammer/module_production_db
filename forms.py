@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, MultipleFileField
-from wtforms import IntegerField ,StringField, SubmitField, PasswordField ,FileField ,DateField , BooleanField , SelectField,  DateTimeField,FormField, FloatField , FieldList
+from wtforms import Form , DecimalField ,IntegerField ,StringField, SubmitField, PasswordField ,FileField ,DateField , BooleanField , SelectField,  DateTimeField,FormField, FloatField , FieldList
 from wtforms.validators import DataRequired, URL, Optional
 from flask_ckeditor import CKEditorField
 
@@ -44,20 +44,182 @@ class AddStationForm(FlaskForm):
     # Link to the User table via the `username` field
     #operator: Mapped[str] = mapped_column(String(100), ForeignKey("Users.username"), nullable=False)
 
+class WireBond(FlaskForm):
+    # New Fields
+    delta_height = DecimalField("ΔHEIGHT", validators=[DataRequired()])
+    correction_factor_k1_sen = DecimalField("Correction Factor K1 (SEN)", validators=[DataRequired()])
+    correction_factor_k2_feh = DecimalField("Correction Factor K2 (FEH)", validators=[DataRequired()])
+    mean_force_1 = DecimalField("Mean Force 1 (g)", validators=[DataRequired()])
+    mean_force_2 = DecimalField("Mean Force 2 (g)", validators=[DataRequired()])
+    rms_value = DecimalField("RMS Value (%)", validators=[DataRequired()])
+    standard_deviation = DecimalField("Standard Deviation", validators=[DataRequired()])
+    
+    # Additional Fields
+    extra_files = FileField("Upload Additional Files (PDF, etc.)")
+    comment = StringField("Comment", validators=[DataRequired()])
+    module_id = StringField("Module ID", validators=[DataRequired()])
+    
+    # Add/Update selection
+    action_type = SelectField("Action", choices=[('add', 'Add'), ('update', 'Update')], validators=[DataRequired()])
+    
+    submit = SubmitField("Submit")
+class JigIDForm(FlaskForm):
+    jig_id = FieldList(StringField("Jig ID", validators=[DataRequired()]), min_entries=1)
+
+# List form for Sensor IDs
+class SensorIdListForm(FlaskForm):
+    Sensor_Ids = FieldList(StringField("Sensor ID", validators=[DataRequired()]), min_entries=1)
+
+# List form for FEH IDs
+class FEHIdListForm(FlaskForm):
+    FEH_Ids = FieldList(StringField("FEH ID", validators=[DataRequired()]), min_entries=1)
+
+# List form for SEH IDs
+class SEHIdListForm(FlaskForm):
+    SEH_Ids = FieldList(StringField("SEH ID", validators=[DataRequired()]), min_entries=1)
+
+# List form for Main Bridge IDs
+class MainBridgeIdListForm(FlaskForm):
+    Main_Bridge_Ids = FieldList(StringField("Main Bridge ID", validators=[DataRequired()]), min_entries=1)
+
+# List form for Stump Bridge IDs
+class StumpBridgeIdListForm(FlaskForm):
+    Stump_Bridge_Ids = FieldList(StringField("Stump Bridge ID", validators=[DataRequired()]), min_entries=1)
+
+# List form for Glue Batch IDs
+class Glue_id_exp(FlaskForm):
+    Glue_Batch_Ids = StringField("Glue Batch ID", validators=[DataRequired()])
+    Glue_Batch_Exp_Date = DateField("Glue Expiry Date",validators=[DataRequired()])
+
+class GlueBatchIdListForm(FlaskForm):
+    Glue_Batch = FieldList(FormField(Glue_id_exp), min_entries=1)
+    
+# List form for Kapton Tape IDs
+class KaptonTapeIdListForm(FlaskForm):
+    Kapton_Tape_Ids = FieldList(StringField("Kapton Tape ID", validators=[DataRequired()]), min_entries=1)
+
+# List form for Optical Fibre IDs
+class OpticalFibreIdListForm(FlaskForm):
+    Optical_Fibre_Ids = FieldList(StringField("Optical Fibre ID", validators=[DataRequired()]), min_entries=1)
+
+# List form for Wire Bonder Details
+class WireBonderIds(FlaskForm):
+    Spool_Numbers = StringField("Spool Number", validators=[DataRequired()])
+    Wedge_Tools_No = StringField("Wedge Tool", validators=[DataRequired()])
+    expiry_date = DateField("Wire Bond Expiry Date", validators=[DataRequired()])
+
+class WireBonderDetailsForm(FlaskForm):
+    Wire_Bonder_ids = FieldList(FormField(),min_entries=1)
+# List form for Other Consumables
+class OtherConsumablesListForm(FlaskForm):
+    Other_Items = FieldList(StringField("Item Description", validators=[DataRequired()]), min_entries=1)
+
+
 
 
 #Material receiver
 class MaterialReceiverTypeForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()]); humidity = FloatField("Humidity", validators=[DataRequired()]); dew_point = FloatField("Dew Point", validators=[DataRequired()])
-    material_type = SelectField('Item Type', choices=[('sensor', 'Sensor'), ('FEH', 'FEH'),("SEH","SEH"), ('main_bridge', 'Main Bridge'),("stump_bridge","Stump Bridge"),('glue','Glue'),('kapton_tapes','Kapton Tapes'), ('optical fibre','Optical Fibre'),("wire_bonder","Wire Bonder") ,('other', 'Other Consumables')], validators=[DataRequired()])
+    material_type = SelectField('Item Type', choices=[('sensor', 'Sensor'), ('FEH', 'FEH'),("SEH","SEH"), ('main_bridge', 'Main Bridge'),("stump_bridge","Stump Bridge"),('glue','Glue'),('kapton_tapes','Kapton Tapes'), ('optical_fibre','Optical Fibre'),("wire_bonder","Wire Bonder") ,('other', 'Other Consumables')], validators=[DataRequired()])
     submit = SubmitField('Add')
+
 
 class SensorForm(FlaskForm):
     recieved_from = StringField(validators=[DataRequired()])
     recieved_date = DateField(validators=[DataRequired()])
-    sensor_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    #sensor_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
     # uploads = MultipleFileField('Upload Files', validators=[FileAllowed(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])])
-    
+    sensor_img = FileField(validators=[DataRequired()])
+    Comment = CKEditorField("Comment")    
+    submit  = SubmitField('Add Sensor Ids')
+
+
+
+# FEH Form
+class FEHForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    #feh_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    feh_img = FileField(validators=[DataRequired()])
+    Comment = CKEditorField("Comment")
+    submit = SubmitField('Add FEH Ids')
+
+# SEH Form
+class SEHForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    #seh_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    seh_img = FileField(validators=[DataRequired()])
+    Comment = CKEditorField("Comment")
+    submit = SubmitField('Add SEH Ids')
+
+# Main Bridge Form
+class MainBridgeForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    #main_bridge_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    main_bridge_img = FileField(validators=[DataRequired()])
+    Comment = CKEditorField("Comment")
+    submit = SubmitField('Add Main Bridge Ids')
+
+# Stump Bridge Form
+class StumpBridgeForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    #stump_bridge_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    stump_bridge_img = FileField(validators=[DataRequired()])
+    Comment = CKEditorField("Comment")
+    submit = SubmitField('Add Stump Bridge Ids')
+
+# Glue Form
+class GlueForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    #glue_batch_id = StringField(validators=[DataRequired()])
+    #glue_exp_date = DateField(validators=[DataRequired()])
+    glue_img = FileField(validators=[DataRequired()])
+    Comment = CKEditorField("Comment")
+    submit = SubmitField("Add glueId and expDate")
+    #submit = SubmitField('Submit Glue')
+
+# Kapton Tapes Form
+class KaptonTapesForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    #kapton_tape_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    kapton_tape_img = FileField(validators=[DataRequired()])
+    Comment = CKEditorField("Comment")
+    submit = SubmitField('Add Kapton Tape Ids')
+
+# Optical Fibre Form
+class OpticalFibreForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    #optical_fibre_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    optical_fibre_img = FileField(validators=[DataRequired()])
+    Comment = CKEditorField("Comment")
+    submit = SubmitField('Add Optical Fibre Ids')
+
+# Wire Bonder Form
+class WireBonderForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    #spool_no= FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    #wedge_tool = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    #exp_date = DateField(validators=[DataRequired()])
+    wire_bonder_img = FileField()
+    Comment = CKEditorField("Comment")
+    submit = SubmitField('Add spoolNo and wedgeTool')
+
+# Other Consumables Form
+class OtherConsumablesForm(FlaskForm):
+    received_from = StringField(validators=[DataRequired()])
+    received_date = DateField(validators=[DataRequired()])
+    other_item_description = StringField(validators=[DataRequired()])
+    other_item_img = FileField(validators=[DataRequired()])
+    Comment = CKEditorField("Comment")
+    submit = SubmitField('Submit Other Consumables')
+
 class MaterialReceiver(FlaskForm):
     material_name = SelectField("Material Name", choices=[('sensor', 'Sensor'), ('FEH', 'FEH'),("SEH","SEH"), ('main_bridge', 'Main Bridge'),("stump_bridge","Stump Bridge"),('glue','Glue'),('kapton_tapes','Kapton Tapes'), ('optical fibre','Optical Fibre'),("wire_bonder","Wire Bonder") ,('other', 'Other Consumables')], validators=[DataRequired()])
     temp = FloatField("Temperature (°C)", validators=[DataRequired()]); humidity = FloatField("Humidity", validators=[DataRequired()]); dew_point = FloatField("Dew Point", validators=[DataRequired()])
