@@ -152,12 +152,14 @@ function addRow(tableId) {
   var row = table.insertRow(rowCount);
   var stripNo = rowCount + 1;
 
+  var prefix = tableId.replace('-table', '');
+
   row.innerHTML = `
     <td>${stripNo}</td>
-    <td><input type="number" name="${tableId}_raw_pull_force_${stripNo}" class="form-control"></td>
-    <td><input type="number" name="${tableId}_distance_between_feet_${stripNo}" class="form-control"></td>
+    <td><input type="number" name="${prefix}_raw_pull_force_${stripNo}" class="form-control"></td>
+    <td><input type="number" name="${prefix}_distance_between_feet_${stripNo}" class="form-control"></td>
     <td>
-      <select name="${tableId}_type_of_break_${stripNo}" class="form-control">
+      <select name="${prefix}_type_of_break_${stripNo}" class="form-control">
         <option value="">Select</option>
         <option value="1">1 - Wire cut</option>
         <option value="2">2 - Lift-off on sensor</option>
@@ -168,8 +170,10 @@ function addRow(tableId) {
         <option value="6">6 - Others</option>
       </select>
     </td>
-    <td><input type="number" name="${tableId}_correction_factor_${stripNo}" class="form-control"></td>
-    <td><input type="number" name="${tableId}_corrected_force_${stripNo}" class="form-control"></td>
+    <td><input type="number" name="${prefix}_correction_factor_${stripNo}" class="form-control"></td>
+    <td><input type="number" name="${prefix}_corrected_force_${stripNo}" class="form-control"></td>
+    <td><input type="file" name="${prefix}_image_${stripNo}" class="form-control"></td>
+    <td><input type="text" name="${prefix}_comment_${stripNo}" class="form-control"></td>
   `;
 }
 </script>

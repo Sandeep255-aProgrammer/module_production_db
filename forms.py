@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed, MultipleFileField
 from wtforms import IntegerField ,StringField, SubmitField, PasswordField ,FileField ,DateField , BooleanField , SelectField,  DateTimeField,FormField, FloatField , FieldList
 from wtforms.validators import DataRequired, URL, Optional
 from flask_ckeditor import CKEditorField
@@ -50,10 +51,12 @@ class MaterialReceiverTypeForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()]); humidity = FloatField("Humidity", validators=[DataRequired()]); dew_point = FloatField("Dew Point", validators=[DataRequired()])
     material_type = SelectField('Item Type', choices=[('sensor', 'Sensor'), ('FEH', 'FEH'),("SEH","SEH"), ('main_bridge', 'Main Bridge'),("stump_bridge","Stump Bridge"),('glue','Glue'),('kapton_tapes','Kapton Tapes'), ('optical fibre','Optical Fibre'),("wire_bonder","Wire Bonder") ,('other', 'Other Consumables')], validators=[DataRequired()])
     submit = SubmitField('Add')
+
 class SensorForm(FlaskForm):
     recieved_from = StringField(validators=[DataRequired()])
-    recied_date = DateField(validators=[DataRequired()])
+    recieved_date = DateField(validators=[DataRequired()])
     sensor_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
+    # uploads = MultipleFileField('Upload Files', validators=[FileAllowed(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])])
     
 class MaterialReceiver(FlaskForm):
     material_name = SelectField("Material Name", choices=[('sensor', 'Sensor'), ('FEH', 'FEH'),("SEH","SEH"), ('main_bridge', 'Main Bridge'),("stump_bridge","Stump Bridge"),('glue','Glue'),('kapton_tapes','Kapton Tapes'), ('optical fibre','Optical Fibre'),("wire_bonder","Wire Bonder") ,('other', 'Other Consumables')], validators=[DataRequired()])
