@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect, flash, send_from_directory
+from flask import Flask, render_template, request,jsonify, url_for, redirect, flash, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -11,6 +11,7 @@ from werkzeug.utils import secure_filename
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
+import json
 import datetime
 
 utc_now = datetime.datetime.now()
@@ -77,7 +78,9 @@ from save_form_database import SaveToDataBase
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret-key-goes-here'
 # define the Folder path here 
-app.config["UPLOAD_FOLDER"]= "static/uploads/station_image"
+
+# app.config['UPLOAD_FOLDER'] = "static/uploads"
+
 app.config["UPLOAD_WORKFLOW_FILES"]= "static/WORKFLOW_FILES"
 ckeditor = CKEditor(app)
 Bootstrap5(app)
@@ -102,6 +105,19 @@ login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(username):
     return db.get_or_404(User ,username)
+
+#upload folder for the images
+# Configuration
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Ensure upload directory exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # create all the tables 
 
@@ -166,40 +182,91 @@ def show_module():
 def module_report():
     return render_template("module_report.html")
 
-# wire_bonding.html is rendered when you click on the wire_bonding module in the wire_bonding.html page
 @app.route('/wire_bonding', methods=['GET', 'POST'])
 @login_required
 def wire_bonding():
     if request.method == 'POST':
-        # Process Top Table Data
-        top_data = []
-        for i in range(1, 21):
-            top_data.append({
-                'raw_pull_force': request.form.get(f'top_raw_pull_force_{i}', type=float),
-                'distance_between_feet': request.form.get(f'top_distance_between_feet_{i}', type=float),
-                'type_of_break': request.form.get(f'top_type_of_break_{i}'),
-                'correction_factor': request.form.get(f'top_correction_factor_{i}', type=float),
-                'corrected_force': request.form.get(f'top_corrected_force_{i}', type=float),
-            })
+        # Debugging: Print all form data
+        print("\n=== FORM DATA RECEIVED ===")
+        for key, value in request.form.items():
+            print(f"{key}: {value}")
 
-        # Process Bottom Table Data
-        bottom_data = []
-        for i in range(1, 21):
-            bottom_data.append({
-                'raw_pull_force': request.form.get(f'bottom_raw_pull_force_{i}', type=float),
-                'distance_between_feet': request.form.get(f'bottom_distance_between_feet_{i}', type=float),
-                'type_of_break': request.form.get(f'bottom_type_of_break_{i}'),
-                'correction_factor': request.form.get(f'bottom_correction_factor_{i}', type=float),
-                'corrected_force': request.form.get(f'bottom_corrected_force_{i}', type=float),
-            })
+        # Debugging: Print file upload information
+        print("\n=== FILE UPLOADS ===")
+        for file_key in request.files:
+            file = request.files[file_key]
+            if file.filename != '':
+                print(f"Uploaded file: {file_key} => {file.filename}")
+                # Read file content for debugging (without saving)
+                file.seek(0, os.SEEK_END)
+                size = file.tell()
+                file.seek(0)
+                print(f"File size: {size} bytes")
+            else:
+                print(f"Empty file upload: {file_key}")
 
-        # Example: Save or process the data
+        # Process Module ID and Parameters
+        module_id = request.form.get('module_id')
+        print(f"\nProcessing Module ID: {module_id}")
+
+        # Process Top Parameters
+        top_params = {
+            'delta_height': request.form.get('top_delta_height'),
+            'correction_factor_k1': request.form.get('top_correction_factor_k1'),
+            'correction_factor_k2': request.form.get('top_correction_factor_k2'),
+            'mean_force_1': request.form.get('top_mean_force_1'),
+            'mean_force_2': request.form.get('top_mean_force_2'),
+            'rms_value': request.form.get('top_rms_value'),
+            'standard_deviation': request.form.get('top_standard_deviation')
+        }
+        print("\nTop Parameters:", top_params)
+
+        # Process Bottom Parameters
+        bottom_params = {
+            'delta_height': request.form.get('bottom_delta_height'),
+            'correction_factor_k1': request.form.get('bottom_correction_factor_k1'),
+            'correction_factor_k2': request.form.get('bottom_correction_factor_k2'),
+            'mean_force_1': request.form.get('bottom_mean_force_1'),
+            'mean_force_2': request.form.get('bottom_mean_force_2'),
+            'rms_value': request.form.get('bottom_rms_value'),
+            'standard_deviation': request.form.get('bottom_standard_deviation')
+        }
+        print("\nBottom Parameters:", bottom_params)
+
+        # Process Dynamic Rows
+        def process_table_data(prefix):
+            data = []
+            i = 1
+            while True:
+                # Check if at least one field exists for this row
+                if not request.form.get(f'{prefix}_raw_pull_force_{i}'):
+                    break
+                
+                row_data = {
+                    'raw_pull_force': request.form.get(f'{prefix}_raw_pull_force_{i}'),
+                    'distance_between_feet': request.form.get(f'{prefix}_distance_between_feet_{i}'),
+                    'type_of_break': request.form.get(f'{prefix}_type_of_break_{i}'),
+                    'correction_factor': request.form.get(f'{prefix}_correction_factor_{i}'),
+                    'corrected_force': request.form.get(f'{prefix}_corrected_force_{i}'),
+                    'comment': request.form.get(f'{prefix}_comment_{i}')
+                }
+                data.append(row_data)
+                print(f"\n{prefix.capitalize()} Row {i}:")
+                print(json.dumps(row_data, indent=2))
+                i += 1
+            return data
+
+        # Process Top and Bottom Tables
+        print("\nPROCESSING TOP TABLE DATA:")
+        top_data = process_table_data('top')
+        print("\nPROCESSING BOTTOM TABLE DATA:")
+        bottom_data = process_table_data('bottom')
+
         flash("Wire Bonding data submitted successfully!", "success")
-        return redirect(url_for('workflow'))
+        return redirect(url_for('work_flow'))
 
     form = WireBondingForm()
     return render_template('wire_bonding.html', form=form)
-
 
 
 '''
@@ -392,22 +459,51 @@ def add_data():
     
     return render_template("visual_inspection.html", form=form)
 
-
-
-@app.route('/add_materials', methods = ["GET","POST"])
+@app.route('/add_materials', methods=["GET", "POST"])
 def add_materials():
     material_type = request.args.get("material_type")
-    #material_type = form_data.material_type.data
-    print(material_type)
-    form = SensorForm() 
+    form = SensorForm()
+    
     if form.validate_on_submit():
-        print("validating form in test route")
-        print(form.data)
-        for item in form.sensor_id.data:
-            print("lastnames",item) 
-        return form.data
+        try:
+            # Process form data
+            print("Form data received:", form.data)
+            
+            # Process combined file/folder uploads
+            if 'uploads' in request.files:
+                uploaded_files = request.files.getlist('uploads')
+                for file in uploaded_files:
+                    if file.filename == '':
+                        continue
+                    
+                    if allowed_file(file.filename):
+                        # Preserve directory structure
+                        filename = secure_filename(file.filename)
+                        # Handle cross-platform path separators
+                        relative_path = filename.replace('\\', '/')
+                        save_path = os.path.join(UPLOAD_FOLDER, relative_path)
+                        
+                        # Create directories if needed
+                        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                        file.save(save_path)
+                        print(f"Saved: {relative_path}")
+                    else:
+                        print(f"Skipped invalid file type: {file.filename}")
+
+            # Process sensor IDs
+            if form.sensor_id.data:
+                for item in form.sensor_id.data:
+                    print("Processing sensor ID:", item)
+
+            return jsonify({'message': 'Materials added successfully!'})
+
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            return jsonify({'error': str(e)}), 500
+
     return render_template("dynamic_form.html", form=form)
     #return redirect(url_for('add_data',num = 0))
+
 @app.route('/sensor_inspection', methods=["GET", "POST"])
 def sensor_inspection():
     form = VisualInspectionSensor()
