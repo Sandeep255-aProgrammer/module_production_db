@@ -270,7 +270,7 @@ class WireBondingForm(FlaskForm):
     #type_of_break = SelectField(
        
     # upload xcel file and add Rework option with editing and comment option
-    image = FileField("Upload Image" ,validators=[DataRequired()])
+    # image = FileField("Upload Image" ,validators=[DataRequired()])
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 

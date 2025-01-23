@@ -8,8 +8,34 @@
 
       <!-- Module ID -->
       <div class="form-group">
-        <label for="module_id">Module ID</label>
-        <input type="text" name="module_id" id="module_id" class="form-control" required>
+          <label for="module_id">Module ID</label>
+          <input type="text" name="module_id" id="module_id" class="form-control" required>
+      </div>
+
+      <!-- add line to add temperature, dewpoint and humidity in one line in different field but in one line-->
+      <div class="form-group row">
+        <div class="col-md-4">
+            <label for="temperature">Temperature</label>
+            <input type="number" name="temperature" id="temperature" step="0.1" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+            <label for="dewpoint">Dew Point</label>
+            <input type="number" name="dewpoint" id="dewpoint" step="0.1" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+            <label for="humidity">Humidity</label>
+            <input type="number" name="humidity" id="humidity" step="0.1" class="form-control" required>
+        </div>
+      </div>
+            
+      <div class="form-group">
+          <label for="comment">Comment</label>
+          <textarea name="comment" id="comment" class="form-control" rows="4" required></textarea>
+      </div>
+      
+      <div class="form-group">
+          <label for="image">Upload Image</label>
+          <input type="file" name="image" id="image" class="form-control" accept=".jpg,.jpeg,.png,.gif,.pdf,.txt">
       </div>
 
       <!-- Correction Factors and Forces Table -->
@@ -63,8 +89,8 @@
             <th>Type of Break</th>
             <th>Corrected Force (Sensor)</th>
             <th>Corrected Force (FEH)</th>
-            <th>Upload Image</th>
-            <th>Comment</th>
+            <!-- <th>Upload Image</th> -->
+            <!-- <th>Comment</th> -->
           </tr>
         </thead>
         <tbody>
@@ -87,8 +113,8 @@
             </td>
             <td><input type="number" name="top_correction_factor_1" class="form-control"></td>
             <td><input type="number" name="top_corrected_force_1" class="form-control"></td>
-            <td><input type="file" name="top_image_1" class="form-control"></td>
-            <td><input type="text" name="top_comment_1" class="form-control"></td>
+            <!-- <td><input type="file" name="top_image_1" class="form-control"></td> -->
+            <!-- <td><input type="text" name="top_comment_1" class="form-control"></td> -->
           </tr>
         </tbody>
       </table>
@@ -105,8 +131,8 @@
             <th>Type of Break</th>
             <th>Corrected Force (Sensor)</th>
             <th>Corrected Force (FEH)</th>
-            <th>Upload Image</th>
-            <th>Comment</th>
+            <!-- <th>Upload Image</th> -->
+            <!-- <th>Comment</th> -->
           </tr>
         </thead>
         <tbody>
@@ -129,8 +155,8 @@
             </td>
             <td><input type="number" name="bottom_correction_factor_1" class="form-control"></td>
             <td><input type="number" name="bottom_corrected_force_1" class="form-control"></td>
-            <td><input type="file" name="bottom_image_1" class="form-control"></td>
-            <td><input type="text" name="bottom_comment_1" class="form-control"></td>
+            <!-- <td><input type="file" name="bottom_image_1" class="form-control"></td> -->
+            <!-- <td><input type="text" name="bottom_comment_1" class="form-control"></td> -->
           </tr>
         </tbody>
       </table>
@@ -172,8 +198,7 @@ function addRow(tableId) {
     </td>
     <td><input type="number" name="${prefix}_correction_factor_${stripNo}" class="form-control"></td>
     <td><input type="number" name="${prefix}_corrected_force_${stripNo}" class="form-control"></td>
-    <td><input type="file" name="${prefix}_image_${stripNo}" class="form-control"></td>
-    <td><input type="text" name="${prefix}_comment_${stripNo}" class="form-control"></td>
+   
   `;
 }
 </script>
