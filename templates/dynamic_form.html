@@ -21,11 +21,10 @@
                 <div class="row">
                     <div class="col-md-8 offset-md-2 border border-secondary rounded bg-white">
                         <div class="container mt-4">
-                            <h3 class="text-center mb-4 mt-2">Form</h3>
+                            <h3 class="text-center mb-4 mt-2">{{type(form).__name__}}</h3>
                             <form method="POST" action="/">
                                 <ul id="form">
-                                    {{ ckeditor.load() }}
-                                   {{ ckeditor.config(name='Comment') }}
+                                    
                                     {% for field_item in form %}
                                         {% if field_item is iterable %}
                                         <li>
@@ -56,35 +55,33 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
-            var url_path = "{{url_for('add_data',num=0)}}";
-            // Submit POST request using AJAX
-            $('button#submit').bind('click', function () {
-               //var formData = new FormData();
+            var url_path = "{{ url_for('work_flow') }}";
+var send_data_to_url = "{{ data_post_url }}";
 
-		// Append the file
-                var form_data = new FormData($('#sensor_img')[0]);
-		//formData.append('sensor_img', $('#sensor_img')[0].files[0]);
+$('button#submit').on('click', function (e) {
+    e.preventDefault(); // Prevent default form submission
 
-		// Append other form fields
-		//formData.append('recieved_from', $('#recieved_from').val());
-		//formData.append('recied_date', $('#recied_date').val());
-		//formData.append('sensor_id', $('#sensor_id').val());
-		// Repeat this for each other field in the form
+    $.ajax({
+        type: 'POST',
+        url: send_data_to_url,
+        data: $("form").serialize(), // Serialize form data
+        contentType: 'application/x-www-form-urlencoded; charset=UTF-8', // Default for serialize()
+        success: function (response) {
+            // Display success message
+            $('div#status')
+                .stop(true, true)
+                .show()
+                .text(Object.values(response))
+                .fadeOut(10000);
 
-                $.ajax({
-                    type: 'POST',
-                    url: "/add_materials",
-                    data: $("form").serialize(),
-                    contentType: false,
-                    success: function (response) {
-                        $('div#status').stop(true, true).show().text(Object.values(response)
-                        ).fadeOut(10000);
-
-                    window.location.href = url_path;
-                    },
-                    error: function (request, status, error) {
-                        $('div#status').show().text("Data not saved: " + error)
-                    },
+            // Redirect to the URL path
+            //window.location.href = url_path;
+        },
+        error: function (request, status, error) {
+            // Display error message
+            $('div#status').show().text("Data not saved: " + error);
+            console.error("Error Details:", request.responseText); // Log additional details
+        }
                 });
             });
 
