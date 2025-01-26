@@ -635,14 +635,14 @@ def burnim_data_upload():
 
     return render_template("visual_inspection.html", form=form)
 '''
-    if form.validate_on_submit():
-        # Handle the form submission logic here
-        flash(f"Step {step_no} data submitted successfully!", "success")
-        return redirect(url_for('workflow'))  # Redirect to workflow after submission
+    # if form.validate_on_submit():
+    #     # Handle the form submission logic here
+    #     flash(f"Step {step_no} data submitted successfully!", "success")
+    #     return redirect(url_for('workflow'))  # Redirect to workflow after submission
 
-    return render_template(template_name, form=form)
+    # return render_template(template_name, form=form)
 
-'''
+
 
 
 if __name__ == "__main__":

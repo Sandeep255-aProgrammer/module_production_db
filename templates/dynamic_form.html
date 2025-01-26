@@ -23,7 +23,7 @@
                         <div class="container mt-4">
                             <h3 class="text-center mb-4 mt-2">{{type(form).__name__}}</h3>
                             <!-- <form method="POST" action="/"> -->
-                            <form method="POST" action="/add_materials" enctype="multipart/form-data">
+                            <form method="POST" action="/add_material_ids" enctype="multipart/form-data">
                                 <ul id="form">
                                     
                                     {% for field_item in form %}
@@ -74,7 +74,7 @@
     <script type="text/javascript">
         $(document).ready(function () {
             
-            var url_path = "{{url_for('add_materials')}}";
+            var url_path = "{{url_for('add_material_ids')}}";
             // Submit POST request using AJAX
             $('button#submit').bind('click', function () {
                 var formData = new FormData($("form")[0]);
