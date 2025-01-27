@@ -13,6 +13,7 @@ from flask_ckeditor import CKEditor
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 import json
 import datetime
+import openpyxl
 
 utc_now = datetime.datetime.now()
 current_date =f"{utc_now.year}-{utc_now.month}-{utc_now.day}" 
@@ -204,7 +205,8 @@ def module_report():
 @login_required
 def wire_bonding():
     if request.method == 'POST':
-        # Debugging: Print all form data
+        ###################Debugging start####################################
+
         print("\n=== FORM DATA RECEIVED ===")
         for key, value in request.form.items():
             print(f"{key}: {value}")
@@ -215,40 +217,46 @@ def wire_bonding():
             file = request.files[file_key]
             if file.filename != '':
                 print(f"Uploaded file: {file_key} => {file.filename}")
-                # Read file content for debugging (without saving)
                 file.seek(0, os.SEEK_END)
                 size = file.tell()
                 file.seek(0)
                 print(f"File size: {size} bytes")
             else:
                 print(f"Empty file upload: {file_key}")
+        ###################Debugging end####################################
 
-        # Process Module ID and Parameters
         module_id = request.form.get('module_id')
-        print(f"\nProcessing Module ID: {module_id}")
+        temperature = request.form.get('temperature')
+        dewpoint = request.form.get('dewpoint')
+        humidity = request.form.get('humidity')
+        comment = request.form.get('comment')
+        print(f"\nModule ID: {module_id}, Temperature: {temperature}, Dewpoint: {dewpoint}, Humidity: {humidity}")
 
-        # Process Top Parameters
-        top_params = {
-            'delta_height': request.form.get('top_delta_height'),
-            'correction_factor_k1': request.form.get('top_correction_factor_k1'),
-            'correction_factor_k2': request.form.get('top_correction_factor_k2'),
-            'mean_force_1': request.form.get('top_mean_force_1'),
-            'mean_force_2': request.form.get('top_mean_force_2'),
-            'rms_value': request.form.get('top_rms_value'),
-            'standard_deviation': request.form.get('top_standard_deviation')
-        }
+        image_path = None
+        if 'image' in request.files:
+            image = request.files['image']
+            if image and allowed_file(image.filename):
+                filename = secure_filename(image.filename)
+                image_path = os.path.join(UPLOAD_FOLDER, filename)
+                image.save(image_path)  
+                print(f"Image saved to: {image_path}")
+
+        # Function to process correction factors and forces
+        def process_parameters(prefix):
+            return {
+                'delta_height': request.form.get(f'{prefix}_delta_height'),
+                'correction_factor_k1': request.form.get(f'{prefix}_correction_factor_k1'),
+                'correction_factor_k2': request.form.get(f'{prefix}_correction_factor_k2'),
+                'mean_force_1': request.form.get(f'{prefix}_mean_force_1'),
+                'mean_force_2': request.form.get(f'{prefix}_mean_force_2'),
+                'rms_value': request.form.get(f'{prefix}_rms_value'),
+                'standard_deviation': request.form.get(f'{prefix}_standard_deviation')
+            }
+
+        #Top and Bottom Parameters
+        top_params = process_parameters('top')
+        bottom_params = process_parameters('bottom')
         print("\nTop Parameters:", top_params)
-
-        # Process Bottom Parameters
-        bottom_params = {
-            'delta_height': request.form.get('bottom_delta_height'),
-            'correction_factor_k1': request.form.get('bottom_correction_factor_k1'),
-            'correction_factor_k2': request.form.get('bottom_correction_factor_k2'),
-            'mean_force_1': request.form.get('bottom_mean_force_1'),
-            'mean_force_2': request.form.get('bottom_mean_force_2'),
-            'rms_value': request.form.get('bottom_rms_value'),
-            'standard_deviation': request.form.get('bottom_standard_deviation')
-        }
         print("\nBottom Parameters:", bottom_params)
 
         # Process Dynamic Rows
@@ -274,15 +282,46 @@ def wire_bonding():
                 i += 1
             return data
 
-        # Process Top and Bottom Tables
         print("\nPROCESSING TOP TABLE DATA:")
         top_data = process_table_data('top')
         print("\nPROCESSING BOTTOM TABLE DATA:")
         bottom_data = process_table_data('bottom')
 
+        # Saving in excel file
+        try:
+            file_path = 'wire_bonding_data.xlsx'
+            workbook = openpyxl.load_workbook(file_path)
+        except FileNotFoundError:
+            workbook = openpyxl.Workbook()
+
+        # Save table data to another sheet if needed
+        sheet = workbook.create_sheet(title='Top Data')
+        sheet.append(['Raw Pull Force', 'Distance Between Feet', 'Type of Break',
+                       'Correction Factor', 'Corrected Force', 'Comment'])
+        for row in top_data:
+            sheet.append(list(row.values()))
+
+        sheet2 = workbook.create_sheet(title='Bottom Data')
+        sheet2.append(['Raw Pull Force', 'Distance Between Feet', 'Type of Break',
+                       'Correction Factor', 'Corrected Force', 'Comment'])
+        for row in bottom_data:
+            sheet2.append(list(row.values()))
+
+        workbook.save(file_path)
+
+        data_dict = {
+            'module_id': module_id,
+            'temperature': temperature,
+            'dewpoint': dewpoint,
+            'humidity': humidity,
+            'comment': comment,
+            'image_path': image_path,
+        }
+
+
         flash("Wire Bonding data submitted successfully!", "success")
         return redirect(url_for('work_flow'))
-        return redirect(url_for('work_flow'))
+
 
     form = WireBondingForm()
     return render_template('wire_bonding.html', form=form)
@@ -367,41 +406,113 @@ def add_data():
     module_ids = db.session.query(HybridGluingTable.module_id).distinct().all()
     skeleton_ids = db.session.query(SkeletonTestTable.skeleton_id).distinct().all()
 
-    if step_no == 0:
-        return render_template("material_type.html")
-        form = MaterialReceiverTypeForm()
-        if form.validate_on_submit():
+    if step_no == 0 :
+        # Log each field for debugging  
+        print("\n=== FORM DATA RECEIVED ===")
+        for key, value in request.form.items():
+            print(f"{key}: {value}")
         
-            material_type = form.material_type.data
-            return redirect(url_for('add_materials',material_type=material_type))
-            sensors_quantity = form.sensors_quantity.data
-            hybrid_quantity = form.hybrid_quantity.data
-            optical_fibres_quantity = form.optical_fibres_quantity.data
-            kaptontapes_quantity = form.kaptontapes_quantity.data
-            bridges_quantity = form.bridges_quantity.data
-            others = form.others.data
-            receiver_name = form.receiver_name.data
-            #date = form.date.data
-            image = form.image.data
-            comment = form.comment.data
-            if image and image.filename != '':
-                image_url = save_get_file_url(image)
+        # Log file uploads for debugging
+        print("\n=== FILE UPLOADS ===")
+        for file_key in request.files:
+            file = request.files[file_key]
+            if file.filename != '':
+                print(f"Uploaded file: {file_key} => {file.filename}")
+                file.seek(0, os.SEEK_END)
+                size = file.tell()
+                file.seek(0)
+                print(f"File size: {size} bytes")
             else:
-                image_url = None
-            new_material_receiving = MaterialReceiverTable(
-                                       sensors_quantity = sensors_quantity ,
-                                       hybrid_quantity = hybrid_quantity ,
-                                       optical_fibres_quantity = optical_fibres_quantity ,
-                                       kaptontapes_quantity = kaptontapes_quantity ,
-                                       receiver_name = receiver_name,
-                                       bridges_quantity = bridges_quantity ,
-                                       others = others ,
+                print(f"Empty file upload: {file_key}")
+
+        # Check the selected material type and print relevant information
+        material_type = request.form.get('material_type')
+        if material_type == 'Sensor':
+            print("\n=== SENSOR DATA ===")
+            for key, value in request.form.items():
+                if key.startswith('sensor_'):
+                    print(f"{key}: {value}")
+        elif material_type == 'FEH':
+            print("\n=== FEH DATA ===")
+            for key, value in request.form.items():
+                if key.startswith('feh_'):
+                    print(f"{key}: {value}")
+        elif material_type == 'SEH':
+            print("\n=== SEH DATA ===")
+            for key, value in request.form.items():
+                if key.startswith('seh_'):
+                    print(f"{key}: {value}")
+        elif material_type == 'Main Bridge':
+            print("\n=== MAIN BRIDGE DATA ===")
+            for key, value in request.form.items():
+                if key.startswith('main_bridge_'):
+                    print(f"{key}: {value}")
+        elif material_type == 'Stump Bridge':
+            print("\n=== STUMP BRIDGE DATA ===")
+            for key, value in request.form.items():
+                if key.startswith('stump_bridge_'):
+                    print(f"{key}: {value}")
+        elif material_type == 'Glue':
+            print("\n=== GLUE DATA ===")
+            for key, value in request.form.items():
+                if key.startswith('glue_'):
+                    print(f"{key}: {value}")
+        elif material_type == 'Kapton Tapes':
+            print("\n=== KAPTON TAPES DATA ===")
+            for key, value in request.form.items():
+                if key.startswith('kapton_tapes_'):
+                    print(f"{key}: {value}")
+        elif material_type == 'Optical Fibre':
+            print("\n=== OPTICAL FIBRE DATA ===")
+            for key, value in request.form.items():
+                if key.startswith('optical_fibre_'):
+                    print(f"{key}: {value}")
+        elif material_type == 'Wire Bonder':
+            print("\n=== WIRE BONDER DATA ===")
+            for key, value in request.form.items():
+                if key.startswith('wire_bonder_'):
+                    print(f"{key}: {value}")
+        elif material_type == 'Other':
+            print("\n=== OTHER DATA ===")
+            for key, value in request.form.items():
+                if key.startswith('other_'):
+                    print(f"{key}: {value}")
+               
+        return render_template("material_reciever.html")
+
+        # form = MaterialReceiverTypeForm()
+        # if form.validate_on_submit():
+        
+        #     material_type = form.material_type.data
+        #     return redirect(url_for('add_materials',material_type=material_type))
+        #     sensors_quantity = form.sensors_quantity.data
+        #     hybrid_quantity = form.hybrid_quantity.data
+        #     optical_fibres_quantity = form.optical_fibres_quantity.data
+        #     kaptontapes_quantity = form.kaptontapes_quantity.data
+        #     bridges_quantity = form.bridges_quantity.data
+        #     others = form.others.data
+        #     receiver_name = form.receiver_name.data
+        #     #date = form.date.data
+        #     image = form.image.data
+        #     comment = form.comment.data
+        #     if image and image.filename != '':
+        #         image_url = save_get_file_url(image)
+        #     else:
+        #         image_url = None
+        #     new_material_receiving = MaterialReceiverTable(
+        #                                sensors_quantity = sensors_quantity ,
+        #                                hybrid_quantity = hybrid_quantity ,
+        #                                optical_fibres_quantity = optical_fibres_quantity ,
+        #                                kaptontapes_quantity = kaptontapes_quantity ,
+        #                                receiver_name = receiver_name,
+        #                                bridges_quantity = bridges_quantity ,
+        #                                others = others ,
                                        
-                                       image_url = image_url , comment = comment )
-            db.session.add(new_material_receiving)
-            db.session.commit()
-            return redirect(url_for('work_flow'))
-   #     return render_template("material_reciever.html", form=form)
+        #                                image_url = image_url , comment = comment )
+        #     db.session.add(new_material_receiving)
+        #     db.session.commit()
+        #     return redirect(url_for('work_flow'))
+        #     return render_template("material_reciever.html", form=form)
         
        
     
@@ -497,6 +608,7 @@ def add_received_materials():
         return redirect(url_for('add_material_ids' ))
         
     return render_template("visual_inspection.html", form=basic_form)
+
 @app.route('/add_material_ids',methods = ["GET","POST"])
 def add_material_ids():
     index_number = session.get('index_number')
@@ -523,6 +635,8 @@ def add_material_ids():
         return redirect(url_for("work_flow"))
     print("after--------------")
     return render_template("dynamic_form.html", form=id_form ,data_post_url = 'add_material_ids',type= type )
+
+
     '''
     if not form_class:
         return f"Invalid material_type: {material_type}", 400  # Return an error if the type is invalid
@@ -635,14 +749,14 @@ def burnim_data_upload():
 
     return render_template("visual_inspection.html", form=form)
 '''
-    if form.validate_on_submit():
-        # Handle the form submission logic here
-        flash(f"Step {step_no} data submitted successfully!", "success")
-        return redirect(url_for('workflow'))  # Redirect to workflow after submission
+# if form.validate_on_submit():
+#     # Handle the form submission logic here
+#     flash(f"Step {step_no} data submitted successfully!", "success")
+#     return redirect(url_for('workflow'))  # Redirect to workflow after submission
 
-    return render_template(template_name, form=form)
+#     return render_template(template_name, form=form)
 
-'''
+
 
 
 if __name__ == "__main__":

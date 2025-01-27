@@ -1,79 +1,224 @@
-{% from "bootstrap5/form.html" import render_form %}
-{% extends "base1.html" %} {% block content %}
-
+{% extends "base1.html" %}
+{% block content %}
 
 <main class="mb-4">
   <div class="container">
     <div class="row">
-      <!-- Adding Flash message here for users trying to register twice -->
       <div class="col-lg-8 col-md-10 mx-auto">
-        <!--Rendering login form here-->
-        {{ ckeditor.load() }}
-        {{ ckeditor.config(name='comment') }}
-        {{render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+        <h2 class="text-center text-white bg-primary py-2 px-4 rounded shadow-sm">Material Receiver</h2>
+
+        <!-- Material Dropdown -->
+        <div class="form-group mt-4">
+          <label for="material-select" class="form-label">Select Material Type</label>
+          <select id="material-select" class="form-control" onchange="updateMaterialForm()">
+            <option value="" selected disabled>Select Material</option>
+            <option value="Sensor">Sensor</option>
+            <option value="FEH">FEH</option>
+            <option value="SEH">SEH</option>
+            <option value="Main Bridge">Main Bridge</option>
+            <option value="Stump Bridge">Stump Bridge</option>
+            <option value="Glue">Glue</option>
+            <option value="Kapton Tapes">Kapton Tapes</option>
+            <option value="Optical Fibre">Optical Fibre</option>
+            <option value="Wire Bonder">Wire Bonder</option>
+            <option value="Other">Other (Specify Material)</option>
+          </select>
+        </div>
+
+        <!-- Other Material Name Input -->
+        <div class="form-group mt-4 d-none" id="other-material-group">
+          <label for="other-material-name" class="form-label">Enter Material Name</label>
+          <input type="text" id="other-material-name" class="form-control" placeholder="Enter material name" oninput="updateOtherMaterialName()" />
+        </div>
+
+        <!-- Material Form -->
+        <form id="material-form" method="POST" enctype="multipart/form-data" class="mt-4 d-none">
+          <h3 id="form-title" class="text-center"></h3>
+
+          <!-- Received From and Date -->
+          <div class="row mt-3">
+            <div class="col">
+              <label for="received-from" class="form-label">Received From</label>
+              <input type="text" name="received_from" id="received-from" class="form-control" required />
+            </div>
+            <div class="col">
+              <label for="date" class="form-label">Date</label>
+              <input type="date" name="date" id="date" class="form-control" required />
+            </div>
+          </div>
+
+          <!-- Temperature, Humidity, Dew Point Row -->
+          <div class="row mt-3">
+            <div class="col">
+              <label for="temperature" class="form-label">Temperature (°C)</label>
+              <input type="number" name="temperature" id="temperature" class="form-control" required />
+            </div>
+            <div class="col">
+              <label for="humidity" class="form-label">Humidity (%)</label>
+              <input type="number" name="humidity" id="humidity" class="form-control" required />
+            </div>
+            <div class="col">
+              <label for="dew-point" class="form-label">Dew Point (°C)</label>
+              <input type="number" name="dew_point" id="dew-point" class="form-control" required />
+            </div>
+          </div>
+
+          <!-- Image Upload and Comment -->
+          <div class="row mt-3">
+            <div class="col">
+              <label for="material-image" class="form-label">Upload Image</label>
+              <input type="file" name="material_image" id="material-image" class="form-control" />
+            </div>
+            <div class="col">
+              <label for="material-comment" class="form-label">Comment</label>
+              <textarea name="material_comment" id="material-comment" class="form-control"></textarea>
+            </div>
+          </div>
+
+          <!-- Material-Specific Table -->
+          <h4 class="text-center mt-4"></h4>
+          <table class="table table-bordered text-center" id="material-table">
+            <thead id="table-header"></thead>
+            <tbody id="table-body"></tbody>
+          </table>
+          <button type="button" class="btn btn-secondary" onclick="addMaterialRow()">Add Row</button>
+
+          <!-- Submit Button -->
+          <div class="form-group text-center mt-4">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 </main>
 
-<!-- JavaScript for Conditional Display for selecting other consumables in the Material Reciever-->
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-      var materialNameField = document.querySelector('select[name="material_name"]');
-      var otherMaterialNameField = document.querySelector('input[name="other_material_name"]').parentElement;
-  
-      function toggleOtherMaterialField() {
-          if (materialNameField.value === 'other') {
-              otherMaterialNameField.style.display = 'block';
-          } else {
-              otherMaterialNameField.style.display = 'none';
-          }
-      }
-  
-      materialNameField.addEventListener('change', toggleOtherMaterialField);
-      toggleOtherMaterialField(); // Initial call to set the correct state
-  });
-  </script>
+  function updateMaterialForm() {
+    const materialSelect = document.getElementById("material-select");
+    const materialForm = document.getElementById("material-form");
+    const formTitle = document.getElementById("form-title");
+    const tableHeader = document.getElementById("table-header");
+    const tableBody = document.getElementById("table-body");
+    const otherMaterialGroup = document.getElementById("other-material-group");
 
-  <!-- JavaScript for Dynamic Label Update for the different item ID-->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-      var itemTypeField = document.querySelector('select[name="item_type"]');
-      var checkIdLabel = document.querySelector('label[for="check_id"]');
-  
-      function updateCheckIdLabel() {
-          var selectedItemType = itemTypeField.value;
-          if (selectedItemType === 'sensor') {
-              checkIdLabel.textContent = 'Sensor ID';
-              sensorIdContainer.style.display = 'block';
-          } else if (selectedItemType === 'FEH') {
-              checkIdLabel.textContent = 'Hybrid ID';
-          } else if (selectedItemType === 'SEH') {
-              checkIdLabel.textContent = 'Bridge ID';
-          }
-          else if (selectedItemType === 'main_bridge') {
-              checkIdLabel.textContent = 'Bridge ID';
-          }
-          else if (selectedItemType === 'stump_bridge') {
-              checkIdLabel.textContent = 'Bridge ID';
-          }
-          else if (selectedItemType === 'glue') {
-              checkIdLabel.textContent = 'Bridge ID';
-          }
-          else if (selectedItemType === 'kapton_tapes') {
-              checkIdLabel.textContent = 'Bridge ID';
-          }
-          else if (selectedItemType === 'optical_fibre') {
-              checkIdLabel.textContent = 'Bridge ID';
-          }
-          else if (selectedItemType === 'wire_bonder') {
-              checkIdLabel.textContent = 'Bridge ID';
-          }
+    // Reset the form
+    materialForm.classList.add("d-none");
+    otherMaterialGroup.classList.add("d-none");
+    tableHeader.innerHTML = "";
+    tableBody.innerHTML = "";
+
+    const selectedMaterial = materialSelect.value;
+
+    if (selectedMaterial === "Other") {
+      otherMaterialGroup.classList.remove("d-none");
+    //   formTitle.textContent = "Other Material Details";
+    //   tableHeader.innerHTML = `
+    //     <tr>
+    //       <th>S.No</th>
+    //       <th>Other Material ID</th>
+    //     </tr>`;
+    } else if (selectedMaterial === "Glue") {
+      materialForm.classList.remove("d-none");
+      formTitle.textContent = "Glue Details";
+      tableHeader.innerHTML = `
+        <tr>
+          <th>S.No</th>
+          <th>Glue Batch ID</th>
+          <th>Expiry Date</th>
+        </tr>`;
+    } else if (selectedMaterial === "Wire Bonder") {
+      materialForm.classList.remove("d-none");
+      formTitle.textContent = "Wire Bonder Details";
+      tableHeader.innerHTML = `
+        <tr>
+          <th>S.No</th>
+          <th>Wire Bonder ID</th>
+          <th>Spool Number</th>
+          <th>Wedge Tool No.</th>
+          <th>Expiry Date</th>
+        </tr>`;
+    } else if (selectedMaterial) {
+      materialForm.classList.remove("d-none");
+      formTitle.textContent = `${selectedMaterial} Details`;
+      tableHeader.innerHTML = `
+        <tr>
+          <th>S.No</th>
+          <th>${selectedMaterial} ID</th>
+        </tr>`;
+    }
+
+    // Add the first row for the selected material
+    addMaterialRow();
+  }
+
+  function handleOtherMaterialEnter(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const otherMaterialName = document.getElementById("other-material-name").value;
+      const formTitle = document.getElementById("form-title");
+      const tableHeader = document.getElementById("table-header");
+      const tableBody = document.getElementById("table-body");
+      const materialForm = document.getElementById("material-form");
+
+      if (otherMaterialName.trim() !== "") {
+        formTitle.textContent = `${otherMaterialName} Details`;
+        tableHeader.innerHTML = `
+          <tr>
+            <th>S.No</th>
+            <th>${otherMaterialName} ID</th>
+          </tr>`;
+        materialForm.classList.remove("d-none");
+        tableBody.innerHTML = ""; // Clear any previous rows
+        addMaterialRow();
       }
-  
-      itemTypeField.addEventListener('change', updateCheckIdLabel);
-      updateCheckIdLabel(); // Initial call to set the correct state
-  });
-  </script>
-  
+    }
+  }
+
+//   function updateOtherMaterialName() {
+//     const otherMaterialName = document.getElementById("other-material-name").value;
+//     const formTitle = document.getElementById("form-title");
+//     const tableHeader = document.getElementById("table-header");
+
+//     formTitle.textContent = otherMaterialName ? `${otherMaterialName} Details` : "Other Material Details";
+//     tableHeader.innerHTML = `
+//       <tr>
+//         <th>S.No</th>
+//         <th>${otherMaterialName || "Other Material"} ID</th>
+//       </tr>`;
+
+//     // Add the first row automatically when the material name changes
+//     const tableBody = document.getElementById("table-body");
+//     tableBody.innerHTML = ""; // Clear existing rows
+//     addMaterialRow();
+//   }
+
+  function addMaterialRow() {
+    const tableBody = document.getElementById("table-body");
+    const rowCount = tableBody.rows ? tableBody.rows.length + 1 : 1;
+    const selectedMaterial = document.getElementById("material-select").value;
+
+    let rowContent = `
+      <tr>
+        <td>${rowCount}</td>`;
+
+    if (selectedMaterial === "Glue") {
+      rowContent += `
+        <td><input type="text" name="material_id[]" class="form-control" required /></td>
+        <td><input type="date" name="expiry_date[]" class="form-control" required /></td>`;
+    } else if (selectedMaterial === "Wire Bonder") {
+      rowContent += `
+        <td><input type="text" name="material_id[]" class="form-control" required /></td>
+        <td><input type="text" name="spool_number[]" class="form-control" required /></td>
+        <td><input type="text" name="wedge_tool_no[]" class="form-control" required /></td>
+        <td><input type="date" name="expiry_date[]" class="form-control" required /></td>`;
+    } else {
+      rowContent += `<td><input type="text" name="material_id[]" class="form-control" required /></td>`;
+    }
+
+    rowContent += `</tr>`;
+    tableBody.innerHTML += rowContent;
+  }
+</script>
+
 {% endblock %}
