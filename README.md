@@ -31,7 +31,7 @@ This project is a database management system designed for CMS Outer Tracker Modu
 │   └── workflow.html
 ├── Utilities
 │   └── add_user.py
-
+│ 
 ├── database_table.py
 ├── forms.py
 ├── main.py
@@ -48,7 +48,7 @@ This project is a database management system designed for CMS Outer Tracker Modu
 ## Installation
 1. **Clone the Repository:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/pikusneh/module_production_db.git
    ```
 
 2. **Navigate to the Project Directory:**

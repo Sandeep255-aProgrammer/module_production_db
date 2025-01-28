@@ -1,7 +1,5 @@
 {% extends "base1.html" %} {% block content %}
 
-
-
 <main class="mb-4">
   <div class="container">
     <div class="row">
@@ -15,18 +13,18 @@
 <div class="container text-center my-5">
     <div class ="long-box">
       <!-- 10 Links in the long rectangular box -->
-      <a href="{{url_for('add_data', num=0)}}" class="link-box">Material Receiver</a>
-      <a href="{{url_for('add_data', num=1)}}" class="link-box">Visual Inspection</a>
-      <a href="{{url_for('add_data', num=2)}}" class="link-box">Kapton Gluing</a>
-      <a href="{{url_for('add_data', num=3)}}" class="link-box">Hv & Iv Form</a>
-      <a href="{{url_for('add_data', num=4)}}" class="link-box">Sensor Gluing</a>
-      <a href="{{url_for('add_data', num=5)}}" class="link-box">Needle Metrology</a>
-      <a href="{{url_for('add_data', num=6)}}" class="link-box">Skeleton Test</a>
-      <a href="{{url_for('add_data', num=7)}}" class="link-box">Hybrid Gluing</a>
-      <a href="{{url_for('add_data', num=11)}}" class="link-box">Save Module</a>
-      <a href="{{url_for('add_data', num=8)}}" class="link-box">Wire Bonding</a>
-      <a href="{{url_for('add_data', num=9)}}" class="link-box">Noise Test</a>
-      <a href="{{url_for('add_data', num=10)}}" class="link-box">Burnin Test</a>
+      <a href="{{url_for('add_data', num=0, workflow_name='Material Receiver')}}" class="link-box">Material Receiver</a>
+      <a href="{{url_for('add_data', num=1, workflow_name='Visual Inspection')}}" class="link-box">Visual Inspection</a>
+      <a href="{{url_for('add_data', num=2, workflow_name='Kapton Gluing')}}" class="link-box">Kapton Gluing</a>
+      <a href="{{url_for('add_data', num=3, workflow_name='Hv & Iv Form')}}" class="link-box">Hv & Iv Form</a>
+      <a href="{{url_for('add_data', num=4, workflow_name='Sensor Gluing')}}" class="link-box">Sensor Gluing</a>
+      <a href="{{url_for('add_data', num=5, workflow_name='Needle Metrology')}}" class="link-box">Needle Metrology</a>
+      <a href="{{url_for('add_data', num=6, workflow_name='Skeleton Test')}}" class="link-box">Skeleton Test</a>
+      <a href="{{url_for('add_data', num=7, workflow_name='Hybrid Gluing')}}" class="link-box">Hybrid Gluing</a>
+      <a href="{{url_for('add_data', num=11, workflow_name='Save Module')}}" class="link-box">Save Module</a>
+      <a href="{{url_for('add_data', num=8, workflow_name='Wire Bonding')}}" class="link-box">Wire Bonding</a>
+      <a href="{{url_for('add_data', num=9, workflow_name='Noise Test')}}" class="link-box">Noise Test</a>
+      <a href="{{url_for('add_data', num=10, workflow_name='Burnin Test')}}" class="link-box">Burnin Test</a>
     </div>
   </div>
 
@@ -34,36 +32,9 @@
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 
-
-
-
-
       </div>
     </div>
   </div>
 </main>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 {% endblock %}

@@ -398,6 +398,7 @@ def download():
 @app.route('/add_data', methods=["GET", "POST"])
 def add_data():
     num = request.args.get('num')
+    workflow_name = request.args.get('workflow_name', 'Workflow')
     if not num:
         num = 0
     step_no = int(num)
@@ -527,7 +528,7 @@ def add_data():
                 return redirect(url_for('hybrid_inspection'))
             elif inspection_number == 2:
                 return redirect(url_for('bridge_inspection'))
-        return render_template("visual_inspection.html", form=form) 
+        return render_template("visual_inspection.html", form=form, process_name=workflow_name) 
             
     elif step_no == 2:
         form = KaptonGluing()
@@ -581,15 +582,14 @@ def add_data():
         form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
         if form.validate_on_submit():
             pass
-        
-        
+          
     elif step_no == 10:
         form = BurNimForm()
         if form.validate_on_submit():
             module_quantity = int(form.module_quantity.data)
             return redirect(url_for('burnim_data_upload',module_quantity = module_quantity))
     
-    return render_template("visual_inspection.html", form=form)
+    return render_template("visual_inspection.html", form=form, process_name=workflow_name)
 
 
 
