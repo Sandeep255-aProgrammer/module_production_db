@@ -1,0 +1,95 @@
+{% extends "base1.html" %} {% block content %}
+
+<style>
+  .long-box {
+    display: flex;
+    flex-direction: column; /* Stack the links vertically */
+    justify-content: space-between; /* Evenly distribute the links */
+    align-items: center; /* Center the links horizontally */
+    width: 100%; /* Make the box full width */
+    max-width: 900px; /* Limit the box width */
+    height: 440px; /* Set a fixed height for the box */
+    border: 2px solid #ffffff; /* Border for the box */
+    padding: 40px; /* Padding inside the box */
+    background-color: #f8f9fa; /* Light background color */
+    border-radius: 10px; /* Rounded corners */
+    overflow-y: auto; /* Add vertical scrolling if content overflows */
+  }
+
+  .link-box {
+    width: 100%; /* Make each link box take full width of the container */
+    text-align: center; /* Center the text of each link */
+    padding: 10px; /* Padding inside each link box */
+    border: 1px solid #f8f9fa; /* Border for each link */
+    margin-bottom: 10px; /* Space between each link */
+    border-radius: 5px; /* Rounded corners */
+    text-decoration: none; /* Remove underline */
+    color: #007bff; /* Link color */
+    font-size: 25px; /* Font size */
+    background-color: #ffffff; /* White background for the link */
+    transition: background-color 0.3s; /* Smooth hover effect */
+  }
+
+  .link-box:hover {
+    background-color: #FFA500; /* Light blue on hover */
+  }
+</style>  
+
+<main class="mb-4">
+  <div class="container">
+    <div class="row">
+      <!-- Adding Flash message here for users trying to register twice -->
+      <div class="col-lg-8 col-md-10 mx-auto">
+        <!--Rendering login form here-->
+        
+<h2 class="text-center text-white bg-primary py-2 px-4 rounded shadow-sm">
+  Visual Inspection Material
+</h2>
+<div class="container text-center my-5">
+    <div class ="long-box">
+      <!-- 10 Links in the long rectangular box -->
+      <a href="{{url_for('visual_inspection_data', material_type = 'sensor_visual')}}" class="link-box">Sensor</a>
+      <a href="{{url_for('visual_inspection_data', material_type = 'FEH_visual')}}" class="link-box">FEH</a>
+      <a href="{{url_for('visual_inspection_data', material_type = 'SEH_visual')}}" class="link-box">SEH</a>
+      <a href="{{url_for('visual_inspection_data', material_type = 'main_bridge_visual')}}" class="link-box">Main Bridge</a>
+      <a href="{{url_for('visual_inspection_data', material_type = 'stump_bridge_visual')}}" class="link-box">Stump Bridge</a>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS (Optional, for interactive features like dropdowns) -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+
+
+      </div>
+    </div>
+  </div>
+</main>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

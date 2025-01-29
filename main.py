@@ -22,27 +22,45 @@ below  import all the forms required , which is defined in the forms.py
 
 
 from forms import (
-    MaterialReceiverTypeForm,
+   
     AddStationForm ,
-    MaterialReceiver,
-    VisualInspection,
+   
+    SensorVisualForm ,
+    FEHVisualForm,
+   SEHVisualForm,
+    MainBridgeVisualForm,
+   StumpBridgeVisualForm,
     KaptonGluing,
-    HvIvForm,
+    HvForm,
+    IvForm ,
     SensorGluing,
     NeedleMetrologyForm,
     SkeletonTestForm,
     HybridGluingForm,
+    ModuleEncapsulationForm ,
     WireBondingForm,
-    NoiseTestForm,
+    NoiseTestForm_Ph2_ACF,
     BurNimForm,BurnimForm1, BurnimForm2, BurnimForm3, BurnimForm4, BurnimForm5, \
     BurnimForm6, BurnimForm7, BurnimForm8, BurnimForm9, BurnimForm10 ,
     ModuleData , SensorForm  ,WireBond,
+    VTRxIDForm ,VTRxForm,GroundBalancerIDForm ,  GroundBalancerForm,
     FEHForm, SEHForm, MainBridgeForm, StumpBridgeForm, GlueForm, KaptonTapesForm, OpticalFibreForm, WireBonderForm, OtherConsumablesForm
       ,SensorIdListForm, FEHIdListForm, SEHIdListForm, MainBridgeIdListForm, StumpBridgeIdListForm, GlueBatchIdListForm, KaptonTapeIdListForm, OpticalFibreIdListForm, WireBonderDetailsForm, JigIDForm , OtherConsumablesListForm
 )
-
-add_received_materials_forms = [SensorForm,FEHForm, SEHForm, MainBridgeForm, StumpBridgeForm, GlueForm, KaptonTapesForm, OpticalFibreForm, WireBonderForm, JigIDForm,OtherConsumablesForm]
-Material_receiver_ids_forms = [SensorIdListForm, FEHIdListForm, SEHIdListForm, MainBridgeIdListForm, StumpBridgeIdListForm, GlueBatchIdListForm, KaptonTapeIdListForm, OpticalFibreIdListForm, WireBonderDetailsForm,  JigIDForm,OtherConsumablesListForm]
+# make this dictionary for more readability once it works 
+add_received_materials_forms = [SensorForm,FEHForm, SEHForm, 
+                                MainBridgeForm, StumpBridgeForm, 
+                                GlueForm, KaptonTapesForm, OpticalFibreForm,  
+                                WireBonderForm,JigIDForm,OtherConsumablesForm,
+                                VTRxForm,GroundBalancerForm]
+material_receiver_data_dict = [{"sensor_id":[]},{"FEH_id":[]},{"SEH_id":[]},
+                               {"main_bridge_id":[]},{"stump_bridge_id":[]},
+                               {"glue_batch_id":[],"glue_expiry_date":[]},{"kapton_id":[]},{"optical_fibre_id":[]},
+                               {"spool_no":[],"wedge_tool_no":[],"expiry_date":[]},{"jig_id":[]},{"other_id":[]}]
+current_material_data = material_receiver_data_dict[0]
+Material_receiver_ids_forms = [SensorIdListForm, FEHIdListForm, SEHIdListForm, MainBridgeIdListForm, StumpBridgeIdListForm, 
+                               GlueBatchIdListForm, KaptonTapeIdListForm, OpticalFibreIdListForm, WireBonderDetailsForm,  
+                               JigIDForm,OtherConsumablesListForm,VTRxIDForm,GroundBalancerIDForm]
 
 ''' 
 now import all the stups related to the database tike the table and db , all are defined in the database_table.html
@@ -100,17 +118,25 @@ def save_get_file_url(file):
     file.save(file_path)
     return file_path
 
-FORM_MAPPING = {
-    "sensor": SensorForm,
-    "FEH": FEHForm,
-    "SEH": SEHForm,
-    "main_bridge": MainBridgeForm,
-    "stump_bridge": StumpBridgeForm,
-    "glue": GlueForm,
-    "kapton_tapes": KaptonTapesForm,
-    "optical_fibre": OpticalFibreForm,
-    "wire_bonder": WireBonderForm,
-    "other": OtherConsumablesForm,
+# FORM_MAPPING_MATERIAL_RECEIVER = {
+#     "sensor": SensorForm,
+#     "FEH": FEHForm,
+#     "SEH": SEHForm,
+#     "main_bridge": MainBridgeForm,
+#     "stump_bridge": StumpBridgeForm,
+#     "glue": GlueForm,
+#     "kapton_tapes": KaptonTapesForm,
+#     "optical_fibre": OpticalFibreForm,
+#     "wire_bonder": WireBonderForm,
+#     "other": OtherConsumablesForm,
+# }
+
+FORM_MAPPING_VISUAL_INSPECTION = {
+   "sensor_visual": SensorVisualForm,
+    "FEH_visual": FEHVisualForm,
+    "SEH_visual": SEHVisualForm,
+    "main_bridge_visual": MainBridgeVisualForm,
+    "stump_bridge_visual": StumpBridgeVisualForm,
 }
 
     
@@ -406,18 +432,8 @@ def add_data():
        
     
     elif step_no == 1:
-        form = VisualInspection()
-        inspection_number = None
-        if form.validate_on_submit():
-            inspection_number = int(form.inspection_type.data)
-            if inspection_number == 1:
-                return redirect(url_for('sensor_inspection'))
-            elif inspection_number == 3:
-                return redirect(url_for('hybrid_inspection'))
-            elif inspection_number == 2:
-                return redirect(url_for('bridge_inspection'))
-        return render_template("visual_inspection.html", form=form) 
-            
+        return render_template("visual_type.html")
+
     elif step_no == 2:
         form = KaptonGluing()
         # add sensor ids from VisualInspectionsencor table to the sensor id choices 
@@ -429,7 +445,13 @@ def add_data():
         
         
     elif step_no == 3:
-        form = HvIvForm()
+        form = HvForm()
+        form.sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
+        if form.validate_on_submit():
+            SaveToDataBase().save_hv_iv_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
+    elif step_no == 31:
+        form = IvForm()
         form.sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
         if form.validate_on_submit():
             SaveToDataBase().save_hv_iv_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
@@ -459,6 +481,11 @@ def add_data():
         if form.validate_on_submit():
             SaveToDataBase().save_hybrid_gluing_form( form ,db ,app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
+    elif step_no == 71:
+        form = ModuleEncapsulationForm()
+        if form.validate_on_submit():
+            print("module encapsulation form is validated ")
+            return redirect(url_for('work_flow'))
     elif step_no == 11:
         form = ModuleData()
     elif step_no == 8:  # Wire Bonding
@@ -466,7 +493,7 @@ def add_data():
         template_name = "wire_bonding.html"  # Use a unique template for Wire Bonding
         return redirect(url_for('wire_bonding'))
     elif step_no == 9:
-        form = NoiseTestForm()
+        form = NoiseTestForm_Ph2_ACF()
         form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
         if form.validate_on_submit():
             pass
@@ -484,16 +511,18 @@ def add_data():
 
 @app.route('/add_received_materials', methods = ["GET","POST"])
 def add_received_materials():
+    # get material receiving type from material_type.html 
     index_number = int(request.args.get("num"))
+    # This part for adding jig 
     if index_number == 9:
        return redirect(url_for('add_material_ids' ))
-         
-
+    
     basic_form = add_received_materials_forms[index_number]()
     #session['basic_form_data'] = basic_form.data
     session['index_number'] = index_number
     if basic_form.validate_on_submit():
         print("basic form is validated ")
+        current_material_data = material_receiver_data_dict[index_number]
         return redirect(url_for('add_material_ids' ))
         
     return render_template("visual_inspection.html", form=basic_form)
@@ -503,26 +532,51 @@ def add_material_ids():
     if index_number is None or index_number >= len(Material_receiver_ids_forms):
         return "Invalid index number", 400
 
-    id_form = Material_receiver_ids_forms[index_number]()
+    id_form = Material_receiver_ids_forms[index_number]
+    
     #basic_form_data = request.args.get('basic_form_data')
     #print("----is it None",basic_form_data)
+    # get a dict , save the 
     if request.method == "POST":
-        form = Material_receiver_ids_forms[index_number]()
+        # Get data from AJAX request
+        form = id_form(request.form)
         for fieldlist in form:
             try:
                 _ = (entry for entry in fieldlist)
             except TypeError:
-                print("got some type error")
-                print(fieldlist.name,fieldlist.data)
+                print("got type error ")
+                print(fieldlist.name, fieldlist.data)
                 continue
             for entry in fieldlist:
-                print(entry.name , entry.data)
-    if id_form.validate():
-        print("id form submitted")
-        print(id_form.data)
-        return redirect(url_for("work_flow"))
-    print("after--------------")
-    return render_template("dynamic_form.html", form=id_form ,data_post_url = 'add_material_ids',type= type )
+                print(entry.name, entry.data)
+        # Server-Side Validation
+        if id_form().validate():
+            print(id_form().data)
+            print("form is validated ")
+            # Valid data -  Can be saved to a database
+            return form.data
+        else:
+            # Validation Failed
+            return 'Data not saved!'
+    return render_template('dynamic_form.html', form=id_form())
+    # if request.method == "POST":
+    #     form = Material_receiver_ids_forms[index_number]()
+    #     for fieldlist in form:
+    #         try:
+    #             _ = (entry for entry in fieldlist)
+    #         except TypeError:
+    #             print("got some type error")
+    #             print(fieldlist.name,fieldlist.data)
+    #             continue
+    #         for entry in fieldlist:
+    #             print(entry.name , entry.data)
+    # if id_form.validate():
+    #     print("id form submitted")
+    #     print(id_form.data)
+    #     return redirect(url_for("work_flow"))
+    # print("after--------------")
+    # return render_template("dynamic_form.html", form=id_form ,data_post_url = 'add_material_ids',type= type )
+    
     '''
     if not form_class:
         return f"Invalid material_type: {material_type}", 400  # Return an error if the type is invalid
@@ -562,6 +616,18 @@ def add_materials():
         return form.sensor_img.data.filename
     return render_template("dynamic_form.html", form=form)
     #return redirect(url_for('add_data',num = 0))
+'''
+# < ---------------------- Visual Inspection Part ------------------------------
+@app.route('/visual_inspection_data', methods=["GET", "POST"])
+def visual_inspection_data():
+    # get the material type name from  visual_type.html 
+    material_type = request.args.get("material_type")
+    # get the corresponding form from FORM_MAPPING_VISUAL_INSPECTION (dict)
+    visual_material_form = FORM_MAPPING_VISUAL_INSPECTION[material_type]()
+    if visual_material_form.validate_on_submit():
+        return redirect('work_flow')
+    return render_template("visual_inspection.html",form = visual_material_form)
+    
 
 @app.route('/sensor_inspection', methods=["GET", "POST"])
 def sensor_inspection():
@@ -602,6 +668,9 @@ def bridge_inspection():
         SaveToDataBase().save_visual_inspection_bridge_form(form ,db ,app.config['UPLOAD_WORKFLOW_FILES'])
         return redirect(url_for('work_flow'))
     return render_template("visual_inspection.html", form=form)
+
+# ------------------ Visual Inspection End ----------------------
+
 @app.route('/burnim_data_upload', methods=["GET", "POST"])
 def burnim_data_upload():
     module_ids = db.session.query(HybridGluingTable.module_id).distinct().all()
@@ -634,7 +703,7 @@ def burnim_data_upload():
         return redirect(url_for('work_flow'))
 
     return render_template("visual_inspection.html", form=form)
-'''
+
     # if form.validate_on_submit():
     #     # Handle the form submission logic here
     #     flash(f"Step {step_no} data submitted successfully!", "success")
