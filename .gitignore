@@ -1,3 +1,7 @@
 nisers.db
 __init.py__
 __pycache__
+.DS_Store
+.venv
+__init.py__
+__pycache__
