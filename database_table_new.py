@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Integer, String, Boolean, DateTime , Text , Float ,Date , Enum
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
 import os
-
+from sqlalchemy.exc import IntegrityError
 import datetime
 class Base(DeclarativeBase):
     pass
@@ -29,17 +29,6 @@ class UserTable(UserMixin, db.Model):
     station = relationship("StationTable", back_populates="user" )
     jig = relationship("JigTable", back_populates="user" )
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="user" )
-    sensor = relationship("SensorTable", back_populates="user" )
-    feh = relationship("FEHTable", back_populates="user" )
-    seh = relationship("SEHTable", back_populates="user" )
-    main_bridge = relationship("MainBridgeTable", back_populates="user" )
-    stump_bridge = relationship("StumpBridgeTable", back_populates="user" )
-    kapton_tape = relationship("KaptonTapeTable", back_populates="user" )
-    
-    ground_balancer = relationship("GroundBalancerTable", back_populates="user" )
-    vtrx = relationship("VTRxTable", back_populates="user" )
-    glue = relationship("GlueTable", back_populates="user" )
-    wire = relationship("WireBonderTable", back_populates="user" )
     v_sensor = relationship("VSensorTable", back_populates="user" )
     v_feh = relationship("VFEHTable", back_populates="user" )
     v_seh = relationship("VSEHTable", back_populates="user" )
@@ -57,7 +46,22 @@ class UserTable(UserMixin, db.Model):
     noise_test1 = relationship("NoiseTest1Table", back_populates="user" )
     noise_test2 = relationship("NoiseTest2Table", back_populates="user" )
     burnin_test = relationship("BurninTestTable", back_populates="user" )
-
+    @classmethod
+    def add_user(cls, user_data: dict):
+        try:
+            # Ensure that the dictionary has all necessary fields (including required ones)
+            if UserTable.query.filter_by(username=user["username"]).first():
+                raise ValueError(f"Username {user.username} already exists.")
+            user = cls(**user_data)
+            db.session.add(user)
+            db.session.commit()
+            return user  # Return the added user instance
+        except IntegrityError as e:
+            db.session.rollback()
+            raise ValueError(f"An error occurred while adding the user: {str(e)}")
+        except Exception as e:
+            db.session.rollback()
+            raise ValueError(f"An unexpected error occurred: {str(e)}")
 class DateTimeTable(db.Model):
     __tablename__ = "DateTimeTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True) 
@@ -83,6 +87,23 @@ class DateTimeTable(db.Model):
     noise_test2 = relationship("NoiseTest2Table", back_populates="date_time" )
     burnin_test = relationship("BurninTestTable", back_populates="date_time" )
 
+    
+    @classmethod
+    def add_date_time(cls, date_time_data: dict):
+        # Check if the date_time already exists in the database
+        
+        try:
+            # Ensure that the dictionary has all necessary fields (including required ones)
+            date_time_entry = cls(**date_time_data)
+            db.session.add(date_time_entry)
+            db.session.commit()
+            return date_time_entry  # Return the added date_time instance
+        except IntegrityError as e:
+            db.session.rollback()
+            raise ValueError(f"An error occurred while adding the DateTime entry: {str(e)}")
+        except Exception as e:
+            db.session.rollback()
+            raise ValueError(f"An unexpected error occurred: {str(e)}")
 # -------------------------------------- Station Table ---------------------------
 
 class StationTable(db.Model):
@@ -96,9 +117,10 @@ class StationTable(db.Model):
     img_path: Mapped[str] = mapped_column(String(1000), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)  # Boolean field for active status
     iteration_number: Mapped[int] = mapped_column(Integer, nullable=False)
-    # ----------------------------- Child Tables ----------------------------------
+    # ----------------------------- Parent Table ---------------------------------
     operator_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
     user = relationship("UserTable", back_populates="station")
+    # ----------------------------- Child Tables ----------------------------------
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="station")
     v_sensor = relationship("VSensorTable", back_populates="station")
     v_feh = relationship("VFEHTable", back_populates="station")
@@ -113,11 +135,29 @@ class StationTable(db.Model):
     skeleton_test = relationship("SkeletonTestTable", back_populates="station")
     hybrid_gluing = relationship("HybridGluingTable", back_populates="station")
     module_encapsulation = relationship("ModuleEncapsulationTable", back_populates="station")
-    save_module = relationship("SaveModuleTable", back_populates="station")
     wire_bonding = relationship("WireBondingTable", back_populates="station")
     noise_test1 = relationship("NoiseTest1Table", back_populates="station")
     noise_test2 = relationship("NoiseTest2Table", back_populates="station")
     burnin_test = relationship("BurninTestTable", back_populates="station")
+    @classmethod
+    def add_station(cls, station_data: dict):
+        # Check if the station name already exists in the database
+        existing_station = cls.query.filter_by(station_name=station_data['station_name']).first()
+        if existing_station:
+            raise ValueError(f"Station with name '{station_data['station_name']}' already exists.")
+        
+        try:
+            # Ensure that the dictionary has all necessary fields (including required ones)
+            station_entry = cls(**station_data)
+            db.session.add(station_entry)
+            db.session.commit()
+            return station_entry  # Return the added station instance
+        except IntegrityError as e:
+            db.session.rollback()
+            raise ValueError(f"An error occurred while adding the station: {str(e)}")
+        except Exception as e:
+            db.session.rollback()
+            raise ValueError(f"An unexpected error occurred: {str(e)}")
 
 # --------------------------- Basic Form ---------------------------------------------!
 
@@ -132,20 +172,36 @@ class TempHumiDewTable(db.Model):
     # -------------------------------- Child Tables --------------------------
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="temp_humi_dew")
     hybrid_gluing = relationship("HybridGluingTable", back_populates="temp_humi_dew")
+    sensor_gluing = relationship("SensorGluingTable", back_populates="temp_humi_dew")
     module_encapsulation = relationship("ModuleEncapsulationTable", back_populates="temp_humi_dew")
+    wire_bonding = relationship("WireBondingTable", back_populates="temp_humi_dew")
     noise_test1 = relationship("NoiseTest1Table", back_populates="temp_humi_dew")
     noise_test2 = relationship("NoiseTest2Table", back_populates="temp_humi_dew")
     burnin_test = relationship("BurninTestTable", back_populates="temp_humi_dew")
     needle_metrology = relationship("NeedleMetrologyTable", back_populates="temp_humi_dew")
     skeleton_test = relationship("SkeletonTestTable", back_populates="temp_humi_dew")
-    save_module = relationship("SaveModuleTable", back_populates="temp_humi_dew")
-    hv_test = relationship("HVTestTable", back_populates="temp_humi_dew")
-    iv_test = relationship("IVTestTable", back_populates="temp_humi_dew")
+    hv = relationship("HVTable", back_populates="temp_humi_dew")
+    iv = relationship("IVTable", back_populates="temp_humi_dew")
     v_sensor = relationship("VSensorTable", back_populates="temp_humi_dew" )
     v_feh = relationship("VFEHTable", back_populates="temp_humi_dew" )
     v_seh = relationship("VSEHTable", back_populates="temp_humi_dew" )
     v_main_bridge = relationship("VMainBridgeTable", back_populates="temp_humi_dew" )
+    kapton_gluing = relationship("KaptonGluingTable", back_populates="temp_humi_dew")
     v_stump_bridge = relationship("VStumpBridgeTable", back_populates="temp_humi_dew" )
+    @classmethod
+    def add_temp_humi_dew(cls, temp_humi_dew_data: dict):
+        try:
+            # Create a new TempHumiDewTable instance using the provided data
+            temp_humi_dew_entry = cls(**temp_humi_dew_data)
+            db.session.add(temp_humi_dew_entry)
+            db.session.commit()
+            return temp_humi_dew_entry  # Return the created entry
+        except IntegrityError as e:
+            db.session.rollback()
+            raise ValueError(f"An error occurred while adding the temperature, humidity, and dew point data: {str(e)}")
+        except Exception as e:
+            db.session.rollback()
+            raise ValueError(f"An unexpected error occurred: {str(e)}")
 
 # ----------------  All tables linked to Material Receiver _--------------------------!
 # ---- will be refered to the material table -----------------
@@ -160,12 +216,15 @@ class MaterialReceivingCommonTable(db.Model):
     img: Mapped[str] = mapped_column(String(1000), nullable=True)  # Image path
     comment: Mapped[str] = mapped_column(String(4000), nullable=True)  # Any additional comments
     #  ------------------------------- Parent Tables ---------------------------------
+
     user_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)  # Link to User table
     user = relationship("UserTable", back_populates="material_receiver_common")
     datetime_id: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)  # Link to DateTime table
     date_time = relationship("DateTimeTable", back_populates="material_receiver_common")
     temp_humi_dew_id: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)  # Link to TempHumiDew table
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="material_receiver_common")
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="material_receiver_common")
     # ------------------------------- Child Tables ------------------------------------
     sensor = relationship("SensorTable", back_populates="material_receiver_common" )
     feh = relationship("FEHTable", back_populates="material_receiver_common" )
@@ -176,7 +235,37 @@ class MaterialReceivingCommonTable(db.Model):
     ground_balancer = relationship("GroundBalancerTable", back_populates="material_receiver_common" )
     vtrx = relationship("VTRxTable", back_populates="material_receiver_common" )
     glue = relationship("GlueTable", back_populates="material_receiver_common" )
-    wire = relationship("WireBonderTable", back_populates="material_receiver_common" )
+    wire_bonder = relationship("WireBonderTable", back_populates="material_receiver_common" )
+    other = relationship("OtherTable", back_populates="material_receiver_common" )
+    @classmethod
+    def add_material_receiving_entry(cls, entry_data: dict):
+        """
+        Adds a new material receiving entry to the database.
+        
+        Parameters:
+        entry_data (dict): A dictionary containing keys that match the columns of the MaterialReceivingCommonTable.
+
+        Returns:
+        MaterialReceivingCommonTable instance of the added entry.
+        """
+        try:
+            # Ensure the required keys are provided in entry_data
+            required_fields = {"received_from", "received_date", "material_name", "user_id", "datetime_id", "temp_humi_dew_id", "station_id"}
+            missing_fields = required_fields - entry_data.keys()
+            
+            if missing_fields:
+                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+
+            entry = cls(**entry_data)
+            db.session.add(entry)
+            db.session.commit()
+            return entry
+        except IntegrityError as e:
+            db.session.rollback()
+            raise ValueError(f"Integrity error: {str(e)}")
+        except Exception as e:
+            db.session.rollback()
+            raise ValueError(f"An unexpected error occurred: {str(e)}")
 
 #---------------------------------------------------------------------------------------
 # ----------------------------- Material Table -------------------
@@ -190,12 +279,15 @@ class JigTable(db.Model):
     description: Mapped[str] = mapped_column(String(200), nullable=True)
 
     # Define relationships to child tables
-    skeleton_test = relationship("SkeletonTestTable", back_populates="jig", lazy=True)
-    hybrid_gluing = relationship("HybridGluing", back_populates="jig", lazy=True)
-    wire_bonding = relationship("WireBondingTable", back_populates="jig", lazy=True)
-    sensor_gluing = relationship("SensorGluingTable", back_populates="jig", lazy=True)
-    needle_metrology= relationship("NeedleMetrologyTable", back_populates="jig", lazy=True)
-
+    user_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
+    user = relationship("UserTable", back_populates="jig")
+    skeleton_test = relationship("SkeletonTestTable", back_populates="jig")
+    hybrid_gluing = relationship("HybridGluingTable", back_populates="jig")
+    wire_bonding = relationship("WireBondingTable", back_populates="jig")
+    sensor_gluing = relationship("SensorGluingTable", back_populates="jig")
+    needle_metrology= relationship("NeedleMetrologyTable", back_populates="jig")
+    kapton_gluing = relationship("KaptonGluingTable", back_populates="jig")
+    module_encapsulation = relationship("ModuleEncapsulationTable", back_populates="jig")
 class SensorTable(db.Model):
     __tablename__ = "SensorTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
@@ -206,7 +298,7 @@ class SensorTable(db.Model):
     kapton_gluing = relationship("KaptonGluingTable", back_populates="sensor" )
     hv = relationship("HVTable", back_populates="sensor" )
     iv = relationship("IVTable", back_populates="sensor" )
-    sensor_gluing = relationship("SensorGluingTable", back_populates="sensor" )
+    sensor_gluing = relationship("SensorGluingTable", back_populates="sensor")
     v_sensor = relationship("VSensorTable", back_populates="sensor" )
     # ----------------------------- Parent Tables ------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
@@ -220,10 +312,10 @@ class FEHTable(db.Model):
     feh_type:  Mapped[str] = mapped_column(String(255), nullable= True)
     # -----------------------------------  Child Tables ------------------------------
     v_feh = relationship("VFEHTable", back_populates="feh" )
-    kapton_tape = relationship("KaptonTable", back_populates="feh" )
+    skeleton_test = relationship("SkeletonTestTable", back_populates="feh" )
     # ----------------------------------- Parent Tables -----------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
-    material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="fehs")
+    material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="feh")
 
 class SEHTable(db.Model):
     __tablename__ = "SEHTable"
@@ -231,11 +323,11 @@ class SEHTable(db.Model):
     # fields 
     seh_id: Mapped[str] = mapped_column(String(255), nullable=False) 
     # ----------------------------- Child Tables ----------------------------------
-    v_feh = relationship("VSEHTable", back_populates="seh" )
-    kapton_tape = relationship("KaptonTable", back_populates="seh" )
+    v_seh = relationship("VSEHTable", back_populates="seh" )
+    skeleton_test = relationship("SkeletonTestTable", back_populates="seh" )
     # ---------------------------- Parent Tables -----------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
-    material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="sehs")
+    material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="seh")
 
 class MainBridgeTable(db.Model):
     __tablename__ = "MainBridgeTable"
@@ -247,7 +339,7 @@ class MainBridgeTable(db.Model):
     v_main_bridge = relationship("VMainBridgeTable", back_populates="main_bridge" )
     # ------------------------------- Parent Tables ------------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
-    material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="main_bridges")
+    material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="main_bridge")
 
 class StumpBridgeTable(db.Model):
     __tablename__ = "StumpBridgeTable"
@@ -256,7 +348,7 @@ class StumpBridgeTable(db.Model):
     stump_bridge_id: Mapped[str] = mapped_column(String(255), nullable=False)  # Name of the stump bridge
     # ------------------------------- child tables ---------------------------------
     sensor_gluing = relationship("SensorGluingTable", back_populates="stump_bridge" )
-    v_main_bridge = relationship("VStumpBridgeTable", back_populates="stump_bridge" )
+    v_stump_bridge = relationship("VStumpBridgeTable", back_populates="stump_bridge" )
     # ------------------------------- Parent Tables --------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="stump_bridge")
@@ -286,10 +378,10 @@ class VTRxTable(db.Model):
     # fields ------------------
     vt_rx_id: Mapped[str] = mapped_column(String(255), nullable=False)  # Name of the VTRx
     # ----------------------------- child tables -----------------------------------
-    skeleton_test = relationship("SkeletonTestTable", back_populates="v_trx" )
+    skeleton_test = relationship("SkeletonTestTable", back_populates="vtrx" )
     # ------------------------------ Parent Tables ----------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
-    material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="v_trx")
+    material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="vtrx")
 
 class GroundBalancerTable(db.Model):
     __tablename__ = "GroundBalancerTable"
@@ -326,7 +418,7 @@ class WireBonderTable(db.Model):
     expiry_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)  # Expiry date of the wire bond material
     # -------------------- Parent Tables --------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
-    material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="wire_bonders")
+    material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="wire_bonder")
 
     
    
@@ -340,8 +432,16 @@ class VSensorTable(db.Model):
     image: Mapped[str] = mapped_column(String(1000), nullable=True)  # Image of the visual inspection result
     comment: Mapped[str] = mapped_column(String(4000), nullable=True)  # Any additional comments or notes
     # --------------------------- Parent Tables -------------------------------
+    date_time_id: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)
+    date_time = relationship("DateTimeTable", back_populates="v_sensor")
+    user_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
+    user = relationship("UserTable", back_populates="v_sensor")
     sensor_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=False)  # Foreign key to SensorTable
     sensor = relationship("SensorTable", back_populates="v_sensor")
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="v_sensor")
+    temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
+    temp_humi_dew = relationship("TempHumiDewTable", back_populates="v_sensor")
 
 class VFEHTable(db.Model):
     __tablename__ = "VFEHTable"
@@ -350,8 +450,16 @@ class VFEHTable(db.Model):
     image: Mapped[str] = mapped_column(String(1000), nullable=True)  # Image of the visual inspection result
     comment: Mapped[str] = mapped_column(String(4000), nullable=True)  # Any additional comments or notes
     # --------------------------------- Parent Tables --------------------------
-    feh_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=False)
+    datetime_id: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)  
+    date_time = relationship("DateTimeTable", back_populates="v_feh")
+    user_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
+    user = relationship("UserTable", back_populates="v_feh")
+    feh_id: Mapped[int] = mapped_column(ForeignKey("FEHTable.id"), nullable=False)
     feh = relationship("FEHTable", back_populates="v_feh")
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="v_feh")
+    temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
+    temp_humi_dew = relationship("TempHumiDewTable", back_populates="v_feh")
 
 class VSEHTable(db.Model):
     __tablename__ = "VSEHTable"
@@ -360,8 +468,17 @@ class VSEHTable(db.Model):
     image: Mapped[str] = mapped_column(String(1000), nullable=True)  # Image of the visual inspection result
     comment: Mapped[str] = mapped_column(String(4000), nullable=True)  # Any additional comments or notes
     # -------------------------------- Parent Tables -------------------------
-    seh_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=False)
+    datetime_id: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)
+    date_time = relationship("DateTimeTable", back_populates="v_seh")
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
+    user = relationship("UserTable", back_populates="v_seh")
+    seh_id: Mapped[int] = mapped_column(ForeignKey("SEHTable.id"), nullable=False)
     seh = relationship("SEHTable", back_populates="v_seh")
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="v_seh")
+    temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
+    temp_humi_dew = relationship("TempHumiDewTable", back_populates="v_seh")
 
 class VMainBridgeTable(db.Model):
     __tablename__ = "VMainBridgeTable"
@@ -370,8 +487,17 @@ class VMainBridgeTable(db.Model):
     image: Mapped[str] = mapped_column(String(1000), nullable=True)  # Image of the visual inspection result
     comment: Mapped[str] = mapped_column(String(4000), nullable=True)  # Any additional comments or notes
     # ---------------------- parent Tables ----------------------------------
+    datetime_id: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)
+    date_time = relationship("DateTimeTable", back_populates="v_main_bridge")
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
+    user = relationship("UserTable", back_populates="v_main_bridge")
     main_bridge_id: Mapped[int] = mapped_column(ForeignKey("MainBridgeTable.id"), nullable=False)
     main_bridge = relationship("MainBridgeTable", back_populates="v_main_bridge")
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="v_main_bridge")
+    temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
+    temp_humi_dew = relationship("TempHumiDewTable", back_populates="v_main_bridge")
 
 class VStumpBridgeTable(db.Model):
     __tablename__ = "VStumpBridgeTable"
@@ -380,8 +506,17 @@ class VStumpBridgeTable(db.Model):
     image: Mapped[str] = mapped_column(String(1000), nullable=True)  # Image of the visual inspection result
     comment: Mapped[str] = mapped_column(String(4000), nullable=True)  # Any additional comments or notes
     # ---------------------------- Parent Tables --------------------------------
+    datetime_id: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)
+    date_time = relationship("DateTimeTable", back_populates="v_stump_bridge")
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
+    user = relationship("UserTable", back_populates="v_stump_bridge")
     stumpbridge_id: Mapped[int] = mapped_column(ForeignKey("StumpBridgeTable.id"), nullable=False)
     stump_bridge = relationship("StumpBridgeTable", back_populates="v_stump_bridge")
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="v_stump_bridge")
+    temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
+    temp_humi_dew = relationship("TempHumiDewTable", back_populates="v_stump_bridge")
 
 #------------------------- Kapton Gluing Tables ----------------------------
 class KaptonGluingTable(db.Model):
@@ -412,6 +547,9 @@ class KaptonGluingTable(db.Model):
     jig_id: Mapped[int] = mapped_column(ForeignKey("JigTable.id"), nullable=False)
     jig = relationship("JigTable", back_populates="kapton_gluing")
 
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="kapton_gluing")
+
 
 # ---------------------------  HV & IV Table -------------------------------
 # Foreign key : temp_dew , datetime , sensor ,  station id
@@ -434,6 +572,11 @@ class HVTable(db.Model):
     sensor_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=False)
     sensor = relationship("SensorTable", back_populates="hv")
 
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="hv")
+
+    temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
+    temp_humi_dew = relationship("TempHumiDewTable", back_populates="hv")
 class IVTable(db.Model):
     __tablename__ = "IVTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
@@ -451,6 +594,11 @@ class IVTable(db.Model):
 
     sensor_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=False)
     sensor = relationship("SensorTable", back_populates="iv")
+
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="iv")
+    temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
+    temp_humi_dew = relationship("TempHumiDewTable", back_populates="iv")
 
 
 # -----------------------Sensor Gluing Table -------------------------------
@@ -473,12 +621,11 @@ class SensorGluingTable(db.Model):
     user = relationship("UserTable", back_populates="sensor_gluing")
 
     temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
-    temp_humi_dewrelation = relationship("TempHumiDewTable", back_populates="sensor_gluing")
+    temp_humi_dew = relationship("TempHumiDewTable", back_populates="sensor_gluing")
 
-    top_sensor_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=False)
-    #top_sensor = relationship("SensorTable", foreign_keys=[top_sensor_id], back_populates="top_sensor_gluing")
-    bottom_sensor_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=False)
+    sensor_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=False)
     sensor = relationship("SensorTable", back_populates="sensor_gluing")
+
     mainbridgeid: Mapped[int] = mapped_column(ForeignKey("MainBridgeTable.id"), nullable=False)
     main_bridge = relationship("MainBridgeTable", back_populates="sensor_gluing")
 
@@ -490,12 +637,15 @@ class SensorGluingTable(db.Model):
 
     glue_id: Mapped[int] = mapped_column(ForeignKey("GlueTable.id"), nullable=False)
     glue = relationship("GlueTable", back_populates="sensor_gluing")
-    # ------------------------------ child Tables -----------------------------
-    skeletontest = relationship("SkeletonTestTable", back_populates="sensor_gluing")
-    hybrid = relationship("HybridTable", back_populates="sensor_gluing")
 
-class NeedleMetrology(db.Model):
-    __tablename__ = "NeedleMetrology"
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="sensor_gluing")
+    # ------------------------------ child Tables -----------------------------
+    needle_metrology = relationship("NeedleMetrologyTable", back_populates="sensor_gluing")
+    hybrid_gluing = relationship("HybridGluingTable", back_populates="sensor_gluing")
+
+class NeedleMetrologyTable(db.Model):
+    __tablename__ = "NeedleMetrologyTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
     # fields 
     user_id: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -520,6 +670,9 @@ class NeedleMetrology(db.Model):
 
     jig_id: Mapped[int] = mapped_column(ForeignKey("JigTable.id"), nullable=False)
     jig = relationship("JigTable", back_populates="needle_metrology")
+
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="needle_metrology")
 
 class SkeletonTestTable(db.Model):
     __tablename__ = "SkeletonTestTable"
@@ -552,6 +705,9 @@ class SkeletonTestTable(db.Model):
 
     seh_id: Mapped[int] = mapped_column(ForeignKey("SEHTable.id"), nullable=False)
     seh = relationship("SEHTable", back_populates="skeleton_test")
+
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="skeleton_test")
     # -------------------- child table ------------------------------
     hybrid_gluing = relationship("HybridGluingTable", back_populates="skeleton_test")
 
@@ -582,9 +738,12 @@ class HybridGluingTable(db.Model):
 
     jig_id: Mapped[int] = mapped_column(ForeignKey("JigTable.id"), nullable=False)
     jig = relationship("JigTable", back_populates="hybrid_gluing")
+
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="hybrid_gluing")
     # ------------------------- child tables ---------------------------------
     module_encapsulation = relationship("ModuleEncapsulationTable", back_populates="hybrid_gluing")
-    wire_bonding = relationship("WirebondingTable", back_populates="hybrid_gluing")
+    wire_bonding = relationship("WireBondingTable", back_populates="hybrid_gluing")
     noise_test1 = relationship("NoiseTest1Table", back_populates="hybrid_gluing")
     noise_test2 = relationship("NoiseTest2Table", back_populates="hybrid_gluing")
     burnin_test = relationship("BurninTestTable", back_populates="hybrid_gluing")
@@ -610,6 +769,8 @@ class ModuleEncapsulationTable(db.Model):
     jig = relationship("JigTable", back_populates="module_encapsulation")
     glue_id: Mapped[int] = mapped_column(ForeignKey("GlueTable.id"), nullable=False)
     glue = relationship("GlueTable", back_populates="module_encapsulation")
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="module_encapsulation")
 
 class WireBondingTable(db.Model):
     __tablename__ = "WireBondingTable"
@@ -656,6 +817,8 @@ class WireBondingTable(db.Model):
     hybrid_gluing = relationship("HybridGluingTable", back_populates="wire_bonding")
     jig_id: Mapped[int] = mapped_column(ForeignKey("JigTable.id"), nullable=False)
     jig = relationship("JigTable", back_populates="wire_bonding")
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="wire_bonding")
 
 class NoiseTest1Table(db.Model):
     __tablename__ = "NoiseTest1Table"
@@ -677,6 +840,8 @@ class NoiseTest1Table(db.Model):
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="noise_test1")
     hybrid_gluing_id: Mapped[int] = mapped_column(ForeignKey("HybridGluingTable.id"), nullable=False)
     hybrid_gluing = relationship("HybridGluingTable", back_populates="noise_test1")
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="noise_test1")
 
 class NoiseTest2Table(db.Model):
     __tablename__ = "NoiseTest2Table"
@@ -698,6 +863,8 @@ class NoiseTest2Table(db.Model):
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="noise_test2")
     hybrid_gluing_id: Mapped[int] = mapped_column(ForeignKey("HybridGluingTable.id"), nullable=False)
     hybrid_gluing = relationship("HybridGluingTable", back_populates="noise_test2")
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="noise_test2")
 
 class BurninTestTable(db.Model):
     __tablename__ = "BurninTestTable"
@@ -711,13 +878,15 @@ class BurninTestTable(db.Model):
 
     # ------------------------ parent tables -------------------------------
     userid: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
-    user = relationship("UserTable", back_populates="burnin_tests")
+    user = relationship("UserTable", back_populates="burnin_test")
     date_time_id: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)
-    date_time = relationship("DateTimeTable", back_populates="burnin_tests")
+    date_time = relationship("DateTimeTable", back_populates="burnin_test")
     temp_humi_dew_id: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
-    temp_humi_dew = relationship("TempHumiDewTable", back_populates="burnin_tests")
+    temp_humi_dew = relationship("TempHumiDewTable", back_populates="burnin_test")
     hybri_gluing_id: Mapped[int] = mapped_column(ForeignKey("HybridGluingTable.id"), nullable=False)
-    hybrid_gluing = relationship("HybridGluingTable", back_populates="burnin_tests")
+    hybrid_gluing = relationship("HybridGluingTable", back_populates="burnin_test")
+    station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
+    station =relationship("StationTable",back_populates="burnin_test")
 
 # ------------------ remove ---------------------------------------
 
