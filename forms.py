@@ -431,31 +431,21 @@ class WireBondingForm(FlaskForm):
     # Add the type of break dropdown menu with options
     #type_of_break = SelectField(
        
-    # upload xcel file and add Rework option with editing and comment option
-    # image = FileField("Upload Image" ,validators=[DataRequired()])
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
 #NoiseTest
-
-class NoiseTestForm(FlaskForm):
-    temp = FloatField("Temperature (°C)", validators=[DataRequired()])
-    humidity = FloatField("Humidity", validators=[DataRequired()])
-    dew_point = FloatField("Dew Point", validators=[DataRequired()])
-    working_date = DateField("Working Date", validators=[DataRequired()])
-    module_id = StringField("Module ID", validators=[DataRequired()])
-    root_file = FileField("Upload Result (root file)" ,validators=[DataRequired()])
-    image = FileField("Upload Image" ,validators=[DataRequired()])
-    comment = CKEditorField("Comment", validators=[DataRequired()])
-    submit= SubmitField("Save")
-#BufNim Test
 class NoiseTestForm_Ph2_ACF(FlaskForm):
-    temp = FloatField("Temperature (°C)", validators=[DataRequired()])
-    humidity = FloatField("Humidity", validators=[DataRequired()])
-    dew_point = FloatField("Dew Point", validators=[DataRequired()])
-    working_date = DateField("Working Date", validators=[DataRequired()])
-    module_id = SelectField("Module ID",validators=[DataRequired()])
-    upload_folder = FileField("Upload Folder",validators=[DataRequired()])
+    temp = FloatField("Temperature (°C):", validators=[DataRequired()])
+    humidity = FloatField("Humidity:", validators=[DataRequired()])
+    dew_point = FloatField("Dew Point:", validators=[DataRequired()])
+    working_date = DateField("Working Date:", validators=[DataRequired()])
+    module_id = SelectField("Module ID:",validators=[DataRequired()])
+    upload_folder1 = FileField("Aldrino File:",validators=[DataRequired()])
+    upload_folder2 = FileField("HV File:",validators=[DataRequired()])
+    upload_folder3 = FileField("LV File:",validators=[DataRequired()])
+    upload_folder4 = FileField("IV File:",validators=[DataRequired()])
+    upload_folder5 = FileField("ROOT File:",validators=[DataRequired()])
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit= SubmitField("Save")
 class NoiseTestForm_GIPHT(FlaskForm):
@@ -464,11 +454,17 @@ class NoiseTestForm_GIPHT(FlaskForm):
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     module_id = SelectField("Module ID",validators=[DataRequired()])
-    upload_folder = FileField("Upload Folder",validators=[DataRequired()])
+    upload_folder1 = FileField("Aldrino File:",validators=[DataRequired()])
+    upload_folder2 = FileField("HV File:",validators=[DataRequired()])
+    upload_folder3 = FileField("LV File:",validators=[DataRequired()])
+    upload_folder4 = FileField("IV File:",validators=[DataRequired()])
+    upload_folder5 = FileField("ROOT File:",validators=[DataRequired()])
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit= SubmitField("Save")
+
+#Burnin Test
 # add two a table with 2 column 5 rows with module id field and add 4 root file
-class BurNimForm(FlaskForm):
+class BurninForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
@@ -478,8 +474,7 @@ class BurNimForm(FlaskForm):
     choices=[(str(i), str(i)) for i in range(1, 11)], 
     validators=[DataRequired()]
 )
-   
-    submit = SubmitField("Go")
+    submit = SubmitField("Save")
 
 
 class BurnimForm1(FlaskForm):
