@@ -389,16 +389,71 @@
             </div>
         </div>
 
-        <!-- CKEditor Comment Box -->
-        <div class="ckeditor-container">
-            <label for="comments">Comments:</label>
-            <textarea id="comments" name="comments"></textarea>
-        </div>
+          <!-- CKEditor Comment Box -->
+          <div class="mt-4">
+            <label for="comments" class="form-label">Comments</label>
+            <textarea id="comments" name="comments" class="form-control"></textarea>
+          </div>
 
-        <script>
-            // Initialize CKEditor
-            CKEDITOR.replace('comments');
-        </script>
+          <!-- Submit Button -->
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  
+  document.addEventListener("DOMContentLoaded", function () {
+    const tableBody = document.querySelector("#moduleTable tbody");
+
+    // Function to add a new row dynamically
+    document.getElementById("addRowBtn").addEventListener("click", function () {
+        const newRow = document.createElement("tr");
+
+        // Get existing module options
+        const moduleOptions = document.querySelector('select[name="module_id_left[]"]').innerHTML;
+
+        newRow.innerHTML = `
+            <td>
+                <select name="module_id_left[]" required class="form-control">${moduleOptions}</select>
+            </td>
+            <td>
+                <select name="module_id_right[]" required class="form-control">${moduleOptions}</select>
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger deleteRowBtn">Delete</button>
+            </td>
+        `;
+
+        tableBody.appendChild(newRow);
+
+        // Add event listener to delete button for newly added rows
+        newRow.querySelector(".deleteRowBtn").addEventListener("click", function () {
+            newRow.remove();
+        });
+    });
+
+    // Ensure that the first row never has a delete button
+    function removeDeleteButtonFromFirstRow() {
+        const firstRow = tableBody.querySelector("tr:first-child");
+        if (firstRow) {
+            const actionCell = firstRow.querySelector("td:last-child");
+            if (actionCell) {
+                actionCell.innerHTML = ""; // Remove delete button from first row
+            }
+        }
+    }
+
+    // Call this function initially to remove the delete button from the first row
+    removeDeleteButtonFromFirstRow();
+});
+
+
+  </script>
 
         <!-- Submit Button -->
         <button type="submit">Submit</button>

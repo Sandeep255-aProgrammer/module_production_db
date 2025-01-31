@@ -88,10 +88,6 @@ from database_table import (
     ModuleDataTable,
     WireBondingTable,
     BurNimTable
-    # NoiseTestTable,
-    # BurninTable
-
-
 )
 
 
@@ -124,18 +120,82 @@ def save_get_file_url(file):
     file.save(file_path)
     return file_path
 
-# FORM_MAPPING_MATERIAL_RECEIVER = {
-#     "sensor": SensorForm,
-#     "FEH": FEHForm,
-#     "SEH": SEHForm,
-#     "main_bridge": MainBridgeForm,
-#     "stump_bridge": StumpBridgeForm,
-#     "glue": GlueForm,
-#     "kapton_tapes": KaptonTapesForm,
-#     "optical_fibre": OpticalFibreForm,
-#     "wire_bonder": WireBonderForm,
-#     "other": OtherConsumablesForm,
-# }
+# Define extract_general_form_details function to extract general form details from the request form
+# and print them for debugging
+def extract_general_form_details(form):
+    """
+    Extracts general form details from the request form and prints them for debugging.
+    
+    Args:
+        form (ImmutableMultiDict): The request form data.
+    
+    Returns:
+        tuple: A tuple containing the extracted form details.
+    """
+    details = {
+        'received_from': form.get('received_from', None),
+        'date': form.get('date', 'Unknown'),
+        'temperature': form.get('temperature', 'Unknown'),
+        'humidity': form.get('humidity', 'Unknown'),
+        'dew_point': form.get('dew_point', 'Unknown')
+    }
+
+    # Print general form details for debugging
+    if details['received_from']:
+        print(f"Received From: {details['received_from']}")
+    print(f"Date: {details['date']}")
+    print(f"Temperature: {details['temperature']}°C")
+    print(f"Humidity: {details['humidity']}%")
+    print(f"Dew Point: {details['dew_point']}°C")
+
+    return details['received_from'], details['date'], details['temperature'], details['humidity'], details['dew_point']
+
+def handle_file_uploads(request_files, upload_dir, workflow_name, material_types):
+    """
+    Handles file uploads, saves them to the specified directory, and prints debug information.
+    
+    Args:
+        request_files (ImmutableMultiDict): The files from the request.
+        upload_dir (str): The directory to save the uploaded files.
+        workflow_name (str): The name of the workflow step.
+        material_types (list): The list of material types.
+    
+    Returns:
+        list: A list of filenames of the uploaded files.
+    """
+    if not os.path.exists(upload_dir):
+        os.makedirs(upload_dir)  # Ensure directory exists
+
+    file_index = 1
+    uploaded_files = []
+    multiple_files = len(request_files) > 1
+
+    for file_key in request_files:
+        file = request_files[file_key]
+        if file.filename:
+            print(f"Uploaded file: {file_key} => {file.filename}")
+            file.seek(0, os.SEEK_END)
+            size = file.tell()
+            file.seek(0)
+            file_extension = file.filename.split('.')[-1]
+            material_type = material_types[0] if material_types else "Unknown"
+
+            # Generate filename
+            filename = generate_filename(workflow_name, material_type, file_extension, file_index)
+            if multiple_files:
+                file_index += 1  
+
+            # Save file
+            file_path = os.path.join(upload_dir, filename)
+            file.save(file_path)
+
+            uploaded_files.append(filename)
+            print(f"Uploaded file saved as: {file_path}")
+            print(f"File size: {size} bytes")
+        else:
+            print(f"Empty file upload: {file_key}")
+
+    return uploaded_files
 
 FORM_MAPPING_VISUAL_INSPECTION = {
    "sensor_visual": SensorVisualForm,
@@ -240,6 +300,8 @@ def module_report():
 def wire_bonding():
     if request.method == 'POST':
         ###################Debugging start####################################
+        print("\n=== FORM DATA RECEIVED ===")
+        received_from, date, temperature, humidity, dew_point = extract_general_form_details(request.form)
 
         print("\n=== FORM DATA RECEIVED ===")
         for key, value in request.form.items():
@@ -624,15 +686,43 @@ def add_data():
     skeleton_ids = db.session.query(SkeletonTestTable.skeleton_id).distinct().all()
 
     if workflow_name=="Material Receiver" :
-        if request.method == "POST":
-            # Extract and validate form data on form submission
-            form_data_dict = material_receiver_form_dict(request.form, "material_receiver.png")
-            print("form data dict", form_data_dict)
-            return redirect(url_for('work_flow'))
-        else:
-            # Render the form initially without processing
-            return render_template("material_reciever.html")
+        # Log each field for debugging  
+        print("\n=== FORM DATA RECEIVED ===")
+        received_from, date, temperature, humidity, dew_point = extract_general_form_details(request.form)
+        material_types = request.form.getlist('material_type[]')
+        material_comment = request.form.get('material_comment', '')
+        print(f"{', '.join(set(material_types))} Comment: {material_comment}")
 
+        print("\n=== FILE UPLOADS ===")
+        upload_dir = app.config["UPLOAD_WORKFLOW_FILES"]  # Use configured upload path
+        uploaded_files = handle_file_uploads(request.files, upload_dir, workflow_name, material_types)
+        print("\n=== MATERIAL ENTRIES ===")
+
+        # Retrieve multiple materials
+        material_ids = request.form.getlist('material_id[]')
+        expiry_dates = request.form.getlist('expiry_date[]')
+        spool_numbers = request.form.getlist('spool_number[]')
+        wedge_tool_numbers = request.form.getlist('wedge_tool_no[]')
+
+        # Ensure all entries are printed
+        
+        for i in range(len(material_ids)):  # Iterate over all rows
+            material_id = material_ids[i] if i < len(material_ids) else "Unknown"
+            material_type = material_types[i] if i < len(material_types) else "Unknown"
+            expiry_date = expiry_dates[i] if i < len(expiry_dates) else "N/A"
+            spool_no = spool_numbers[i] if i < len(spool_numbers) else "N/A"
+            wedge_tool_no = wedge_tool_numbers[i] if i < len(wedge_tool_numbers) else "N/A"
+
+            print(f"\nMaterial Entry {i + 1}:")
+            print(f"{material_type} ID: {material_id}")
+
+            if material_type == "Glue":
+                print(f"Expiry Date: {expiry_date}")
+
+            elif material_type == "Wire Bonder":
+                print(f"Spool Number: {spool_no}, Wedge Tool No.: {wedge_tool_no}, Expiry Date: {expiry_date}")
+
+        return render_template("material_reciever.html")
     
     elif workflow_name == "Visual Inspection":
         return render_template("visual_type.html")
