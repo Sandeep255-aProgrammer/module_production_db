@@ -476,7 +476,7 @@ def add_data():
     elif step_no == 12:
         return redirect(url_for('burninTest', num=12))
     
-    #return render_template("visual_inspection.html", form=form)
+    return render_template("visual_inspection.html", form=form)
 
 @app.route('/burninTest', methods=["GET", "POST"])
 def burninTest():
