@@ -45,7 +45,8 @@ class SaveToDataBase:
         db.session.add(new_bridge_inspection)
         db.session.commit()
 
-
+    def save_wire_bonding_form(self,form , db , file_dir):
+        pass 
 
     def save_kapton_gluing_form(self, form,db,file_dir):
         sensor_id = form.sensor_id.data
