@@ -12,25 +12,47 @@ from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 import json
-import datetime
+from datetime import datetime 
 import openpyxl
 
-utc_now = datetime.datetime.now()
-current_date =f"{utc_now.year}-{utc_now.month}-{utc_now.day}" 
+# utc_now = datetime.datetime.now()
+# current_date =f"{utc_now.year}-{utc_now.month}-{utc_now.day}" 
 ''' 
 below  import all the forms required , which is defined in the forms.py
 ''' 
 
+def get_timestamp():
+    """
+    Returns the current date and time in YYYYMMDD_HHMMSS format.
+    """
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+def generate_filename(workflow_step, material_type, file_extension,file_index):
+    # Abbreviations for workflow steps
+    step_abbr = {
+        "Material Receiver": "MR", "Visual Inspection": "VI","Kapton Gluing": "KG","HV form": "HV","IV form": "IV",
+        "Sensor Gluing": "SG","Needle Metrology": "NM","Skeleton Test": "ST","Hybrid Gluing": "HG","Module Encapsulation": "ME",
+        "Wire Bonding": "WB","NoiseTest_Ph2_ACF": "NTPh2","NoiseTest_GIPHT": "NTGipht","Burnin Test": "BT"
+    }
+    # Abbreviations for materials
+    material_abbr = {
+        "Sensor": "SEN","FEH": "FEH","SEH": "SEH","MainBridge": "MB","StumpBridge": "SB","Glue": "GL","KaptonTapes": "KT",
+        "OpticalFibre": "OF","WireBonder": "WB","Other": "OTH","Module": "MOD"
+    }
+    timestamp = get_timestamp()
+    workflow_abbr = step_abbr.get(workflow_step.strip(), "UNK")
+    material_abbr = material_abbr.get(material_type.strip(), "UNK")
+
+    return f"{workflow_abbr}_{material_abbr}_{timestamp}_{file_index}.{file_extension}"
+# Example usage
+# file_name = generate_filename("MaterialReceiver", "Sensor", "jpg")
+# print(file_name)  # Output: MR_SEN_20240201_153045.jpg
+
 
 from forms import (
    
-    AddStationForm ,
-   
-    SensorVisualForm ,
-    FEHVisualForm,
-   SEHVisualForm,
-    MainBridgeVisualForm,
-   StumpBridgeVisualForm,
+    AddStationForm ,SensorVisualForm ,FEHVisualForm,SEHVisualForm,
+    MainBridgeVisualForm,StumpBridgeVisualForm,
     KaptonGluing,
     HvForm,
     IvForm ,
@@ -442,6 +464,7 @@ def material_receiver_form_dict(form ):
                 print(f"File size: {size} bytes")
             else:
                 print(f"Empty file upload: {file_key}")
+                
 @app.route('/add_data', methods=["GET", "POST"])
 def add_data():
     
@@ -463,7 +486,7 @@ def add_data():
         humidity = request.form.get('humidity', 'Unknown')
         dew_point = request.form.get('dew_point', 'Unknown')
         material_types = request.form.getlist('material_type[]')
-        "material_comment" = request.form.get('material_comment', '')
+        material_comment = request.form.get('material_comment', '')
 
         # Print general form details
         print(f"Received From: {received_from}")
@@ -474,6 +497,12 @@ def add_data():
         print(f"{', '.join(set(material_types))} Comment: {material_comment}")
 
         print("\n=== FILE UPLOADS ===")
+        upload_dir = app.config["UPLOAD_WORKFLOW_FILES"]  # Use configured upload path
+        if not os.path.exists(upload_dir):
+            os.makedirs(upload_dir)  # Ensure directory exists
+
+        file_index = 1
+       
         for file_key in request.files:
             file = request.files[file_key]
             if file.filename:
@@ -481,6 +510,19 @@ def add_data():
                 file.seek(0, os.SEEK_END)
                 size = file.tell()
                 file.seek(0)
+                file_extension = file.filename.split('.')[-1]
+                material_type = material_types[0] if material_types else "Unknown"
+
+                # Generate filename
+                filename = generate_filename(workflow_name, material_type, file_extension)
+                file_index += 1  
+
+                # Save file in "static/WORKFLOW_FILES/"
+                file_path = os.path.join(upload_dir, filename)
+                file.save(file_path)
+
+                print(f"Uploaded file saved as: {file_path}")
+
                 print(f"File size: {size} bytes")
             else:
                 print(f"Empty file upload: {file_key}")
@@ -637,14 +679,103 @@ def add_data():
     
     return render_template("visual_inspection.html", form=form, process_name=workflow_name)
 
+# @app.route('/burninTest', methods=["GET", "POST"])
+# def burninTest():
+#     idx_num = int(request.args.get("num", 0))
+#     print(idx_num)
+#     if idx_num == 12:
+#         print("\n=== FILE UPLOADS (Burnin Test) ===")
+
+#         upload_dir = app.config["UPLOAD_WORKFLOW_FILES"]  # Use configured upload path
+#         if not os.path.exists(upload_dir):
+#             os.makedirs(upload_dir)  # Ensure directory exists
+
+#         file_index = 1
+#         uploaded_files = []
+
+#         for file_key in request.files:
+#             file = request.files[file_key]
+#             if file.filename:
+#                 print(f"Uploaded file: {file_key} => {file.filename}")
+#                 file.seek(0, os.SEEK_END)
+#                 size = file.tell()
+#                 file.seek(0)
+
+#                 file_extension = file.filename.split('.')[-1]
+
+#                 # Define Burn-in Test as workflow_name
+#                 workflow_name = "Burnin Test"
+#                 material_type = "Module"  # You can modify this based on actual test setup
+
+#                 # Generate filename
+#                 filename = generate_filename(workflow_name, material_type, file_extension, file_index)
+#                 file_index += 1
+
+#                 # Save file
+#                 file_path = os.path.join(upload_dir, filename)
+#                 file.save(file_path)
+
+#                 uploaded_files.append(filename)
+#                 print(f"Uploaded file saved as: {file_path}")
+#                 print(f"File size: {size} bytes")
+
+#             else:
+#                 print(f"Empty file upload: {file_key}")
+#         return render_template("BurninTest.html",module_ids =[123,3224,33545,4546])  
+#     else:
+#         return "Invalid step number"
+
 @app.route('/burninTest', methods=["GET", "POST"])
 def burninTest():
     idx_num = int(request.args.get("num", 0))
     print(idx_num)
+
     if idx_num == 12:
-        return render_template("BurninTest.html",module_ids =[123,3224,33545,4546])  
+        if request.method == "POST":
+            print("\n=== FILE UPLOADS (Burnin Test) ===")
+
+            upload_dir = app.config.get("UPLOAD_WORKFLOW_FILES", "static/uploads/")  # Default path if not configured
+            os.makedirs(upload_dir, exist_ok=True)  # Ensure directory exists
+
+            file_index = 1
+            uploaded_files = []
+
+            for file_key in request.files:
+                file = request.files[file_key]
+                if file.filename:
+                    print(f"Uploaded file: {file_key} => {file.filename}")
+                    file.seek(0, os.SEEK_END)
+                    size = file.tell()
+                    file.seek(0)
+
+                    file_extension = file.filename.split('.')[-1]
+                    workflow_name = "Burnin Test"
+                    material_type = "Module"  # Modify as per actual test setup
+
+                    # Generate filename
+                    filename = generate_filename(workflow_name, material_type, file_extension, file_index)
+                    file_index += 1
+
+                    # Save file
+                    file_path = os.path.join(upload_dir, filename)
+                    file.save(file_path)
+
+                    uploaded_files.append(filename)
+                    print(f"Uploaded file saved as: {file_path}")
+                    print(f"File size: {size} bytes")
+
+                else:
+                    print(f"Empty file upload: {file_key}")
+
+            # Redirect to home page after successful submission
+            return redirect(url_for('work_flow'))  # Ensure home() is defined in Flask
+
+        # If GET request, simply render the form
+        return render_template("BurninTest.html", module_ids=[123, 3224, 33545, 4546])
+
     else:
-        return "Invalid step number"
+        return "Invalid step number", 400  # Return error for incorrect step
+
 
 
 @app.route('/add_received_materials', methods = ["GET","POST"])

@@ -15,3 +15,5 @@ __pycache__
 __init.py__
 __pycache__
 TEST_DATABASE
+static/
+
