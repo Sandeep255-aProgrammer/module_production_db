@@ -1,3 +1,17 @@
 nisers.db
 __init.py__
+
+module_production_db__pycache__/
+module_production_db/.venv/
+__pycache__/*
+
+static/uploads/*
+wire_bonding_data.xlsx
+templates/material_reciever_old.html
+=======
 __pycache__
+.DS_Store
+.venv
+__init.py__
+__pycache__
+TEST_DATABASE
