@@ -56,33 +56,34 @@
         <tbody>
           <tr>
             <td>Top</td>
-            <td><input type="number" name="top_delta_height" class="form-control"></td>
-            <td><input type="number" name="top_correction_factor_k1" class="form-control"></td>
-            <td><input type="number" name="top_correction_factor_k2" class="form-control"></td>
-            <td><input type="number" name="top_mean_force_1" class="form-control"></td>
-            <td><input type="number" name="top_mean_force_2" class="form-control"></td>
-            <td><input type="number" name="top_rms_value" class="form-control"></td>
-            <td><input type="number" name="top_standard_deviation" class="form-control"></td>
+            <td><input type="number" name="top_delta_height" step="0.1" class="form-control"></td>
+            <td><input type="number" name="top_correction_factor_k1" step="0.1" class="form-control"></td>
+            <td><input type="number" name="top_correction_factor_k2" step="0.1" class="form-control"></td>
+            <td><input type="number" name="top_mean_force_1" step="0.1" class="form-control"></td>
+            <td><input type="number" name="top_mean_force_2" step="0.1" class="form-control"></td>
+            <td><input type="number" name="top_rms_value" step="0.1" class="form-control"></td>
+            <td><input type="number" name="top_standard_deviation" step="0.1" class="form-control"></td>
           </tr>
           <tr>
             <td>Bottom</td>
-            <td><input type="number" name="bottom_delta_height" class="form-control"></td>
-            <td><input type="number" name="bottom_correction_factor_k1" class="form-control"></td>
-            <td><input type="number" name="bottom_correction_factor_k2" class="form-control"></td>
-            <td><input type="number" name="bottom_mean_force_1" class="form-control"></td>
-            <td><input type="number" name="bottom_mean_force_2" class="form-control"></td>
-            <td><input type="number" name="bottom_rms_value" class="form-control"></td>
-            <td><input type="number" name="bottom_standard_deviation" class="form-control"></td>
+            <td><input type="number" name="bottom_delta_height" step="0.1" class="form-control"></td>
+            <td><input type="number" name="bottom_correction_factor_k1" step="0.1" class="form-control"></td>
+            <td><input type="number" name="bottom_correction_factor_k2" step="0.1" class="form-control"></td>
+            <td><input type="number" name="bottom_mean_force_1" step="0.1" class="form-control"></td>
+            <td><input type="number" name="bottom_mean_force_2" step="0.1" class="form-control"></td>
+            <td><input type="number" name="bottom_rms_value" step="0.1" class="form-control"></td>
+            <td><input type="number" name="bottom_standard_deviation" step="0.1" class="form-control"></td>
           </tr>
         </tbody>
       </table>
 
       
       <!-- Top -->
-      <h3 class="mt-4 text-center">Top</h3>
-      <table class="table table-bordered text-center" id="top-table">
+      <h3 class="mt-4 text-center" >Top</h3>
+      <table class="table table-bordered text-center"  id="top-table">
         <thead>
           <tr>
+            
             <th>Strip No.</th>
             <th>Raw Pull Force(gr)</th>
             <th>Distance Between Feet</th>
@@ -97,8 +98,8 @@
           <!-- Initial row -->
           <tr>
             <td>1</td>
-            <td><input type="number" name="top_raw_pull_force_1" class="form-control"></td>
-            <td><input type="number" name="top_distance_between_feet_1" class="form-control"></td>
+            <td><input type="number" name="top_raw_pull_force_1" step="0.1" class="form-control"></td>
+            <td><input type="number" name="top_distance_between_feet_1" step="0.1" class="form-control"></td>
             <td>
               <select name="top_type_of_break_1" class="form-control">
                 <option value="">Select</option>
@@ -111,8 +112,8 @@
                 <option value="6">6 - Others</option>
               </select>
             </td>
-            <td><input type="number" name="top_correction_factor_1" class="form-control"></td>
-            <td><input type="number" name="top_corrected_force_1" class="form-control"></td>
+            <td><input type="number" name="top_correction_factor_1" step="0.1" class="form-control"></td>
+            <td><input type="number" name="top_corrected_force_1" step="0.1" class="form-control"></td>
             <!-- <td><input type="file" name="top_image_1" class="form-control"></td> -->
             <!-- <td><input type="text" name="top_comment_1" class="form-control"></td> -->
           </tr>
@@ -139,8 +140,8 @@
           <!-- Initial row -->
           <tr>
             <td>1</td>
-            <td><input type="number" name="bottom_raw_pull_force_1" class="form-control"></td>
-            <td><input type="number" name="bottom_distance_between_feet_1" class="form-control"></td>
+            <td><input type="number" name="bottom_raw_pull_force_1" step="0.1" class="form-control"></td>
+            <td><input type="number" name="bottom_distance_between_feet_1" step="0.1" class="form-control"></td>
             <td>
               <select name="bottom_type_of_break_1" class="form-control">
                 <option value="">Select</option>
@@ -153,8 +154,8 @@
                 <option value="6">6 - Others</option>
               </select>
             </td>
-            <td><input type="number" name="bottom_correction_factor_1" class="form-control"></td>
-            <td><input type="number" name="bottom_corrected_force_1" class="form-control"></td>
+            <td><input type="number" name="bottom_correction_factor_1" step="0.1" class="form-control"></td>
+            <td><input type="number" name="bottom_corrected_force_1" step="0.1" class="form-control"></td>
             <!-- <td><input type="file" name="bottom_image_1" class="form-control"></td> -->
             <!-- <td><input type="text" name="bottom_comment_1" class="form-control"></td> -->
           </tr>

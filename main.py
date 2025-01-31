@@ -13,6 +13,7 @@ from flask_ckeditor import CKEditor
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 import json
 import datetime
+import openpyxl
 
 utc_now = datetime.datetime.now()
 current_date =f"{utc_now.year}-{utc_now.month}-{utc_now.day}" 
@@ -40,8 +41,8 @@ from forms import (
     ModuleEncapsulationForm ,
     WireBondingForm,
     NoiseTestForm_Ph2_ACF,
-    BurNimForm,BurnimForm1, BurnimForm2, BurnimForm3, BurnimForm4, BurnimForm5, \
-    BurnimForm6, BurnimForm7, BurnimForm8, BurnimForm9, BurnimForm10 ,
+    NoiseTestForm_GIPHT,
+    
     ModuleData , SensorForm  ,WireBond,
     VTRxIDForm ,VTRxForm,GroundBalancerIDForm ,  GroundBalancerForm,
     FEHForm, SEHForm, MainBridgeForm, StumpBridgeForm, GlueForm, KaptonTapesForm, OpticalFibreForm, WireBonderForm, OtherConsumablesForm
@@ -68,6 +69,7 @@ now import all the stups related to the database tike the table and db , all are
 '''
 
 #from database_table import User , Station , db
+#TO DO: Need to change the import statement to import all the tables from database_table.py
 from database_table import (
     db ,
     User,
@@ -84,8 +86,11 @@ from database_table import (
     HybridGluingTable,
     ModuleDataTable,
     WireBondingTable,
-    NoiseTestTable,
     BurNimTable
+    # NoiseTestTable,
+    # BurninTable
+
+
 )
 
 
@@ -233,7 +238,8 @@ def module_report():
 @login_required
 def wire_bonding():
     if request.method == 'POST':
-        # Debugging: Print all form data
+        ###################Debugging start####################################
+
         print("\n=== FORM DATA RECEIVED ===")
         for key, value in request.form.items():
             print(f"{key}: {value}")
@@ -244,40 +250,46 @@ def wire_bonding():
             file = request.files[file_key]
             if file.filename != '':
                 print(f"Uploaded file: {file_key} => {file.filename}")
-                # Read file content for debugging (without saving)
                 file.seek(0, os.SEEK_END)
                 size = file.tell()
                 file.seek(0)
                 print(f"File size: {size} bytes")
             else:
                 print(f"Empty file upload: {file_key}")
+        ###################Debugging end####################################
 
-        # Process Module ID and Parameters
         module_id = request.form.get('module_id')
-        print(f"\nProcessing Module ID: {module_id}")
+        temperature = request.form.get('temperature')
+        dewpoint = request.form.get('dewpoint')
+        humidity = request.form.get('humidity')
+        comment = request.form.get('comment')
+        print(f"\nModule ID: {module_id}, Temperature: {temperature}, Dewpoint: {dewpoint}, Humidity: {humidity}")
 
-        # Process Top Parameters
-        top_params = {
-            'delta_height': request.form.get('top_delta_height'),
-            'correction_factor_k1': request.form.get('top_correction_factor_k1'),
-            'correction_factor_k2': request.form.get('top_correction_factor_k2'),
-            'mean_force_1': request.form.get('top_mean_force_1'),
-            'mean_force_2': request.form.get('top_mean_force_2'),
-            'rms_value': request.form.get('top_rms_value'),
-            'standard_deviation': request.form.get('top_standard_deviation')
-        }
+        image_path = None
+        if 'image' in request.files:
+            image = request.files['image']
+            if image and allowed_file(image.filename):
+                filename = secure_filename(image.filename)
+                image_path = os.path.join(UPLOAD_FOLDER, filename)
+                image.save(image_path)  
+                print(f"Image saved to: {image_path}")
+
+        # Function to process correction factors and forces
+        def process_parameters(prefix):
+            return {
+                'delta_height': request.form.get(f'{prefix}_delta_height'),
+                'correction_factor_k1': request.form.get(f'{prefix}_correction_factor_k1'),
+                'correction_factor_k2': request.form.get(f'{prefix}_correction_factor_k2'),
+                'mean_force_1': request.form.get(f'{prefix}_mean_force_1'),
+                'mean_force_2': request.form.get(f'{prefix}_mean_force_2'),
+                'rms_value': request.form.get(f'{prefix}_rms_value'),
+                'standard_deviation': request.form.get(f'{prefix}_standard_deviation')
+            }
+
+        #Top and Bottom Parameters
+        top_params = process_parameters('top')
+        bottom_params = process_parameters('bottom')
         print("\nTop Parameters:", top_params)
-
-        # Process Bottom Parameters
-        bottom_params = {
-            'delta_height': request.form.get('bottom_delta_height'),
-            'correction_factor_k1': request.form.get('bottom_correction_factor_k1'),
-            'correction_factor_k2': request.form.get('bottom_correction_factor_k2'),
-            'mean_force_1': request.form.get('bottom_mean_force_1'),
-            'mean_force_2': request.form.get('bottom_mean_force_2'),
-            'rms_value': request.form.get('bottom_rms_value'),
-            'standard_deviation': request.form.get('bottom_standard_deviation')
-        }
         print("\nBottom Parameters:", bottom_params)
 
         # Process Dynamic Rows
@@ -303,15 +315,46 @@ def wire_bonding():
                 i += 1
             return data
 
-        # Process Top and Bottom Tables
         print("\nPROCESSING TOP TABLE DATA:")
         top_data = process_table_data('top')
         print("\nPROCESSING BOTTOM TABLE DATA:")
         bottom_data = process_table_data('bottom')
 
+        # Saving in excel file
+        try:
+            file_path = 'wire_bonding_data.xlsx'
+            workbook = openpyxl.load_workbook(file_path)
+        except FileNotFoundError:
+            workbook = openpyxl.Workbook()
+
+        # Save table data to another sheet if needed
+        sheet = workbook.create_sheet(title='Top Data')
+        sheet.append(['Raw Pull Force', 'Distance Between Feet', 'Type of Break',
+                       'Correction Factor', 'Corrected Force', 'Comment'])
+        for row in top_data:
+            sheet.append(list(row.values()))
+
+        sheet2 = workbook.create_sheet(title='Bottom Data')
+        sheet2.append(['Raw Pull Force', 'Distance Between Feet', 'Type of Break',
+                       'Correction Factor', 'Corrected Force', 'Comment'])
+        for row in bottom_data:
+            sheet2.append(list(row.values()))
+
+        workbook.save(file_path)
+
+        data_dict = {
+            'module_id': module_id,
+            'temperature': temperature,
+            'dewpoint': dewpoint,
+            'humidity': humidity,
+            'comment': comment,
+            'image_path': image_path,
+        }
+
+
         flash("Wire Bonding data submitted successfully!", "success")
         return redirect(url_for('work_flow'))
-        return redirect(url_for('work_flow'))
+
 
     form = WireBondingForm()
     return render_template('wire_bonding.html', form=form)
@@ -384,60 +427,145 @@ def download():
  here the main thing comes , in the workflow page when you select a process , the num gets it's value which is defined in the workflow.html have a look , that number will tell(see the logic below)  which form to show and after we have to save the data entered in the form to the database once the form is validated 
   Also the visual_inspection.html renders the form
 ''' 
-
+def material_receiver_form_dict(form ):
+    materials = {"common_data":None,"material_data":None}
+    materials["common_data"] = {"received_from":form.get('received_from', 'Unknown'),"date":form.get('date', 'Unknown'),
+                                "temperature":form.get('temperature', 'Unknown'),"humidity":form.get('humidity', 'Unknown'), "dew_point":form.get('dew_point', 'Unknown'),
+                                "material_comment":form.get('material_comment', ''),"img_url":None}
+    for file_key in request.files:
+            file = request.files[file_key]
+            if file.filename:
+                print(f"Uploaded file: {file_key} => {file.filename}")
+                file.seek(0, os.SEEK_END)
+                size = file.tell()
+                file.seek(0)
+                print(f"File size: {size} bytes")
+            else:
+                print(f"Empty file upload: {file_key}")
 @app.route('/add_data', methods=["GET", "POST"])
 def add_data():
-    num = request.args.get('num')
-    if not num:
-        num = 0
-    step_no = int(num)
+    
+    workflow_name = request.args.get('workflow_name', 'Workflow')
+    
     sensor_ids = db.session.query(VisualInspectionSensorTable.sensor_id).distinct().all()
     bare_module_ids = db.session.query(SensorGluingTable.bare_module_id).distinct().all()
     module_ids = db.session.query(HybridGluingTable.module_id).distinct().all()
     skeleton_ids = db.session.query(SkeletonTestTable.skeleton_id).distinct().all()
 
-    if step_no == 0:
-        return render_template("material_type.html")
-        form = MaterialReceiverTypeForm()
-        if form.validate_on_submit():
-        
-            material_type = form.material_type.data
-            return redirect(url_for('add_materials',material_type=material_type))
-            sensors_quantity = form.sensors_quantity.data
-            hybrid_quantity = form.hybrid_quantity.data
-            optical_fibres_quantity = form.optical_fibres_quantity.data
-            kaptontapes_quantity = form.kaptontapes_quantity.data
-            bridges_quantity = form.bridges_quantity.data
-            others = form.others.data
-            receiver_name = form.receiver_name.data
-            #date = form.date.data
-            image = form.image.data
-            comment = form.comment.data
-            if image and image.filename != '':
-                image_url = save_get_file_url(image)
-            else:
-                image_url = None
-            new_material_receiving = MaterialReceiverTable(
-                                       sensors_quantity = sensors_quantity ,
-                                       hybrid_quantity = hybrid_quantity ,
-                                       optical_fibres_quantity = optical_fibres_quantity ,
-                                       kaptontapes_quantity = kaptontapes_quantity ,
-                                       receiver_name = receiver_name,
-                                       bridges_quantity = bridges_quantity ,
-                                       others = others ,
-                                       
-                                       image_url = image_url , comment = comment )
-            db.session.add(new_material_receiving)
-            db.session.commit()
-            return redirect(url_for('work_flow'))
-   #     return render_template("material_reciever.html", form=form)
-        
-       
+    if workflow_name=="Material Receiver" :
+        # Log each field for debugging  
+        print("\n=== FORM DATA RECEIVED ===")
     
-    elif step_no == 1:
+        # Extracting general form details
+        received_from = request.form.get('received_from', 'Unknown')
+        date = request.form.get('date', 'Unknown')
+        temperature = request.form.get('temperature', 'Unknown')
+        humidity = request.form.get('humidity', 'Unknown')
+        dew_point = request.form.get('dew_point', 'Unknown')
+        material_types = request.form.getlist('material_type[]')
+        "material_comment" = request.form.get('material_comment', '')
+
+        # Print general form details
+        print(f"Received From: {received_from}")
+        print(f"Date: {date}")
+        print(f"Temperature: {temperature}°C")
+        print(f"Humidity: {humidity}%")
+        print(f"Dew Point: {dew_point}°C")
+        print(f"{', '.join(set(material_types))} Comment: {material_comment}")
+
+        print("\n=== FILE UPLOADS ===")
+        for file_key in request.files:
+            file = request.files[file_key]
+            if file.filename:
+                print(f"Uploaded file: {file_key} => {file.filename}")
+                file.seek(0, os.SEEK_END)
+                size = file.tell()
+                file.seek(0)
+                print(f"File size: {size} bytes")
+            else:
+                print(f"Empty file upload: {file_key}")
+
+        print("\n=== MATERIAL ENTRIES ===")
+
+        # Retrieve multiple materials
+        material_ids = request.form.getlist('material_id[]')
+        expiry_dates = request.form.getlist('expiry_date[]')
+        spool_numbers = request.form.getlist('spool_number[]')
+        wedge_tool_numbers = request.form.getlist('wedge_tool_no[]')
+
+        # Ensure all entries are printed
+        
+        for i in range(len(material_ids)):  # Iterate over all rows
+            material_id = material_ids[i] if i < len(material_ids) else "Unknown"
+            material_type = material_types[i] if i < len(material_types) else "Unknown"
+            expiry_date = expiry_dates[i] if i < len(expiry_dates) else "N/A"
+            spool_no = spool_numbers[i] if i < len(spool_numbers) else "N/A"
+            wedge_tool_no = wedge_tool_numbers[i] if i < len(wedge_tool_numbers) else "N/A"
+
+            print(f"\nMaterial Entry {i + 1}:")
+            print(f"{material_type} ID: {material_id}")
+
+            if material_type == "Glue":
+                print(f"Expiry Date: {expiry_date}")
+
+            elif material_type == "Wire Bonder":
+                print(f"Spool Number: {spool_no}, Wedge Tool No.: {wedge_tool_no}, Expiry Date: {expiry_date}")
+
+        return render_template("material_reciever.html")
+
+        # form = MaterialReceiverTypeForm()
+        # if form.validate_on_submit():
+        
+        #     material_type = form.material_type.data
+        #     return redirect(url_for('add_materials',material_type=material_type))
+        #     sensors_quantity = form.sensors_quantity.data
+        #     hybrid_quantity = form.hybrid_quantity.data
+        #     optical_fibres_quantity = form.optical_fibres_quantity.data
+        #     kaptontapes_quantity = form.kaptontapes_quantity.data
+        #     bridges_quantity = form.bridges_quantity.data
+        #     others = form.others.data
+        #     receiver_name = form.receiver_name.data
+        #     #date = form.date.data
+        #     image = form.image.data
+        #     comment = form.comment.data
+        #     if image and image.filename != '':
+        #         image_url = save_get_file_url(image)
+        #     else:
+        #         image_url = None
+        #     new_material_receiving = MaterialReceiverTable(
+        #                                sensors_quantity = sensors_quantity ,
+        #                                hybrid_quantity = hybrid_quantity ,
+        #                                optical_fibres_quantity = optical_fibres_quantity ,
+        #                                kaptontapes_quantity = kaptontapes_quantity ,
+        #                                receiver_name = receiver_name,
+        #                                bridges_quantity = bridges_quantity ,
+        #                                others = others ,
+                                       
+        #                                image_url = image_url , comment = comment )
+        #     db.session.add(new_material_receiving)
+        #     db.session.commit()
+        #     return redirect(url_for('work_flow'))
+        #     return render_template("material_reciever.html", form=form)
+        
+    
+    elif workflow_name == "Visual Inspection":
+        return render_template("visual_type.html")
+        form = VisualInspection()
+        inspection_number = None
+        if form.validate_on_submit():
+            inspection_number = int(form.inspection_type.data)
+            if inspection_number == 1:
+                return redirect(url_for('sensor_inspection'))
+            elif inspection_number == 3:
+                return redirect(url_for('hybrid_inspection'))
+            elif inspection_number == 2:
+                return redirect(url_for('bridge_inspection'))
+        return render_template("visual_inspection.html", form=form, process_name=workflow_name) 
+            
+
         return render_template("visual_type.html")
 
-    elif step_no == 2:
+    elif workflow_name == "Kapton Gluing":
         form = KaptonGluing()
         # add sensor ids from VisualInspectionsencor table to the sensor id choices 
         #sensor_ids = db.session.query(VisualInspectionSensorTable.sensor_id).distinct().all()
@@ -447,69 +575,76 @@ def add_data():
             return redirect(url_for('work_flow'))
         
         
-    elif step_no == 3:
+    elif workflow_name == "Hv Form":
         form = HvForm()
         form.sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
         if form.validate_on_submit():
             SaveToDataBase().save_hv_iv_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
-    elif step_no == 31:
+    elif workflow_name == "Iv Form":
         form = IvForm()
         form.sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
         if form.validate_on_submit():
             SaveToDataBase().save_hv_iv_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
-    elif step_no == 4:
+    elif workflow_name == "Sensor Gluing":
         form = SensorGluing()
         form.top_sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
         form.bottom_sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
         if form.validate_on_submit():
             SaveToDataBase().save_sensor_gluing_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
-    elif step_no == 5:
+    elif workflow_name =="Needle Metrology":
         form = NeedleMetrologyForm()
         form.bare_module_id.choices = [(bare_module.bare_module_id, bare_module.bare_module_id) for bare_module in bare_module_ids]
         if form.validate_on_submit():
             SaveToDataBase().save_needle_metrology_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
-    elif step_no == 6:
+    elif workflow_name == "Skeleton Test":
         form = SkeletonTestForm()
         if form.validate_on_submit():
             SaveToDataBase().save_skeleton_test_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
-    elif step_no == 7:
+    elif workflow_name == "Hybrid Gluing":
         form = HybridGluingForm()
         form.bare_module_id.choices = [(bare_module.bare_module_id, bare_module.bare_module_id) for bare_module in bare_module_ids]
         form.skeleton_id.choices =[(skeleton.skeleton_id, skeleton.skeleton_id) for skeleton in skeleton_ids]
         if form.validate_on_submit():
             SaveToDataBase().save_hybrid_gluing_form( form ,db ,app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
-    elif step_no == 71:
+    elif workflow_name == "Module Encapsulation":
         form = ModuleEncapsulationForm()
         if form.validate_on_submit():
             print("module encapsulation form is validated ")
             return redirect(url_for('work_flow'))
-    elif step_no == 11:
-        form = ModuleData()
-    elif step_no == 8:  # Wire Bonding
+
+    elif workflow_name == "Wire Bonding":  # Wire Bonding
         #form = WireBondingForm()
         template_name = "wire_bonding.html"  # Use a unique template for Wire Bonding
         return redirect(url_for('wire_bonding'))
-    elif step_no == 9:
+    elif workflow_name =="Noise Test Ph2-ACF":
         form = NoiseTestForm_Ph2_ACF()
         form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
         if form.validate_on_submit():
             pass
-        
-        
-    elif step_no == 10:
-        form = BurNimForm()
+    elif workflow_name == "Noise Test GIPHT":
+        form = NoiseTestForm_GIPHT()
+        form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
         if form.validate_on_submit():
-            module_quantity = int(form.module_quantity.data)
-            return redirect(url_for('burnim_data_upload',module_quantity = module_quantity))
+            pass
+    elif workflow_name == "Burnin Test":
+        return redirect(url_for('burninTest', num=12))
     
-    return render_template("visual_inspection.html", form=form)
+    return render_template("visual_inspection.html", form=form, process_name=workflow_name)
 
+@app.route('/burninTest', methods=["GET", "POST"])
+def burninTest():
+    idx_num = int(request.args.get("num", 0))
+    print(idx_num)
+    if idx_num == 12:
+        return render_template("BurninTest.html",module_ids =[123,3224,33545,4546])  
+    else:
+        return "Invalid step number"
 
 
 @app.route('/add_received_materials', methods = ["GET","POST"])
@@ -529,6 +664,7 @@ def add_received_materials():
         return redirect(url_for('add_material_ids' ))
         
     return render_template("visual_inspection.html", form=basic_form)
+
 @app.route('/add_material_ids',methods = ["GET","POST"])
 def add_material_ids():
     index_number = session.get('index_number')
@@ -551,17 +687,16 @@ def add_material_ids():
                 print(fieldlist.name, fieldlist.data)
                 continue
             for entry in fieldlist:
-                print(entry.name, entry.data)
-        # Server-Side Validation
-        if id_form().validate():
-            print(id_form().data)
-            print("form is validated ")
-            # Valid data -  Can be saved to a database
-            return form.data
-        else:
-            # Validation Failed
-            return 'Data not saved!'
-    return render_template('dynamic_form.html', form=id_form())
+
+                print(entry.name , entry.data)
+    if id_form.validate():
+        print("id form submitted")
+        print(id_form.data)
+        return redirect(url_for("work_flow"))
+    print("after--------------")
+    return render_template("dynamic_form.html", form=id_form ,data_post_url = 'add_material_ids',type= type )
+
+
     # if request.method == "POST":
     #     form = Material_receiver_ids_forms[index_number]()
     #     for fieldlist in form:
@@ -579,7 +714,7 @@ def add_material_ids():
     #     return redirect(url_for("work_flow"))
     # print("after--------------")
     # return render_template("dynamic_form.html", form=id_form ,data_post_url = 'add_material_ids',type= type )
-    
+
     '''
     if not form_class:
         return f"Invalid material_type: {material_type}", 400  # Return an error if the type is invalid
@@ -672,47 +807,43 @@ def bridge_inspection():
         return redirect(url_for('work_flow'))
     return render_template("visual_inspection.html", form=form)
 
-# ------------------ Visual Inspection End ----------------------
 
-@app.route('/burnim_data_upload', methods=["GET", "POST"])
-def burnim_data_upload():
-    module_ids = db.session.query(HybridGluingTable.module_id).distinct().all()
-    module_quantity = int(request.args.get('module_quantity', 1))  
-    form = None
-    if module_quantity == 1:
-        form = BurnimForm1(module_ids)
-    elif module_quantity == 2:
-        form = BurnimForm2(module_ids)
-    elif module_quantity == 3:
-        form = BurnimForm3(module_ids)
-    elif module_quantity == 4:
-        form = BurnimForm4(module_ids)
-    elif module_quantity == 5:
-        form = BurnimForm5(module_ids)
-    elif module_quantity == 6:
-        form = BurnimForm6(module_ids)
-    elif module_quantity == 7:
-        form = BurnimForm7(module_ids)
-    elif module_quantity == 8:
-        form = BurnimForm8(module_ids)
-    elif module_quantity == 9:
-        form = BurnimForm9(module_ids)
-    elif module_quantity == 10:
-        form = BurnimForm10(module_ids)
+
+
+# ------------------ Visual Inspection End ----------------------
+# @app.route('/burnin_data_upload', methods=["GET", "POST"])
+# def burnin_data_upload():
+#     module_ids = db.session.query(HybridGluingTable.module_id).distinct().all()
+#     module_quantity = int(request.args.get('module_quantity', 1))  
+#     form = None
+#     if module_quantity == 1:
+#         form = BurninForm1(module_ids)
+#     elif module_quantity == 2:
+#         form = BurninForm2(module_ids)
+#     elif module_quantity == 3:
+#         form = BurninForm3(module_ids)
+#     elif module_quantity == 4:
+#         form = BurninForm4(module_ids)
+#     elif module_quantity == 5:
+#         form = BurninForm5(module_ids)
+#     elif module_quantity == 6:
+#         form = BurninForm6(module_ids)
+#     elif module_quantity == 7:
+#         form = BurninForm7(module_ids)
+#     elif module_quantity == 8:
+#         form = BurninForm8(module_ids)
+#     elif module_quantity == 9:
+#         form = BurninForm9(module_ids)
+#     elif module_quantity == 10:
+#         form = BurninForm10(module_ids)
 
     
-    if form and form.validate_on_submit():
-        SaveToDataBase().save_burnim_test_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'], module_quantity)
-        return redirect(url_for('work_flow'))
+    # if form and form.validate_on_submit():
+    #     SaveToDataBase().save_burnin_test_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'], module_quantity)
+    #     return redirect(url_for('work_flow'))
 
-    return render_template("visual_inspection.html", form=form)
+    # return render_template("visual_inspection.html", form=form)
 
-    # if form.validate_on_submit():
-    #     # Handle the form submission logic here
-    #     flash(f"Step {step_no} data submitted successfully!", "success")
-    #     return redirect(url_for('workflow'))  # Redirect to workflow after submission
-
-    # return render_template(template_name, form=form)
 
 
 
