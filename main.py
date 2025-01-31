@@ -14,7 +14,8 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, cur
 import json
 import datetime
 import openpyxl
-
+import csv
+import json
 
 utc_now = datetime.datetime.now()
 current_date =f"{utc_now.year}-{utc_now.month}-{utc_now.day}" 
@@ -235,130 +236,7 @@ def show_module():
 def module_report():
     return render_template("module_report.html")
 
-@app.route('/wire_bonding', methods=['GET', 'POST'])
-@login_required
-def wire_bonding():
-    if request.method == 'POST':
-        ###################Debugging start####################################
-
-        print("\n=== FORM DATA RECEIVED ===")
-        for key, value in request.form.items():
-            print(f"{key}: {value}")
-
-        # Debugging: Print file upload information
-        print("\n=== FILE UPLOADS ===")
-        for file_key in request.files:
-            file = request.files[file_key]
-            if file.filename != '':
-                print(f"Uploaded file: {file_key} => {file.filename}")
-                file.seek(0, os.SEEK_END)
-                size = file.tell()
-                file.seek(0)
-                print(f"File size: {size} bytes")
-            else:
-                print(f"Empty file upload: {file_key}")
-        ###################Debugging end####################################
-
-        module_id = request.form.get('module_id')
-        temperature = request.form.get('temperature')
-        dewpoint = request.form.get('dewpoint')
-        humidity = request.form.get('humidity')
-        comment = request.form.get('comment')
-        print(f"\nModule ID: {module_id}, Temperature: {temperature}, Dewpoint: {dewpoint}, Humidity: {humidity}")
-
-        image_path = None
-        if 'image' in request.files:
-            image = request.files['image']
-            if image and allowed_file(image.filename):
-                filename = secure_filename(image.filename)
-                image_path = os.path.join(UPLOAD_FOLDER, filename)
-                image.save(image_path)  
-                print(f"Image saved to: {image_path}")
-
-        # Function to process correction factors and forces
-        def process_parameters(prefix):
-            return {
-                'delta_height': request.form.get(f'{prefix}_delta_height'),
-                'correction_factor_k1': request.form.get(f'{prefix}_correction_factor_k1'),
-                'correction_factor_k2': request.form.get(f'{prefix}_correction_factor_k2'),
-                'mean_force_1': request.form.get(f'{prefix}_mean_force_1'),
-                'mean_force_2': request.form.get(f'{prefix}_mean_force_2'),
-                'rms_value': request.form.get(f'{prefix}_rms_value'),
-                'standard_deviation': request.form.get(f'{prefix}_standard_deviation')
-            }
-
-        #Top and Bottom Parameters
-        top_params = process_parameters('top')
-        bottom_params = process_parameters('bottom')
-        print("\nTop Parameters:", top_params)
-        print("\nBottom Parameters:", bottom_params)
-
-        # Process Dynamic Rows
-        def process_table_data(prefix):
-            data = []
-            i = 1
-            while True:
-                # Check if at least one field exists for this row
-                if not request.form.get(f'{prefix}_raw_pull_force_{i}'):
-                    break
-                
-                row_data = {
-                    'raw_pull_force': request.form.get(f'{prefix}_raw_pull_force_{i}'),
-                    'distance_between_feet': request.form.get(f'{prefix}_distance_between_feet_{i}'),
-                    'type_of_break': request.form.get(f'{prefix}_type_of_break_{i}'),
-                    'correction_factor': request.form.get(f'{prefix}_correction_factor_{i}'),
-                    'corrected_force': request.form.get(f'{prefix}_corrected_force_{i}'),
-                    'comment': request.form.get(f'{prefix}_comment_{i}')
-                }
-                data.append(row_data)
-                print(f"\n{prefix.capitalize()} Row {i}:")
-                print(json.dumps(row_data, indent=2))
-                i += 1
-            return data
-
-        print("\nPROCESSING TOP TABLE DATA:")
-        top_data = process_table_data('top')
-        print("\nPROCESSING BOTTOM TABLE DATA:")
-        bottom_data = process_table_data('bottom')
-
-        # Saving in excel file
-        try:
-            file_path = 'wire_bonding_data.xlsx'
-            workbook = openpyxl.load_workbook(file_path)
-        except FileNotFoundError:
-            workbook = openpyxl.Workbook()
-
-        # Save table data to another sheet if needed
-        sheet = workbook.create_sheet(title='Top Data')
-        sheet.append(['Raw Pull Force', 'Distance Between Feet', 'Type of Break',
-                       'Correction Factor', 'Corrected Force', 'Comment'])
-        for row in top_data:
-            sheet.append(list(row.values()))
-
-        sheet2 = workbook.create_sheet(title='Bottom Data')
-        sheet2.append(['Raw Pull Force', 'Distance Between Feet', 'Type of Break',
-                       'Correction Factor', 'Corrected Force', 'Comment'])
-        for row in bottom_data:
-            sheet2.append(list(row.values()))
-
-        workbook.save(file_path)
-
-        data_dict = {
-            'module_id': module_id,
-            'temperature': temperature,
-            'dewpoint': dewpoint,
-            'humidity': humidity,
-            'comment': comment,
-            'image_path': image_path,
-        }
-
-
-        flash("Wire Bonding data submitted successfully!", "success")
-        return redirect(url_for('work_flow'))
-
-
-    form = WireBondingForm()
-    return render_template('wire_bonding.html', form=form)
+    
 
 
 '''
@@ -437,7 +315,7 @@ def save_get_file_url(file,file_name):
     except:
         print("Failed to save the file")
         return None
-    
+
 def material_receiver_form_dict(form ,filename):
     materials = {"material_type":None,"common_data":None,"material_data":None}
     materials["common_data"] = {"received_from":form.get('received_from', 'Unknown'),"date":form.get('date', 'Unknown'),
@@ -612,7 +490,65 @@ def get_noise_test_GIPHT_form_data(form,file_dict):
         "root_file": save_get_file_url(form.upload_folder5.data,file_dict["root_file"]),  # ROOT File
         "comment": form.comment.data,
     }
+def wire_form_dict(form ,img_name , csv_name):
+    data_dict = {"module_id":form.get('module_id'),"temparature":form.get('temperature'),"dewpoint":form.get('dewpoint'),"humidity":form.get('humidity'),
+                 "comment":form.get('comment'),"img_url":None,"top_parameter":None, "bottom_parameter":None , "csv_file":None
+                 }
+    if 'image' in request.files:
+            image = request.files['image']
+            if image :
+                data_dict["img_url"]=save_get_file_url(image,img_name)
+    def process_parameters(prefix):
+            return {
+                'delta_height': request.form.get(f'{prefix}_delta_height'),
+                'correction_factor_k1': request.form.get(f'{prefix}_correction_factor_k1'),
+                'correction_factor_k2': request.form.get(f'{prefix}_correction_factor_k2'),
+                'mean_force_1': request.form.get(f'{prefix}_mean_force_1'),
+                'mean_force_2': request.form.get(f'{prefix}_mean_force_2'),
+                'rms_value': request.form.get(f'{prefix}_rms_value'),
+                'standard_deviation': request.form.get(f'{prefix}_standard_deviation')
+            }
+    data_dict["top_parameter"] =  process_parameters('top')
+    data_dict["bottom_parameter"] = process_parameters('bottom')
+    def process_table_data(prefix):
+            data = []
+            i = 1
+            while True:
+                if not request.form.get(f'{prefix}_raw_pull_force_{i}'):
+                    break
+                
+                row_data = {
+                    'sensor_type': prefix,  # Adding sensor type
+                    'raw_pull_force': request.form.get(f'{prefix}_raw_pull_force_{i}'),
+                    'distance_between_feet': request.form.get(f'{prefix}_distance_between_feet_{i}'),
+                    'type_of_break': request.form.get(f'{prefix}_type_of_break_{i}'),
+                    'correction_factor': request.form.get(f'{prefix}_correction_factor_{i}'),
+                    'corrected_force': request.form.get(f'{prefix}_corrected_force_{i}')
+                    
+                }
+                data.append(row_data)
+                print(f"\n{prefix.capitalize()} Row {i}:")
+                print(json.dumps(row_data, indent=2))
+                i += 1
+            return data
 
+    def generate_csv(file_name):
+        top_data = process_table_data('top')
+        bottom_data = process_table_data('bottom')
+        combined_data = top_data + bottom_data
+        csv_file =os.path.join(app.config['UPLOAD_WORKFLOW_FILES'],file_name)
+        try:
+            with open(csv_file, mode='w', newline='') as file:
+                fieldnames = ['sensor_type', 'raw_pull_force', 'distance_between_feet', 'type_of_break', 'correction_factor', 'corrected_force', 'comment']
+                writer = csv.DictWriter(file, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(combined_data)
+            return file_name 
+        except:
+            return None
+    data_dict["csv_file"]=generate_csv(csv_name)  
+    return data_dict  
+      
 @app.route('/add_data', methods=["GET", "POST"])
 def add_data():
     
@@ -787,8 +723,15 @@ def add_data():
             return redirect(url_for('work_flow'))
 
     elif workflow_name == "Wire Bonding": 
-        template_name = "wire_bonding.html"  
-        return redirect(url_for('wire_bonding'))
+        if request.method == 'POST':
+            img_name = "wire_bonding_img.png"
+            csv_name = "wire_bonding_data.csv"
+            wire_data_dict = wire_form_dict(request.form ,img_name , csv_name)
+            print(wire_data_dict)
+            return redirect(url_for('work_flow'))
+        form = WireBondingForm()
+        return render_template('wire_bonding.html', form=form)
+        
     elif workflow_name =="Noise Test Ph2-ACF":
         form = NoiseTestForm_Ph2_ACF()
         module_ids = [f"module_{i}" for i in range(1, 11)]
@@ -824,18 +767,63 @@ def add_data():
             print(dict_data)
             return redirect(url_for('work_flow'))
     elif workflow_name == "Burnin Test":
-        return redirect(url_for('burninTest', num=12))
+        if request.method =="POST":
+            file_dict  = {"tracker_root_file":"file1.png","tracker_monitor_root_file":"file2.png","press_supply_root_file":"file3.png",
+                          "burnnin_box_root_file" :"file4.png"}
+            def wire_form_dict(form, file_dict):
+                data_dict = {
+                    "temperature": form.get('temperature'),
+                    "humidity": form.get('humidity'),
+                    "dewPoint": form.get('dewPoint'),
+                    "workingDate": form.get('workingDate'),
+                    "module_id": form.getlist('module_id_left[]')+form.getlist('module_id_right[]'),
+                     
+                    "comment": form.get('comments'),
+                    "tracker_root_file": None,
+                    "tracker_monitor_root_file": None,
+                    "press_supply_root_file":None,
+                    "burnnin_box_root_file":None
+                }
+                #Tracker ROOT File ,Tracker Monitor ROOT File ,Press Supply ROOT File,Burnin Box ROOT File
+                
+                if 'Tracker ROOT File' in request.files:
+                    tracker_root = request.files['Tracker ROOT File']
+                    if tracker_root:
+                        data_dict["tracker_root_file"] = save_get_file_url(tracker_root, file_dict["tracker_root_file"])
+
+                if 'Tracker Monitor ROOT File' in request.files:
+                    tracker_monitor_file = request.files['Tracker Monitor ROOT File']
+                    if tracker_monitor_file:
+                        data_dict["tracker_monitor_root_file"] = save_get_file_url(tracker_monitor_file,file_dict["tracker_monitor_root_file"] )
+                if 'Press Supply ROOT File' in request.files:
+                    press_supply_file = request.files['Press Supply ROOT File']
+                    if press_supply_file:
+                        data_dict["press_supply_root_file"] = save_get_file_url(press_supply_file, file_dict["press_supply_root_file"])
+
+                if "Press Supply ROOT File" in request.files:
+                    burnin_box_file = request.files['Press Supply ROOT File']
+                    if burnin_box_file:
+                        data_dict["burnnin_box_root_file"] = save_get_file_url(burnin_box_file, file_dict["burnnin_box_root_file"])
+
+                return data_dict
+            data_dict   = wire_form_dict(request.form, file_dict)
+            print(data_dict)
+            
+            return redirect(url_for('work_flow'))
+        return render_template("BurninTest.html",module_ids =[123,3224,33545,4546])
+            
+        
     
     return render_template("visual_inspection.html", form=form, process_name=workflow_name)
 
-@app.route('/burninTest', methods=["GET", "POST"])
-def burninTest():
-    idx_num = int(request.args.get("num", 0))
-    print(idx_num)
-    if idx_num == 12:
-        return render_template("BurninTest.html",module_ids =[123,3224,33545,4546])  
-    else:
-        return "Invalid step number"
+# @app.route('/burninTest', methods=["GET", "POST"])
+# def burninTest():
+#     idx_num = int(request.args.get("num", 0))
+#     print(idx_num)
+#     if idx_num == 12:
+#         return render_template("BurninTest.html",module_ids =[123,3224,33545,4546])  
+#     else:
+#         return "Invalid step number"
 
 
 

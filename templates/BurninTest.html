@@ -1,408 +1,124 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script> <!-- CKEditor CDN -->
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f4f8;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
+{% extends "base1.html" %}
+{% block content %}
 
-        form {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 750px;
-            box-sizing: border-box;
-        }
+<main class="mb-4">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-md-10 mx-auto">
+        <h2 class="text-center text-white bg-primary py-2 px-4 rounded shadow-sm">Burn-in Test</h2>
 
-        h2 {
-            color: #2c3e50;
-            font-size: 28px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
+        <form action="/add_data?workflow_name=Burnin%20Test" method="POST" enctype="multipart/form-data" class="mt-4">
+          <h3 id="form-title" class="text-center"></h3>
 
-        .inline-inputs {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .inline-inputs div {
-            flex: 1;
-        }
-
-        label {
-            font-weight: bold;
-            color: #34495e;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        input[type="text"], input[type="date"], input[type="file"], textarea {
-            width: 100%;
-            padding: 12px;
-            margin-top: 6px;
-            border: 1px solid #bdc3c7;
-            border-radius: 6px;
-            font-size: 16px;
-        }
-
-        input[type="text"], input[type="date"], textarea {
-            background-color: #f8f8f8;
-        }
-
-        textarea {
-            height: 150px;
-            resize: vertical;
-        }
-
-        table {
-            width: 100%;
-            margin-bottom: 30px;
-            border-collapse: collapse;
-        }
-
-        table th, table td {
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #ecf0f1;
-            word-wrap: break-word;  /* Prevent overlapping content */
-        }
-
-        table th {
-            background-color: #f0f8ff;
-            color: #34495e;
-        }
-
-        .file-entries {
-            margin-bottom: 25px;
-        }
-
-        .file-row {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .file-row label {
-            width: 35%;
-        }
-
-        .file-row input[type="file"] {
-            width: 60%;
-        }
-
-        button {
-            background-color: #3498db;
-            color: white;
-            padding: 20px 24px;
-            font-size: 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            width: auto;
-            transition: background-color 0.3s ease;
-            margin-top: 15px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        .ckeditor-container {
-            margin-bottom: 30px;
-        }
-
-	input[type="date"] {
-	    width: 100px;  /* Adjust width as needed */
-	    padding: 10px;
-	    margin-top: 25px;
-	    border: 1px solid #ddd;
-	    border-radius: 10px;
-	}
-	/* Adjusting the temperature, humidity, dew point, and working date box sizes */
-	#temperature {
-            width: 110px;
-        }
-        #humidity {
-            width: 80px;
-        }
-	#dewPoint {
-            width: 100px;
-        }
-    </style>
-</head>
-<body>
-
-    <form action="/submit" method="POST" enctype="multipart/form-data">
-        <h2>Burnin Test</h2>
-
-        <!-- Temperature, Humidity, and Working Date in a single line -->
-        <div class="inline-inputs">
-            <div>
-                <label for="temperature">Temperature (°C):</label>
-                <input type="text" id="temperature" name="temperature" required>
+          <!-- Temperature, Humidity, Dew Point, and Working Date -->
+          <div class="row mt-3">
+            <div class="col">
+              <label class="form-label">Temperature (°C)</label>
+              <input type="number" name="temperature" class="form-control" required />
             </div>
-            <div>
-                <label for="humidity">Humidity:</label>
-                <input type="text" id="humidity" name="humidity" required>
+            <div class="col">
+              <label class="form-label">Humidity</label>
+              <input type="number" name="humidity" class="form-control" required />
             </div>
-	     <div>
-                <label for="dewPoint">Dew Point:</label>
-                <input type="text" id="humidity" name="humidity" required>
-            </div
-	    <div>
-                <label for="workingDate">Working Date:</label>
-                <input type="date" id="workingDate" name="workingDate" required>
+            <div class="col">
+              <label class="form-label">Dew Point</label>
+              <input type="number" name="dewPoint" class="form-control" required />
             </div>
-        </div>
+            <div class="col">
+              <label class="form-label">Working Date</label>
+              <input type="date" name="workingDate" class="form-control" required />
+            </div>
+          </div>
 
-        <!-- Input Table -->
-       <table style="max-width: 700px; margin: 0 auto; width: 100%;">
-    <thead>
-        <tr>
-            <th style="width: 50%; text-align: center;">Left</th>
-            <th style="width: 50%; text-align: center;">Right</th>
-        </tr>
-    </thead>
-    <tbody>
-       
-        <tr>
-            <td>
-                <select name="module_id_left" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-                    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <select name="module_id_right" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-		    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-        </tr>
-	 <tr>
-            <td>
-                <select name="module_id_left" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-                    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <select name="module_id_right" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-		    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-         </tr>
-	  <tr>
-            <td>
-                <select name="module_id_left" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-                    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <select name="module_id_right" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-		    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-          </tr>
-	   <tr>
-            <td>
-                <select name="module_id_left" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-                    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <select name="module_id_right" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-		    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-           </tr>
-	    <tr>
-            <td>
-                <select name="module_id_left" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-                    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <select name="module_id_right" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-		    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            </tr>
-	     <tr>
-            <td>
-                <select name="module_id_left" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-                    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <select name="module_id_right" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-		    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-             </tr>
-	      <tr>
-            <td>
-                <select name="module_id_left" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-                    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <select name="module_id_right" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-		    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
+          <!-- Input Table -->
+          <table id="moduleTable" class="table table-bordered text-center mt-4">
+            <thead>
+              <tr>
+                <th>Left</th>
+                <th>Right</th>
+                <th>Action</th>
               </tr>
-	       <tr>
-            <td>
-                <select name="module_id_left" required style="width: 90%; padding: 8px;">
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <select name="module_id_left[]" required class="form-control">
                     <option value="">Select Module ID</option>
                     {% for module_id in module_ids %}
                     <option value="{{ module_id }}">{{ module_id }}</option>
                     {% endfor %}
-                </select>
-            </td>
-            <td>
-                <select name="module_id_right" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-		    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-               </tr>
-	        <tr>
-            <td>
-                <select name="module_id_left" required style="width: 90%; padding: 8px;">
+                  </select>
+                </td>
+                <td>
+                  <select name="module_id_right[]" required class="form-control">
                     <option value="">Select Module ID</option>
                     {% for module_id in module_ids %}
                     <option value="{{ module_id }}">{{ module_id }}</option>
                     {% endfor %}
-                </select>
-            </td>
-            <td>
-                <select name="module_id_right" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-		    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-		</tr>
-		 <tr>
-            <td>
-                <select name="module_id_left" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-                    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <select name="module_id_right" required style="width: 90%; padding: 8px;">
-                    <option value="">Select Module ID</option>
-		    {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-		 </tr>
-		 
-    </tbody>
-</table>
+                  </select>
+                </td>
+                <td></td> <!-- First row does not have a delete button -->
+              </tr>
+            </tbody>
+          </table>
+          <button type="button" id="addRowBtn" class="btn btn-secondary">Add Row</button>
 
-
-        <!-- File Upload Fields -->
-        <div class="file-entries">
+          <!-- File Upload Fields -->
+          <style>
+            .file-row label {
+                font-weight: bold;
+            }
+        </style> 
+        
+        <div class="mt-4">
+            <label class="form-label">Upload Files:</label>
             <div class="file-row">
-                <label for="fileEntry1">Tracker ROOT File:</label>
-                <input type="file" id="fileEntry1" name="fileEntry1">
+                <label for="Tracker ROOT File" class="bold-label">Tracker ROOT File:</label>
+                <input type="file" id="Tracker ROOT File" name="Tracker ROOT File">
             </div>
             <div class="file-row">
-                <label for="fileEntry2">Tracker Monitor ROOT File:</label>
-                <input type="file" id="fileEntry2" name="fileEntry2">
+                <label for="Tracker Monitor ROOT File" class="bold-label">Tracker Monitor ROOT File:</label>
+                <input type="file" id="Tracker Monitor ROOT File" name="Tracker Monitor ROOT File">
             </div>
             <div class="file-row">
-                <label for="fileEntry3">Press Supply ROOT File:</label>
-                <input type="file" id="fileEntry3" name="fileEntry3">
+                <label for="Press Supply ROOT File" class="bold-label">Press Supply ROOT File:</label>
+                <input type="file" id="Press Supply ROOT File" name="Press Supply ROOT File">
             </div>
             <div class="file-row">
-                <label for="fileEntry4">Burnin Box ROOT File:</label>
-                <input type="file" id="fileEntry4" name="fileEntry4" webkitdirectory>
+                <label for="Burnin Box ROOT File" class="bold-label">Burnin Box ROOT File:</label>
+                <input type="file" id="Burnin Box ROOT File" name="Burnin Box ROOT File" >
             </div>
         </div>
 
-        <!-- CKEditor Comment Box -->
-        <div class="ckeditor-container">
-            <label for="comments">Comments:</label>
-            <textarea id="comments" name="comments"></textarea>
-        </div>
+          <!-- CKEditor Comment Box -->
+          <div class="mt-4">
+            <label class="form-label">Comments</label>
+            <textarea id="comments" name="comments" class="form-control"></textarea>
+          </div>
 
-        <script>
-            // Initialize CKEditor
-            CKEDITOR.replace('comments');
-        </script>
+          <!-- Submit Button -->
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
 
-        <!-- Submit Button -->
-        <button type="submit">Submit</button>
-    </form>
+<script>
+document.getElementById("addRowBtn").addEventListener("click", function () {
+    let tableBody = document.querySelector("#moduleTable tbody");
+    let newRow = document.createElement("tr");
+    let moduleOptions = document.querySelector('select[name="module_id_left[]"]').innerHTML;
 
-</body>
-</html>
+    newRow.innerHTML = `<td><select name="module_id_left[]" class="form-control">${moduleOptions}</select></td>
+                        <td><select name="module_id_right[]" class="form-control">${moduleOptions}</select></td>
+                        <td><button type="button" class="btn btn-danger deleteRowBtn">Delete</button></td>`;
+
+    tableBody.appendChild(newRow);
+    newRow.querySelector(".deleteRowBtn").addEventListener("click", function () { newRow.remove(); });
+});
+</script>
+
+{% endblock %}

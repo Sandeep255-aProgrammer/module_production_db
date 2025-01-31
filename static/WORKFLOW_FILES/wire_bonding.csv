@@ -1,0 +1,6 @@
+sensor_type,raw_pull_force,distance_between_feet,type_of_break,correction_factor,corrected_force,comment
+top,2332,34,3,43,34,
+top,34,32,4,32,12,
+top,34,45,6,4,4,
+bottom,34,3,5,34,43,
+bottom,34,45,5,5,54,
