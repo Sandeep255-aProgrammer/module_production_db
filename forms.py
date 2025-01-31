@@ -468,7 +468,7 @@ class NoiseTestForm_GIPHT(FlaskForm):
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit= SubmitField("Save")
 # add two a table with 2 column 5 rows with module id field and add 4 root file
-class BurNimForm(FlaskForm):
+class BurninForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
@@ -482,58 +482,58 @@ class BurNimForm(FlaskForm):
     submit = SubmitField("Go")
 
 
-class BurnimForm1(FlaskForm):
+class BurninForm1(FlaskForm):
     module1_id = SelectField("First Module ID", validators=[DataRequired()])
     module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
-    burnim_box_result = FileField("Upload Burnim Box Result (root)", validators=[DataRequired()])
+    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
     image = FileField("Upload Image (optional)")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
     def __init__(self, module_ids, *args, **kwargs):
-        super(BurnimForm1, self).__init__(*args, **kwargs)
+        super(BurninForm1, self).__init__(*args, **kwargs)
         # Set the choices for the SelectField dynamically
         self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
 
 
-class BurnimForm2(FlaskForm):
+class BurninForm2(FlaskForm):
     module1_id = SelectField("First Module ID", validators=[DataRequired()])
     module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
     module2_id = SelectField("Second Module ID", validators=[DataRequired()])
     module2_result = FileField("Upload Second Module Result (root)", validators=[DataRequired()])
-    burnim_box_result = FileField("Upload Burnim Box Result (root)", validators=[DataRequired()])
+    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
     image = FileField("Upload Image (optional)")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
     def __init__(self, module_ids, *args, **kwargs):
-        super(BurnimForm2, self).__init__(*args, **kwargs)
+        super(BurninForm2, self).__init__(*args, **kwargs)
         # Set the choices for the SelectField dynamically
         self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
         self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
 
 
-class BurnimForm3(FlaskForm):
+class BurninForm3(FlaskForm):
     module1_id = SelectField("First Module ID", validators=[DataRequired()])
     module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
     module2_id = SelectField("Second Module ID", validators=[DataRequired()])
     module2_result = FileField("Upload Second Module Result (root)", validators=[DataRequired()])
     module3_id = SelectField("Third Module ID", validators=[DataRequired()])
     module3_result = FileField("Upload Third Module Result (root)", validators=[DataRequired()])
-    burnim_box_result = FileField("Upload Burnim Box Result (root)", validators=[DataRequired()])
+    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
     image = FileField("Upload Image (optional)")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
     def __init__(self, module_ids, *args, **kwargs):
-        super(BurnimForm3, self).__init__(*args, **kwargs)
+        super(BurninForm3, self).__init__(*args, **kwargs)
         # Set the choices for the SelectField dynamically
         self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
         self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
         self.module3_id.choices = [(module_id, module_id) for module_id, in module_ids]
 
 
-class BurnimForm4(FlaskForm):
+class BurninForm4(FlaskForm):
     module1_id = SelectField("First Module ID", validators=[DataRequired()])
     module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
     module2_id = SelectField("Second Module ID", validators=[DataRequired()])
@@ -542,13 +542,13 @@ class BurnimForm4(FlaskForm):
     module3_result = FileField("Upload Third Module Result (root)", validators=[DataRequired()])
     module4_id = SelectField("Fourth Module ID", validators=[DataRequired()])
     module4_result = FileField("Upload Fourth Module Result (root)", validators=[DataRequired()])
-    burnim_box_result = FileField("Upload Burnim Box Result (root)", validators=[DataRequired()])
+    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
     image = FileField("Upload Image (optional)")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
     def __init__(self, module_ids, *args, **kwargs):
-        super(BurnimForm4, self).__init__(*args, **kwargs)
+        super(BurninForm4, self).__init__(*args, **kwargs)
         # Set the choices for the SelectField dynamically
         self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
         self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
@@ -556,7 +556,7 @@ class BurnimForm4(FlaskForm):
         self.module4_id.choices = [(module_id, module_id) for module_id, in module_ids]
 
 
-class BurnimForm5(FlaskForm):
+class BurninForm5(FlaskForm):
     module1_id = SelectField("First Module ID", validators=[DataRequired()])
     module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
     module2_id = SelectField("Second Module ID", validators=[DataRequired()])
@@ -567,13 +567,13 @@ class BurnimForm5(FlaskForm):
     module4_result = FileField("Upload Fourth Module Result (root)", validators=[DataRequired()])
     module5_id = SelectField("Fifth Module ID", validators=[DataRequired()])
     module5_result = FileField("Upload Fifth Module Result (root)", validators=[DataRequired()])
-    burnim_box_result = FileField("Upload Burnim Box Result (root)", validators=[DataRequired()])
+    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
     image = FileField("Upload Image (optional)")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
     def __init__(self, module_ids, *args, **kwargs):
-        super(BurnimForm5, self).__init__(*args, **kwargs)
+        super(BurninForm5, self).__init__(*args, **kwargs)
         # Set the choices for the SelectField dynamically
         self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
         self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
@@ -582,7 +582,7 @@ class BurnimForm5(FlaskForm):
         self.module5_id.choices = [(module_id, module_id) for module_id, in module_ids]
 
 
-class BurnimForm6(FlaskForm):
+class BurninForm6(FlaskForm):
     module1_id = SelectField("First Module ID", validators=[DataRequired()])
     module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
     module2_id = SelectField("Second Module ID", validators=[DataRequired()])
@@ -595,13 +595,13 @@ class BurnimForm6(FlaskForm):
     module5_result = FileField("Upload Fifth Module Result (root)", validators=[DataRequired()])
     module6_id = SelectField("Sixth Module ID", validators=[DataRequired()])
     module6_result = FileField("Upload Sixth Module Result (root)", validators=[DataRequired()])
-    burnim_box_result = FileField("Upload Burnim Box Result (root)", validators=[DataRequired()])
+    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
     image = FileField("Upload Image (optional)")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
     def __init__(self, module_ids, *args, **kwargs):
-        super(BurnimForm6, self).__init__(*args, **kwargs)
+        super(BurninForm6, self).__init__(*args, **kwargs)
         # Set the choices for the SelectField dynamically
         self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
         self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
@@ -611,7 +611,7 @@ class BurnimForm6(FlaskForm):
         self.module6_id.choices = [(module_id, module_id) for module_id, in module_ids]
 
 
-class BurnimForm7(FlaskForm):
+class BurninForm7(FlaskForm):
     module1_id = SelectField("First Module ID", validators=[DataRequired()])
     module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
     module2_id = SelectField("Second Module ID", validators=[DataRequired()])
@@ -626,13 +626,13 @@ class BurnimForm7(FlaskForm):
     module6_result = FileField("Upload Sixth Module Result (root)", validators=[DataRequired()])
     module7_id = SelectField("Seventh Module ID", validators=[DataRequired()])
     module7_result = FileField("Upload Seventh Module Result (root)", validators=[DataRequired()])
-    burnim_box_result = FileField("Upload Burnim Box Result (root)", validators=[DataRequired()])
+    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
     image = FileField("Upload Image (optional)")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
     def __init__(self, module_ids, *args, **kwargs):
-        super(BurnimForm7, self).__init__(*args, **kwargs)
+        super(BurninForm7, self).__init__(*args, **kwargs)
         # Set the choices for the SelectField dynamically
         self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
         self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
@@ -643,7 +643,7 @@ class BurnimForm7(FlaskForm):
         self.module7_id.choices = [(module_id, module_id) for module_id, in module_ids]
 
 
-class BurnimForm8(FlaskForm):
+class BurninForm8(FlaskForm):
     module1_id = SelectField("First Module ID", validators=[DataRequired()])
     module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
     module2_id = SelectField("Second Module ID", validators=[DataRequired()])
@@ -660,13 +660,13 @@ class BurnimForm8(FlaskForm):
     module7_result = FileField("Upload Seventh Module Result (root)", validators=[DataRequired()])
     module8_id = SelectField("Eighth Module ID", validators=[DataRequired()])
     module8_result = FileField("Upload Eighth Module Result (root)", validators=[DataRequired()])
-    burnim_box_result = FileField("Upload Burnim Box Result (root)", validators=[DataRequired()])
+    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
     image = FileField("Upload Image (optional)")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
     def __init__(self, module_ids, *args, **kwargs):
-        super(BurnimForm8, self).__init__(*args, **kwargs)
+        super(BurninForm8, self).__init__(*args, **kwargs)
         # Set the choices for the SelectField dynamically
         self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
         self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
@@ -678,7 +678,7 @@ class BurnimForm8(FlaskForm):
         self.module8_id.choices = [(module_id, module_id) for module_id, in module_ids]
 
 
-class BurnimForm9(FlaskForm):
+class BurninForm9(FlaskForm):
     module1_id = SelectField("First Module ID", validators=[DataRequired()])
     module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
     module2_id = SelectField("Second Module ID", validators=[DataRequired()])
@@ -697,13 +697,13 @@ class BurnimForm9(FlaskForm):
     module8_result = FileField("Upload Eighth Module Result (root)", validators=[DataRequired()])
     module9_id = SelectField("Ninth Module ID", validators=[DataRequired()])
     module9_result = FileField("Upload Ninth Module Result (root)", validators=[DataRequired()])
-    burnim_box_result = FileField("Upload Burnim Box Result (root)", validators=[DataRequired()])
+    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
     image = FileField("Upload Image (optional)")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
     def __init__(self, module_ids, *args, **kwargs):
-        super(BurnimForm9, self).__init__(*args, **kwargs)
+        super(BurninForm9, self).__init__(*args, **kwargs)
         # Set the choices for the SelectField dynamically
         self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
         self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
@@ -716,7 +716,7 @@ class BurnimForm9(FlaskForm):
         self.module9_id.choices = [(module_id, module_id) for module_id, in module_ids]
 
 
-class BurnimForm10(FlaskForm):
+class BurninForm10(FlaskForm):
     module1_id = SelectField("First Module ID", validators=[DataRequired()])
     module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
     module2_id = SelectField("Second Module ID", validators=[DataRequired()])
@@ -737,13 +737,13 @@ class BurnimForm10(FlaskForm):
     module9_result = FileField("Upload Ninth Module Result (root)", validators=[DataRequired()])
     module10_id = SelectField("Tenth Module ID", validators=[DataRequired()])
     module10_result = FileField("Upload Tenth Module Result (root)", validators=[DataRequired()])
-    burnim_box_result = FileField("Upload Burnim Box Result (root)", validators=[DataRequired()])
+    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
     image = FileField("Upload Image (optional)")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
     def __init__(self, module_ids, *args, **kwargs):
-        super(BurnimForm10, self).__init__(*args, **kwargs)
+        super(BurninForm10, self).__init__(*args, **kwargs)
         # Set the choices for the SelectField dynamically
         self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
         self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]

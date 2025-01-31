@@ -25,12 +25,14 @@
           </select>
         </div>
 
-        <!-- Other Material Name Input -->
+        <!-- Other Material Name Input (Hidden Initially) -->
         <div class="form-group mt-4 d-none" id="other-material-group">
-          <label for="other-material-name" class="form-label">Enter Material Name</label>
-          <input type="text" id="other-material-name" class="form-control" placeholder="Enter material name" oninput="updateOtherMaterialName()" />
-        </div>
+            <label for="other-material-name" class="form-label">Enter Material Name</label>
+            <input type="text" id="other-material-name" class="form-control" placeholder="Enter material name" oninput="toggleEnterButton()" />
+            <button type="button" class="btn btn-primary mt-2 d-none" id="enter-button" onclick="submitOtherMaterial()">Enter</button>
+          </div>
 
+    
         <!-- Material Form -->
         <form id="material-form" method="POST" enctype="multipart/form-data" class="mt-4 d-none">
           <h3 id="form-title" class="text-center"></h3>
@@ -51,15 +53,15 @@
           <div class="row mt-3">
             <div class="col">
               <label for="temperature" class="form-label">Temperature (°C)</label>
-              <input type="number" name="temperature" id="temperature" class="form-control" required />
+              <input type="number" name="temperature" id="temperature" step="0.1" class="form-control" required>
             </div>
             <div class="col">
               <label for="humidity" class="form-label">Humidity (%)</label>
-              <input type="number" name="humidity" id="humidity" class="form-control" required />
+              <input type="number" name="humidity" id="humidity" step="0.1" class="form-control" required />
             </div>
             <div class="col">
               <label for="dew-point" class="form-label">Dew Point (°C)</label>
-              <input type="number" name="dew_point" id="dew-point" class="form-control" required />
+              <input type="number" name="dew_point" id="dew-point" step="0.1" class="form-control" required />
             </div>
           </div>
 
@@ -102,6 +104,7 @@
     const tableBody = document.getElementById("table-body");
     const otherMaterialGroup = document.getElementById("other-material-group");
 
+
     // Reset the form
     materialForm.classList.add("d-none");
     otherMaterialGroup.classList.add("d-none");
@@ -112,12 +115,6 @@
 
     if (selectedMaterial === "Other") {
       otherMaterialGroup.classList.remove("d-none");
-    //   formTitle.textContent = "Other Material Details";
-    //   tableHeader.innerHTML = `
-    //     <tr>
-    //       <th>S.No</th>
-    //       <th>Other Material ID</th>
-    //     </tr>`;
     } else if (selectedMaterial === "Glue") {
       materialForm.classList.remove("d-none");
       formTitle.textContent = "Glue Details";
@@ -152,6 +149,27 @@
     addMaterialRow();
   }
 
+  function toggleEnterButton() {
+    document.getElementById("enter-button").classList.toggle("d-none", !document.getElementById("other-material-name").value.trim());
+  }
+
+  function submitOtherMaterial() {
+    const materialName = document.getElementById("other-material-name").value.trim();
+    if (materialName) {
+      document.getElementById("material-form").classList.remove("d-none");
+      document.getElementById("form-title").textContent = `${materialName} Details`;
+      document.getElementById("table-header").innerHTML = `<tr><th>S.No</th><th>${materialName} ID</th></tr>`;
+
+      // Store the entered material name in a hidden input so it's sent in the form submission
+      const hiddenInput = document.createElement("input");
+      hiddenInput.type = "hidden";
+      hiddenInput.name = "material_type[]";
+      hiddenInput.value = materialName;
+      document.getElementById("material-form").appendChild(hiddenInput);
+      addMaterialRow();
+    }
+  }
+
   function handleOtherMaterialEnter(event) {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -175,49 +193,45 @@
     }
   }
 
-//   function updateOtherMaterialName() {
-//     const otherMaterialName = document.getElementById("other-material-name").value;
-//     const formTitle = document.getElementById("form-title");
-//     const tableHeader = document.getElementById("table-header");
-
-//     formTitle.textContent = otherMaterialName ? `${otherMaterialName} Details` : "Other Material Details";
-//     tableHeader.innerHTML = `
-//       <tr>
-//         <th>S.No</th>
-//         <th>${otherMaterialName || "Other Material"} ID</th>
-//       </tr>`;
-
-//     // Add the first row automatically when the material name changes
-//     const tableBody = document.getElementById("table-body");
-//     tableBody.innerHTML = ""; // Clear existing rows
-//     addMaterialRow();
-//   }
-
-  function addMaterialRow() {
+function addMaterialRow() {
     const tableBody = document.getElementById("table-body");
-    const rowCount = tableBody.rows ? tableBody.rows.length + 1 : 1;
+    const rowCount = tableBody.rows.length + 1;
     const selectedMaterial = document.getElementById("material-select").value;
+    let materialType = selectedMaterial;
 
-    let rowContent = `
-      <tr>
-        <td>${rowCount}</td>`;
+    // If "Other" is selected, get the user-defined material name
+    if (selectedMaterial === "Other") {
+        const otherMaterialName = document.getElementById("other-material-name").value.trim();
+        materialType = otherMaterialName; // Set materialType to the entered name
+    }
+
+
+    let rowContent = `<tr><td>${rowCount}</td>`;
 
     if (selectedMaterial === "Glue") {
       rowContent += `
         <td><input type="text" name="material_id[]" class="form-control" required /></td>
+        <input type="hidden" name="material_type[]" value="${selectedMaterial}" />
         <td><input type="date" name="expiry_date[]" class="form-control" required /></td>`;
     } else if (selectedMaterial === "Wire Bonder") {
       rowContent += `
         <td><input type="text" name="material_id[]" class="form-control" required /></td>
+        <input type="hidden" name="material_type[]" value="${selectedMaterial}" />
         <td><input type="text" name="spool_number[]" class="form-control" required /></td>
         <td><input type="text" name="wedge_tool_no[]" class="form-control" required /></td>
         <td><input type="date" name="expiry_date[]" class="form-control" required /></td>`;
     } else {
-      rowContent += `<td><input type="text" name="material_id[]" class="form-control" required /></td>`;
+      rowContent += `
+      <td><input type="text" name="material_id[]" class="form-control" required /></td>
+      <input type="hidden" name="material_type[]" value="${selectedMaterial}" />`;
     }
 
+    // Add a hidden input to capture material type for each row
+    rowContent += `<input type="hidden" name="material_type[]" value="${selectedMaterial}" />`;
     rowContent += `</tr>`;
-    tableBody.innerHTML += rowContent;
+
+      // Append the new row instead of replacing existing ones
+    tableBody.insertAdjacentHTML('beforeend', rowContent);
   }
 </script>
 

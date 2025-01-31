@@ -35,8 +35,8 @@ from forms import (
     HybridGluingForm,
     WireBondingForm,
     NoiseTestForm,
-    BurNimForm,BurnimForm1, BurnimForm2, BurnimForm3, BurnimForm4, BurnimForm5, \
-    BurnimForm6, BurnimForm7, BurnimForm8, BurnimForm9, BurnimForm10 ,
+    BurninForm,BurninForm1, BurninForm2, BurninForm3, BurninForm4, BurninForm5, \
+    BurninForm6, BurninForm7, BurninForm8, BurninForm9, BurninForm10 ,
     ModuleData , SensorForm  ,WireBond,
     FEHForm, SEHForm, MainBridgeForm, StumpBridgeForm, GlueForm, KaptonTapesForm, OpticalFibreForm, WireBonderForm, OtherConsumablesForm
       ,SensorIdListForm, FEHIdListForm, SEHIdListForm, MainBridgeIdListForm, StumpBridgeIdListForm, GlueBatchIdListForm, KaptonTapeIdListForm, OpticalFibreIdListForm, WireBonderDetailsForm, JigIDForm , OtherConsumablesListForm
@@ -51,6 +51,7 @@ now import all the stups related to the database tike the table and db , all are
 '''
 
 #from database_table import User , Station , db
+#TO DO: Need to change the import statement to import all the tables from database_table.py
 from database_table import (
     db ,
     User,
@@ -68,7 +69,39 @@ from database_table import (
     ModuleDataTable,
     WireBondingTable,
     NoiseTestTable,
-    BurNimTable
+    BurninTable,
+    # Add new tables here
+    # UserTable,
+    # DateTimeTable,
+    # JigTable,
+    # GlueTable,
+    # SensorTable,
+    # KaptonTapeTable,
+    # WireBonderTable,
+    # StationTable,
+    # FEHTable,
+    # SEHTable,
+    # VSensorTable,
+    # VMainBridgeTable,
+    # SensorGluingTable,  
+    # NeedleMetrologyTable,
+    # KaptonGluingTable,
+    # HybridGluinTable,
+    # VSEHTable,
+    # VStumpBridgeTable,
+    # NoiseTest1Table,
+    # NoiseTest2Table,
+    # ModuleEncapsulationTable,
+    # HVTable,
+    # IVTable,
+    # MainBridgeTable,
+    # VTRxTable,
+    # TempHumiDewTable,
+    # MaterialReceiverTable,
+    # OpticalFibreTable,
+
+
+
 )
 
 
@@ -410,14 +443,28 @@ def add_data():
     if step_no == 0 :
         # Log each field for debugging  
         print("\n=== FORM DATA RECEIVED ===")
-        for key, value in request.form.items():
-            print(f"{key}: {value}")
-        
-        # Log file uploads for debugging
+    
+        # Extracting general form details
+        received_from = request.form.get('received_from', 'Unknown')
+        date = request.form.get('date', 'Unknown')
+        temperature = request.form.get('temperature', 'Unknown')
+        humidity = request.form.get('humidity', 'Unknown')
+        dew_point = request.form.get('dew_point', 'Unknown')
+        material_types = request.form.getlist('material_type[]')
+        material_comment = request.form.get('material_comment', '')
+
+        # Print general form details
+        print(f"Received From: {received_from}")
+        print(f"Date: {date}")
+        print(f"Temperature: {temperature}°C")
+        print(f"Humidity: {humidity}%")
+        print(f"Dew Point: {dew_point}°C")
+        print(f"{', '.join(set(material_types))} Comment: {material_comment}")
+
         print("\n=== FILE UPLOADS ===")
         for file_key in request.files:
             file = request.files[file_key]
-            if file.filename != '':
+            if file.filename:
                 print(f"Uploaded file: {file_key} => {file.filename}")
                 file.seek(0, os.SEEK_END)
                 size = file.tell()
@@ -426,59 +473,32 @@ def add_data():
             else:
                 print(f"Empty file upload: {file_key}")
 
-        # Check the selected material type and print relevant information
-        material_type = request.form.get('material_type')
-        if material_type == 'Sensor':
-            print("\n=== SENSOR DATA ===")
-            for key, value in request.form.items():
-                if key.startswith('sensor_'):
-                    print(f"{key}: {value}")
-        elif material_type == 'FEH':
-            print("\n=== FEH DATA ===")
-            for key, value in request.form.items():
-                if key.startswith('feh_'):
-                    print(f"{key}: {value}")
-        elif material_type == 'SEH':
-            print("\n=== SEH DATA ===")
-            for key, value in request.form.items():
-                if key.startswith('seh_'):
-                    print(f"{key}: {value}")
-        elif material_type == 'Main Bridge':
-            print("\n=== MAIN BRIDGE DATA ===")
-            for key, value in request.form.items():
-                if key.startswith('main_bridge_'):
-                    print(f"{key}: {value}")
-        elif material_type == 'Stump Bridge':
-            print("\n=== STUMP BRIDGE DATA ===")
-            for key, value in request.form.items():
-                if key.startswith('stump_bridge_'):
-                    print(f"{key}: {value}")
-        elif material_type == 'Glue':
-            print("\n=== GLUE DATA ===")
-            for key, value in request.form.items():
-                if key.startswith('glue_'):
-                    print(f"{key}: {value}")
-        elif material_type == 'Kapton Tapes':
-            print("\n=== KAPTON TAPES DATA ===")
-            for key, value in request.form.items():
-                if key.startswith('kapton_tapes_'):
-                    print(f"{key}: {value}")
-        elif material_type == 'Optical Fibre':
-            print("\n=== OPTICAL FIBRE DATA ===")
-            for key, value in request.form.items():
-                if key.startswith('optical_fibre_'):
-                    print(f"{key}: {value}")
-        elif material_type == 'Wire Bonder':
-            print("\n=== WIRE BONDER DATA ===")
-            for key, value in request.form.items():
-                if key.startswith('wire_bonder_'):
-                    print(f"{key}: {value}")
-        elif material_type == 'Other':
-            print("\n=== OTHER DATA ===")
-            for key, value in request.form.items():
-                if key.startswith('other_'):
-                    print(f"{key}: {value}")
-               
+        print("\n=== MATERIAL ENTRIES ===")
+
+        # Retrieve multiple materials
+        material_ids = request.form.getlist('material_id[]')
+        expiry_dates = request.form.getlist('expiry_date[]')
+        spool_numbers = request.form.getlist('spool_number[]')
+        wedge_tool_numbers = request.form.getlist('wedge_tool_no[]')
+
+        # Ensure all entries are printed
+        
+        for i in range(len(material_ids)):  # Iterate over all rows
+            material_id = material_ids[i] if i < len(material_ids) else "Unknown"
+            material_type = material_types[i] if i < len(material_types) else "Unknown"
+            expiry_date = expiry_dates[i] if i < len(expiry_dates) else "N/A"
+            spool_no = spool_numbers[i] if i < len(spool_numbers) else "N/A"
+            wedge_tool_no = wedge_tool_numbers[i] if i < len(wedge_tool_numbers) else "N/A"
+
+            print(f"\nMaterial Entry {i + 1}:")
+            print(f"{material_type} ID: {material_id}")
+
+            if material_type == "Glue":
+                print(f"Expiry Date: {expiry_date}")
+
+            elif material_type == "Wire Bonder":
+                print(f"Spool Number: {spool_no}, Wedge Tool No.: {wedge_tool_no}, Expiry Date: {expiry_date}")
+
         return render_template("material_reciever.html")
 
         # form = MaterialReceiverTypeForm()
@@ -584,10 +604,10 @@ def add_data():
             pass
           
     elif step_no == 10:
-        form = BurNimForm()
+        form = BurninForm()
         if form.validate_on_submit():
             module_quantity = int(form.module_quantity.data)
-            return redirect(url_for('burnim_data_upload',module_quantity = module_quantity))
+            return redirect(url_for('burnin_data_upload',module_quantity = module_quantity))
     
     return render_template("visual_inspection.html", form=form, process_name=workflow_name)
 
@@ -716,35 +736,35 @@ def bridge_inspection():
         SaveToDataBase().save_visual_inspection_bridge_form(form ,db ,app.config['UPLOAD_WORKFLOW_FILES'])
         return redirect(url_for('work_flow'))
     return render_template("visual_inspection.html", form=form)
-@app.route('/burnim_data_upload', methods=["GET", "POST"])
-def burnim_data_upload():
+@app.route('/burnin_data_upload', methods=["GET", "POST"])
+def burnin_data_upload():
     module_ids = db.session.query(HybridGluingTable.module_id).distinct().all()
     module_quantity = int(request.args.get('module_quantity', 1))  
     form = None
     if module_quantity == 1:
-        form = BurnimForm1(module_ids)
+        form = BurninForm1(module_ids)
     elif module_quantity == 2:
-        form = BurnimForm2(module_ids)
+        form = BurninForm2(module_ids)
     elif module_quantity == 3:
-        form = BurnimForm3(module_ids)
+        form = BurninForm3(module_ids)
     elif module_quantity == 4:
-        form = BurnimForm4(module_ids)
+        form = BurninForm4(module_ids)
     elif module_quantity == 5:
-        form = BurnimForm5(module_ids)
+        form = BurninForm5(module_ids)
     elif module_quantity == 6:
-        form = BurnimForm6(module_ids)
+        form = BurninForm6(module_ids)
     elif module_quantity == 7:
-        form = BurnimForm7(module_ids)
+        form = BurninForm7(module_ids)
     elif module_quantity == 8:
-        form = BurnimForm8(module_ids)
+        form = BurninForm8(module_ids)
     elif module_quantity == 9:
-        form = BurnimForm9(module_ids)
+        form = BurninForm9(module_ids)
     elif module_quantity == 10:
-        form = BurnimForm10(module_ids)
+        form = BurninForm10(module_ids)
 
     
     if form and form.validate_on_submit():
-        SaveToDataBase().save_burnim_test_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'], module_quantity)
+        SaveToDataBase().save_burnin_test_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'], module_quantity)
         return redirect(url_for('work_flow'))
 
     return render_template("visual_inspection.html", form=form)
