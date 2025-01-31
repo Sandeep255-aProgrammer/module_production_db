@@ -4,13 +4,16 @@
 
 <main class="mb-4">
   <div class="container">
-    <div class="row">
+    <div class="row justify-content-center">
       <!-- Adding Flash message here for users trying to register twice -->
+      <div class="col-lg-8 col-md-10 mx-auto text-center">
+        <h2 class="text-center">{{ process_name }}</h2>
+      </div>
       <div class="col-lg-8 col-md-10 mx-auto">
         <!--Rendering login form here-->
         {{ ckeditor.load() }}
         {{ ckeditor.config(name='comment') }}
-        {{render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+        {{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
       </div>
     </div>
   </div>
@@ -45,10 +48,16 @@
           var selectedItemType = itemTypeField.value;
           if (selectedItemType === 'sensor') {
               checkIdLabel.textContent = 'Sensor ID';
-          } else if (selectedItemType === 'hybrid') {
-              checkIdLabel.textContent = 'Hybrid ID';
-          } else if (selectedItemType === 'bridge') {
-              checkIdLabel.textContent = 'Bridge ID';
+          } else if (selectedItemType === 'FEH') {
+              checkIdLabel.textContent = 'FEH ID';
+          } else if (selectedItemType === 'SEH') {
+              checkIdLabel.textContent = 'SEH ID';
+          } else if (selectedItemType === 'main_bridge') {
+              checkIdLabel.textContent = 'Main Bridge ID';
+          } else if (selectedItemType === 'stump_bridge') {
+              checkIdLabel.textContent = 'Stump Bridge ID';
+          } else {
+              checkIdLabel.textContent = 'Item ID';
           }
       }
   
