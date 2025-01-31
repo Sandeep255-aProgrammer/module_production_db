@@ -12,6 +12,7 @@ from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 import json
+from datetime import datetime
 import datetime
 import openpyxl
 
@@ -119,6 +120,41 @@ def save_get_file_url(file):
     file_path = os.path.join(app.config['UPLOAD_WORKFLOW_FILES'],filename)
     file.save(file_path)
     return file_path
+
+# Your existing functions
+def get_timestamp():
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+def generate_filename(workflow_step, material_type, file_extension, file_index=None):
+    """
+    Generates a filename based on the workflow step, material type, and current timestamp.
+    
+    Args:
+        workflow_step (str): The name of the workflow step.
+        material_type (str): The type of material.
+        file_extension (str): The file extension.
+        file_index (int, optional): The index of the file if multiple files are uploaded.
+    
+    Returns:
+        str: The generated filename.
+    """
+    step_abbr = {
+        "Material Receiver": "MR", "Visual Inspection": "VI", "Kapton Gluing": "KG", "HV form": "HV", "IV form": "IV",
+        "Sensor Gluing": "SG", "Needle Metrology": "NM", "Skeleton Test": "ST", "Hybrid Gluing": "HG", "Module Encapsulation": "ME",
+        "Wire Bonding": "WB", "NoiseTest_Ph2_ACF": "NTPh2", "NoiseTest_GIPHT": "NTGipht", "Burnin Test": "BT"
+    }
+    material_abbr = {
+        "Sensor": "SEN", "FEH": "FEH", "SEH": "SEH", "MainBridge": "MB", "StumpBridge": "SB", "Glue": "GL", "KaptonTapes": "KT",
+        "OpticalFibre": "OF", "WireBonder": "WB", "Other": "OTH", "Module": "MOD"
+    }
+    timestamp = get_timestamp()
+    workflow_abbr = step_abbr.get(workflow_step.strip(), "UNK")
+    material_abbr = material_abbr.get(material_type.strip(), "UNK")
+
+    if file_index is not None:
+        return f"{workflow_abbr}_{material_abbr}_{timestamp}_{file_index}.{file_extension}"
+    else:
+        return f"{workflow_abbr}_{material_abbr}_{timestamp}.{file_extension}"
 
 # Define extract_general_form_details function to extract general form details from the request form
 # and print them for debugging
