@@ -184,7 +184,7 @@ class OtherConsumablesForm(FlaskForm):
 # VisualInspectionForm done
 
 class SensorVisualForm(FlaskForm):
-    sensor_id = StringField("Sensor ID", validators=[DataRequired()])
+    material_id = SelectField("Sensor ID", validators=[DataRequired()])
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
@@ -193,7 +193,7 @@ class SensorVisualForm(FlaskForm):
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 class FEHVisualForm(FlaskForm):
-    FEH_id = StringField("FEH ID", validators=[DataRequired()])
+    material_id = SelectField("FEH ID", validators=[DataRequired()])
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
@@ -202,7 +202,7 @@ class FEHVisualForm(FlaskForm):
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 class SEHVisualForm(FlaskForm):
-    SEH_id = StringField("SEH ID", validators=[DataRequired()])
+    material_id = SelectField("SEH ID", validators=[DataRequired()])
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
@@ -211,7 +211,7 @@ class SEHVisualForm(FlaskForm):
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 class MainBridgeVisualForm(FlaskForm):
-    main_bridge_id = StringField("Main Bridge ID", validators=[DataRequired()])
+    material_id = SelectField("Main Bridge ID", validators=[DataRequired()])
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
@@ -220,7 +220,7 @@ class MainBridgeVisualForm(FlaskForm):
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 class StumpBridgeVisualForm(FlaskForm):
-    stump_bridge_id = StringField("Stump Bridge ID", validators=[DataRequired()])
+    material_id = SelectField("Stump Bridge ID", validators=[DataRequired()])
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
@@ -253,7 +253,7 @@ class KaptonGluing(FlaskForm):
     # part_A_exp_date = DateField("part A Expiry Date", format='%Y-%m-%d' ,validators=[DataRequired()])# auto fill
     part_B_batch_no = SelectField("Polytec 601 partB / Batch No :")
     # part_B_exp_date = DateField("part B Expiry Date", format='%Y-%m-%d', validators=[DataRequired()]) # auto fill
-    jig_no = SelectField("Select Jig No.",validators=[DataRequired()])
+    jig_id = SelectField("Select Jig No.",validators=[DataRequired()])
     image = FileField("Upload Image (optional)" )
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
@@ -267,16 +267,12 @@ class HvForm(FlaskForm):
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     sensor_id = SelectField("Sensor ID", validators=[DataRequired()])
-    sensor_type = SelectField(
-        'Sensor Type',
-        choices=[('Top Sensor', 'Top Sensor'), ('Bottom Sensor', 'Bottom Sensor')],
-        validators=[DataRequired()]
-    ) #auto
+    
     cooling_points = SelectField(
         'Cooling Point',
         choices=[('6 cp', '6 cp'), ('5 cp', '5 cp')],
         validators=[DataRequired()])#auto
-    hv_plot = FileField("HV CSV" ,validators=[DataRequired()])
+    hv_csv = FileField("HV CSV" ,validators=[DataRequired()])
     
   # upload csv
     
@@ -289,17 +285,13 @@ class IvForm(FlaskForm):
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     sensor_id = SelectField("Sensor ID", validators=[DataRequired()])
-    sensor_type = SelectField(
-        'Sensor Type',
-        choices=[('Top Sensor', 'Top Sensor'), ('Bottom Sensor', 'Bottom Sensor')],
-        validators=[DataRequired()]
-    ) #auto
+    
     cooling_points = SelectField(
         'Cooling Point',
         choices=[('6 cp', '6 cp'), ('5 cp', '5 cp')],
         validators=[DataRequired()])#auto
 
-    iv_plot =  FileField("IV CSV" ,validators=[DataRequired()])
+    iv_csv =  FileField("IV CSV" ,validators=[DataRequired()])
   # upload csv
     
     image = FileField("Upload Image(optional)")
@@ -317,19 +309,17 @@ class SensorGluing(FlaskForm):
     bare_module_id = StringField("Bare_Module ID/Name", validators=[DataRequired()])
     top_sensor_id = SelectField("Top Sensor ID", validators=[DataRequired()])
     bottom_sensor_id = SelectField("Bottom Sensor ID", validators=[DataRequired()])
-    main_bridge = SelectField("Main Bridge ID", validators=[DataRequired()])
-    stump_bridge = SelectField("Stump Bridge ID", validators=[DataRequired()])
+    main_bridge_id = SelectField("Main Bridge ID", validators=[DataRequired()])
+    stump_bridge_id = SelectField("Stump Bridge ID", validators=[DataRequired()])
     module_spacing =  SelectField("Module Spacing" ,choices=[('1.8mm' , '1.8mm')],validators=[DataRequired()])
     cooling_points = SelectField(
         'Cooling Point',
         choices=[('6 cp', '6 cp'), ('5 cp', '5 cp')],
         validators=[DataRequired()]
     )
-    jigs  = StringField("Jig No.", validators=[DataRequired()])
+    jig_id  = SelectField("Jig Id.", validators=[DataRequired()])
     part_A_batch_no = SelectField("Polytec TC437 partA / Batch No :")
-    part_A_exp_date = DateField("part A Expiry Date", format='%Y-%m-%d' ,validators=[DataRequired()])
     part_B_batch_no = SelectField("Polytec TC437 partB / Batch No :")
-    part_B_exp_date = DateField("part B Expiry Date", format='%Y-%m-%d', validators=[DataRequired()]) #auto
     image = FileField("Upload Image")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
@@ -347,7 +337,7 @@ class NeedleMetrologyForm(FlaskForm):
     x_coordinate = StringField("Delta x", validators=[DataRequired()])
     y_coordinate = StringField("Delta y", validators=[DataRequired()])
     del_theta = StringField("Rotation", validators=[DataRequired()])
-    csv_xl = FileField("Upload Data (csv/excel)" ,validators=[DataRequired()])
+    csv_excel= FileField("Upload Data (csv/excel)" ,validators=[DataRequired()])
     image = FileField("Upload Image (optional)" )
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
@@ -361,13 +351,13 @@ class SkeletonTestForm(FlaskForm):
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
-    skeleton_id = SelectField("Skeleton ID", validators=[DataRequired()])
+    skeleton_id = StringField("Skeleton ID", validators=[DataRequired()])
     FEH_L =  SelectField("FEH_LID", validators=[DataRequired()])
     FEH_R = SelectField("FEH_RID", validators=[DataRequired()])
     SEH = SelectField("SEH",validators=[DataRequired()])
     VTRx = SelectField("VTRx+_ID", validators=[DataRequired()])
     ground_balancer_id = SelectField("Ground Balancer ID", validators=[DataRequired()])
-    file = FileField("Upload Folder ",validators=[DataRequired()],render_kw={'webkitdirectory': True} )
+    file = FileField("Upload File ",validators=[DataRequired()])
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
@@ -376,21 +366,15 @@ class SkeletonTestForm(FlaskForm):
 # <------------------------  Hybrid Test Form Start (workflow)-----------------------
 
 class HybridGluingForm(FlaskForm):
-  # define the actual module id 
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
-    module_id = SelectField("Module ID", validators=[DataRequired()])
+    module_id = StringField("Module ID", validators=[DataRequired()])
     bare_module_id = SelectField("Bare_Module ID", validators=[DataRequired()])
-    #top_sensor = StringField("Top Sensor ID", validators=[DataRequired()])
-    #buttom_sensor = StringField("Bottom Sensor ID", validators=[DataRequired()])
     skeleton_id = SelectField("Skeleton ID", validators=[DataRequired()])
     part_A_batch_no = SelectField("Polytec TC437 partA / Batch No :")
-    part_A_exp_date = DateField("part A Expiry Date", format='%Y-%m-%d' ,validators=[DataRequired()])
     part_B_batch_no = SelectField("Polytec TC437 partB / Batch No :")
-    part_B_exp_date = DateField("part B Expiry Date", format='%Y-%m-%d', validators=[DataRequired()])
-
     image = FileField("Upload Image (optional)")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
