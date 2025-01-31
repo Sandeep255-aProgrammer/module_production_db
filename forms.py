@@ -443,6 +443,18 @@ class WireBondingForm(FlaskForm):
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
+<<<<<<< HEAD
+    # check_id = StringField("Check ID", validators=[DataRequired()])
+    # receiver_name= StringField("Receiver Name ", validators=[DataRequired()])
+    # shipment_info = StringField("Shipment Info ", validators=[DataRequired()])
+    # Add the type of break dropdown menu with options
+    #type_of_break = SelectField(
+       
+    comment = CKEditorField("Comment", validators=[DataRequired()])
+    submit = SubmitField("Save")
+
+#NoiseTest
+=======
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
 
@@ -450,13 +462,18 @@ class WireBondingForm(FlaskForm):
 
 # <------------------------- NoiseTestForm Start (workflow)----------------------------
 
+>>>>>>> 813603aaf453decccbe4a4b78c9319abd57fde3f
 class NoiseTestForm_Ph2_ACF(FlaskForm):
-    temp = FloatField("Temperature (°C)", validators=[DataRequired()])
-    humidity = FloatField("Humidity", validators=[DataRequired()])
-    dew_point = FloatField("Dew Point", validators=[DataRequired()])
-    working_date = DateField("Working Date", validators=[DataRequired()])
-    module_id = SelectField("Module ID",validators=[DataRequired()])
-    upload_folder = FileField("Upload Folder",validators=[DataRequired()])
+    temp = FloatField("Temperature (°C):", validators=[DataRequired()])
+    humidity = FloatField("Humidity:", validators=[DataRequired()])
+    dew_point = FloatField("Dew Point:", validators=[DataRequired()])
+    working_date = DateField("Working Date:", validators=[DataRequired()])
+    module_id = SelectField("Module ID:",validators=[DataRequired()])
+    upload_folder1 = FileField("Aldrino File:",validators=[DataRequired()])
+    upload_folder2 = FileField("HV File:",validators=[DataRequired()])
+    upload_folder3 = FileField("LV File:",validators=[DataRequired()])
+    upload_folder4 = FileField("IV File:",validators=[DataRequired()])
+    upload_folder5 = FileField("ROOT File:",validators=[DataRequired()])
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit= SubmitField("Save")
 class NoiseTestForm_GIPHT(FlaskForm):
@@ -465,10 +482,19 @@ class NoiseTestForm_GIPHT(FlaskForm):
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     module_id = SelectField("Module ID",validators=[DataRequired()])
-    upload_folder = FileField("Upload Folder",validators=[DataRequired()])
+    upload_folder1 = FileField("Aldrino File:",validators=[DataRequired()])
+    upload_folder2 = FileField("HV File:",validators=[DataRequired()])
+    upload_folder3 = FileField("LV File:",validators=[DataRequired()])
+    upload_folder4 = FileField("IV File:",validators=[DataRequired()])
+    upload_folder5 = FileField("ROOT File:",validators=[DataRequired()])
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit= SubmitField("Save")
 
+<<<<<<< HEAD
+#Burnin Test
+# add two a table with 2 column 5 rows with module id field and add 4 root file
+class BurninForm(FlaskForm):
+=======
 # add two a table with 2 column 5 rows with module id field and add 4 root file
 class BurninForm(FlaskForm):
 
@@ -478,6 +504,7 @@ class BurninForm(FlaskForm):
 # <------------------------ BurNimForm Start (workflow)------------------------------
 # not necessary ..........
 
+>>>>>>> 813603aaf453decccbe4a4b78c9319abd57fde3f
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
@@ -487,7 +514,11 @@ class BurninForm(FlaskForm):
     choices=[(str(i), str(i)) for i in range(1, 11)], 
     validators=[DataRequired()]
 )
+<<<<<<< HEAD
+    submit = SubmitField("Save")
+=======
     submit = SubmitField("Go")
+>>>>>>> 813603aaf453decccbe4a4b78c9319abd57fde3f
 
 
 class BurninForm1(FlaskForm):

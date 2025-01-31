@@ -40,9 +40,15 @@ from forms import (
     HybridGluingForm,
     ModuleEncapsulationForm ,
     WireBondingForm,
+<<<<<<< HEAD
+    NoiseTestForm_Ph2_ACF,
+    NoiseTestForm_GIPHT,
+    BurninForm,
+=======
     NoiseTestForm,
     BurninForm,BurninForm1, BurninForm2, BurninForm3, BurninForm4, BurninForm5, \
     BurninForm6, BurninForm7, BurninForm8, BurninForm9, BurninForm10 ,
+>>>>>>> 813603aaf453decccbe4a4b78c9319abd57fde3f
     ModuleData , SensorForm  ,WireBond,
     VTRxIDForm ,VTRxForm,GroundBalancerIDForm ,  GroundBalancerForm,
     FEHForm, SEHForm, MainBridgeForm, StumpBridgeForm, GlueForm, KaptonTapesForm, OpticalFibreForm, WireBonderForm, OtherConsumablesForm
@@ -86,10 +92,14 @@ from database_table import (
     HybridGluingTable,
     ModuleDataTable,
     WireBondingTable,
+<<<<<<< HEAD
+    BurNimTable
+=======
     NoiseTestTable,
     BurninTable
 
 
+>>>>>>> 813603aaf453decccbe4a4b78c9319abd57fde3f
 )
 
 
@@ -531,7 +541,6 @@ def add_data():
         #     return redirect(url_for('work_flow'))
         #     return render_template("material_reciever.html", form=form)
         
-       
     
     elif step_no == 1:
 
@@ -597,31 +606,57 @@ def add_data():
         if form.validate_on_submit():
             SaveToDataBase().save_hybrid_gluing_form( form ,db ,app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
+<<<<<<< HEAD
+    elif step_no == 8:
+=======
     elif step_no == 71:
         form = ModuleEncapsulationForm()
         if form.validate_on_submit():
             print("module encapsulation form is validated ")
             return redirect(url_for('work_flow'))
     elif step_no == 11:
+>>>>>>> 813603aaf453decccbe4a4b78c9319abd57fde3f
         form = ModuleData()
-    elif step_no == 8:  # Wire Bonding
+    elif step_no == 9:  # Wire Bonding
         #form = WireBondingForm()
         template_name = "wire_bonding.html"  # Use a unique template for Wire Bonding
         return redirect(url_for('wire_bonding'))
+<<<<<<< HEAD
+    elif step_no == 10:
+=======
     elif step_no == 9:
+>>>>>>> 813603aaf453decccbe4a4b78c9319abd57fde3f
         form = NoiseTestForm_Ph2_ACF()
         form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
         if form.validate_on_submit():
             pass
+<<<<<<< HEAD
+    elif step_no == 11:
+        form = NoiseTestForm_GIPHT()
+        form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
+        if form.validate_on_submit():
+            pass
+    elif step_no == 12:
+        return redirect(url_for('burninTest', num=12))
+=======
           
     elif step_no == 10:
         form = BurninForm()
         if form.validate_on_submit():
             module_quantity = int(form.module_quantity.data)
             return redirect(url_for('burnin_data_upload',module_quantity = module_quantity))
+>>>>>>> 813603aaf453decccbe4a4b78c9319abd57fde3f
     
     return render_template("visual_inspection.html", form=form, process_name=workflow_name)
 
+@app.route('/burninTest', methods=["GET", "POST"])
+def burninTest():
+    idx_num = int(request.args.get("num", 0))
+    print(idx_num)
+    if idx_num == 12:
+        return render_template("BurninTest.html")  
+    else:
+        return "Invalid step number"
 
 
 @app.route('/add_received_materials', methods = ["GET","POST"])
@@ -820,6 +855,15 @@ def burnin_data_upload():
         return redirect(url_for('work_flow'))
 
     return render_template("visual_inspection.html", form=form)
+<<<<<<< HEAD
+'''
+    #if form.validate_on_submit():
+        # Handle the form submission logic here
+     #   flash(f"Step {step_no} data submitted successfully!", "success")
+      #  return redirect(url_for('workflow'))  # Redirect to workflow after submission
+
+    #return render_template(template_name, form=form)
+=======
 
 '''
 # if form.validate_on_submit():
@@ -832,6 +876,7 @@ def burnin_data_upload():
 
 
 
+>>>>>>> 813603aaf453decccbe4a4b78c9319abd57fde3f
 
 
 if __name__ == "__main__":
