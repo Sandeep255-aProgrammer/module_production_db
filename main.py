@@ -13,7 +13,7 @@ from flask_ckeditor import CKEditor
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 import json
 import datetime
-import openpyxl
+
 import csv
 import json
 
@@ -43,27 +43,22 @@ from forms import (
     ModuleEncapsulationForm ,
     WireBondingForm,
     NoiseTestForm_Ph2_ACF,
-    NoiseTestForm_GIPHT,
-    
-    ModuleData , SensorForm  ,WireBond,
-    VTRxIDForm ,VTRxForm,GroundBalancerIDForm ,  GroundBalancerForm,
-    FEHForm, SEHForm, MainBridgeForm, StumpBridgeForm, GlueForm, KaptonTapesForm, OpticalFibreForm, WireBonderForm, OtherConsumablesForm
-      ,SensorIdListForm, FEHIdListForm, SEHIdListForm, MainBridgeIdListForm, StumpBridgeIdListForm, GlueBatchIdListForm, KaptonTapeIdListForm, OpticalFibreIdListForm, WireBonderDetailsForm, JigIDForm , OtherConsumablesListForm
+    NoiseTestForm_GIPHT
 )
-# make this dictionary for more readability once it works 
-add_received_materials_forms = [SensorForm,FEHForm, SEHForm, 
-                                MainBridgeForm, StumpBridgeForm, 
-                                GlueForm, KaptonTapesForm, OpticalFibreForm,  
-                                WireBonderForm,JigIDForm,OtherConsumablesForm,
-                                VTRxForm,GroundBalancerForm]
-material_receiver_data_dict = [{"sensor_id":[]},{"FEH_id":[]},{"SEH_id":[]},
-                               {"main_bridge_id":[]},{"stump_bridge_id":[]},
-                               {"glue_batch_id":[],"glue_expiry_date":[]},{"kapton_id":[]},{"optical_fibre_id":[]},
-                               {"spool_no":[],"wedge_tool_no":[],"expiry_date":[]},{"jig_id":[]},{"other_id":[]}]
-current_material_data = material_receiver_data_dict[0]
-Material_receiver_ids_forms = [SensorIdListForm, FEHIdListForm, SEHIdListForm, MainBridgeIdListForm, StumpBridgeIdListForm, 
-                               GlueBatchIdListForm, KaptonTapeIdListForm, OpticalFibreIdListForm, WireBonderDetailsForm,  
-                               JigIDForm,OtherConsumablesListForm,VTRxIDForm,GroundBalancerIDForm]
+#      SensorForm  ,
+#     VTRxIDForm ,VTRxForm,GroundBalancerIDForm ,  GroundBalancerForm,
+#     FEHForm, SEHForm, MainBridgeForm, StumpBridgeForm, GlueForm, KaptonTapesForm, OpticalFibreForm, WireBonderForm, OtherConsumablesForm
+#       ,SensorIdListForm, FEHIdListForm, SEHIdListForm, MainBridgeIdListForm, StumpBridgeIdListForm, GlueBatchIdListForm, KaptonTapeIdListForm, OpticalFibreIdListForm, WireBonderDetailsForm, JigIDForm , OtherConsumablesListForm
+# )
+
+# material_receiver_data_dict = [{"sensor_id":[]},{"FEH_id":[]},{"SEH_id":[]},
+#                                {"main_bridge_id":[]},{"stump_bridge_id":[]},
+#                                {"glue_batch_id":[],"glue_expiry_date":[]},{"kapton_id":[]},{"optical_fibre_id":[]},
+#                                {"spool_no":[],"wedge_tool_no":[],"expiry_date":[]},{"jig_id":[]},{"other_id":[]}]
+# current_material_data = material_receiver_data_dict[0]
+# Material_receiver_ids_forms = [SensorIdListForm, FEHIdListForm, SEHIdListForm, MainBridgeIdListForm, StumpBridgeIdListForm, 
+#                                GlueBatchIdListForm, KaptonTapeIdListForm, OpticalFibreIdListForm, WireBonderDetailsForm,  
+#                                JigIDForm,OtherConsumablesListForm,VTRxIDForm,GroundBalancerIDForm]
 
 ''' 
 now import all the stups related to the database tike the table and db , all are defined in the database_table.html
@@ -222,14 +217,40 @@ def work_flow():
     return render_template("workflow.html")
 
 # when you click on the modules in the homepage this method is called and modules.html is rendered 
+# @app.route('/modules')
+# @login_required
+# def show_module():
+#     data = db.session.query(HvIvFormTable).all()  # Assuming Station is the model
+#     columns = HvIvFormTable.__table__.columns
+#     return render_template("show_table.html", table_data=data, columns=columns)
+#     return render_template("modules.html")
 @app.route('/modules')
 @login_required
-def show_module():
-    data = db.session.query(HvIvFormTable).all()  # Assuming Station is the model
-    columns = HvIvFormTable.__table__.columns
-    return render_template("show_table.html", table_data=data, columns=columns)
-    return render_template("modules.html")
+def show_data():
+    tables = {}
+    file_path = "form_data.jsonl"
+    
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            data = [json.loads(line) for line in file]  # Read JSON Lines format properly
+        tables = process_data(data)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Error loading file: {e}")
 
+    return render_template('show_data_table.html', tables=tables)
+
+def process_data(data):
+    tables = {}
+    if not data:
+        return tables
+
+    for entry in data:
+        category = entry.get("material_type", "Unknown")  # Categorize by material_type
+        if category not in tables:
+            tables[category] = {"headers": entry.keys(), "rows": []}
+        tables[category]["rows"].append(entry)
+
+    return tables
 # when you click on a specific module id this method is executed and module_report.html corresponding to that module will# be rendered and it is under ..
 @app.route('/module_report')
 @login_required
@@ -319,7 +340,7 @@ def save_get_file_url(file,file_name):
 def material_receiver_form_dict(form ,filename):
     materials = {"material_type":None,"common_data":None,"material_data":None}
     materials["common_data"] = {"received_from":form.get('received_from', 'Unknown'),"date":form.get('date', 'Unknown'),
-                                "temperature":form.get('temperature', 'Unknown'),"humidity":form.get('humidity', 'Unknown'), "dew_point":form.get('dew_point', 'Unknown'),
+                                "temperature":form.get('temperature', 'Unknown'),"humidity":form.get('humidity', 'Unknown'), "dew_point":form.get('dew_point', 'Unknown'),"station_name":form.get('station_name', 'Unknown'),
                                 "material_comment":form.get('material_comment', ''),"img_url":None}
     material_data = {"Sensor":None,"FEH":None,"SEH":None,"Main Bridge":None ,"Stump Bridge":None,"Glue":None,"Kapton Tapes":None,
                      "Optical Fibre":None ,"Wire Bonder":None , "Other":[]}
@@ -354,6 +375,7 @@ def get_dict_kapton_gluing_form(form,filename):
         "part_A_batch_no": form.part_A_batch_no.data,
         "part_B_batch_no": form.part_B_batch_no.data,
         "jig_no": form.jig_id.data,
+        "station_name":form.station.data,
         "image": save_get_file_url(form.image.data,filename),
         "comment": form.comment.data
     }
@@ -366,6 +388,7 @@ def get_dict_hv_form(form,hv_csv_file_name,other_file_name):
 "dew_point": form.dew_point.data,
 "working_date": form.working_date.data.strftime('%Y-%m-%d'),
 "sensor_id": form.sensor_id.data,
+"station_name":form.station.data,
 "cooling_points": form.cooling_points.data,
 "hv_csv": save_get_file_url(form.hv_csv.data,hv_csv_file_name),  # CSV file upload
 "image": save_get_file_url(form.image.data,other_file_name),  # Optional image upload
@@ -379,6 +402,7 @@ def get_dict_iv_form(form,iv_csv_file_name,other_file_name):
 "dew_point": form.dew_point.data,
 "working_date": form.working_date.data.strftime('%Y-%m-%d'),
 "sensor_id": form.sensor_id.data,
+"station_name":form.station.data,
 "cooling_points": form.cooling_points.data,
 "iv_csv": save_get_file_url(form.iv_csv.data,iv_csv_file_name),  # CSV file upload
 "image": save_get_file_url(form.image.data,other_file_name),  # Optional image upload
@@ -399,6 +423,7 @@ def get_dict_sensor_gluing_form(form,image_file):
         "module_spacing": form.module_spacing.data,
         "cooling_points": form.cooling_points.data,
         "jig_id": form.jig_id.data,
+        "station_name":form.station.data,
         "part_A_batch_no": form.part_A_batch_no.data,
         "part_B_batch_no": form.part_B_batch_no.data,
         "image":save_get_file_url(form.image.data,image_file),
@@ -412,6 +437,7 @@ def get_dict_needle_metrology(form,csv_excel_file,image_file):
         "dew_point": form.dew_point.data,
         "working_date": form.working_date.data.strftime('%Y-%m-%d') if form.working_date.data else None,
         "bare_module_id": form.bare_module_id.data,
+        "station_name":form.station.data,
         "x_coordinate": form.x_coordinate.data,
         "y_coordinate": form.y_coordinate.data,
         "del_theta": form.del_theta.data,
@@ -432,6 +458,7 @@ def get_skeleton_test_form_data(form,file_name):
         "SEH": form.SEH.data,
         "VTRx": form.VTRx.data,
         "ground_balancer_id": form.ground_balancer_id.data,
+        "station_name":form.station.data,
         "file": save_get_file_url(form.file.data,file_name), 
         "comment": form.comment.data
     }
@@ -446,6 +473,7 @@ def get_hybrid_gluing_form_data(form,image_name):
         "skeleton_id": form.skeleton_id.data,
         "part_A_batch_no": form.part_A_batch_no.data,
         "part_B_batch_no": form.part_B_batch_no.data,
+        "station_name":form.station.data,
         "image": save_get_file_url(form.image.data,image_name),  # Optional image upload
         "comment": form.comment.data,
     }
@@ -469,10 +497,12 @@ def get_noise_test_Ph2_ACF_form_data(form,file_dict):
         "dew_point": form.dew_point.data,
         "working_date": form.working_date.data.strftime('%Y-%m-%d') if form.working_date.data else None,
         "module_id": form.module_id.data,
+        "station_name":form.station.data,
         "aldrino_file": save_get_file_url(form.upload_folder1.data,file_dict["aldrino_file"]),  # Aldrino File
         "hv_file": save_get_file_url(form.upload_folder2.data,file_dict["hv_file"]),  # HV File
         "lv_file": save_get_file_url(form.upload_folder3.data,file_dict["lv_file"] ),
         "iv_file": save_get_file_url(form.upload_folder4.data,file_dict["iv_file"]),  # IV File
+
         "root_file": save_get_file_url(form.upload_folder5.data,file_dict["root_file"]),  # ROOT File
         "comment": form.comment.data,
     }
@@ -483,6 +513,7 @@ def get_noise_test_GIPHT_form_data(form,file_dict):
         "dew_point": form.dew_point.data,
         "working_date": form.working_date.data.strftime('%Y-%m-%d') if form.working_date.data else None,
         "module_id": form.module_id.data,
+        "station_name":form.station.data,
         "aldrino_file": save_get_file_url(form.upload_folder1.data,file_dict["aldrino_file"]),  # Aldrino File
         "hv_file": save_get_file_url(form.upload_folder2.data,file_dict["hv_file"]),  # HV File
         "lv_file": save_get_file_url(form.upload_folder3.data,file_dict["lv_file"] ),
@@ -491,7 +522,7 @@ def get_noise_test_GIPHT_form_data(form,file_dict):
         "comment": form.comment.data,
     }
 def wire_form_dict(form ,img_name , csv_name):
-    data_dict = {"module_id":form.get('module_id'),"temparature":form.get('temperature'),"dewpoint":form.get('dewpoint'),"humidity":form.get('humidity'),
+    data_dict = {"module_id":form.get('module_id'),"station_name":form.get("station_name"),"temparature":form.get('temperature'),"dewpoint":form.get('dewpoint'),"humidity":form.get('humidity'),
                  "comment":form.get('comment'),"img_url":None,"top_parameter":None, "bottom_parameter":None , "csv_file":None
                  }
     if 'image' in request.files:
@@ -548,234 +579,13 @@ def wire_form_dict(form ,img_name , csv_name):
             return None
     data_dict["csv_file"]=generate_csv(csv_name)  
     return data_dict  
-      
-@app.route('/add_data', methods=["GET", "POST"])
-def add_data():
-    
-    workflow_name = request.args.get('workflow_name', 'Workflow')
-    
-    sensor_ids = db.session.query(VisualInspectionSensorTable.sensor_id).distinct().all()
-    bare_module_ids = db.session.query(SensorGluingTable.bare_module_id).distinct().all()
-    module_ids = db.session.query(HybridGluingTable.module_id).distinct().all()
-    skeleton_ids = db.session.query(SkeletonTestTable.skeleton_id).distinct().all()
-
-    if workflow_name=="Material Receiver" :
-        if request.method == "POST":
-            # Extract and validate form data on form submission
-            form_data_dict = material_receiver_form_dict(request.form, "material_receiver.png")
-            print("form data dict", form_data_dict)
-            return redirect(url_for('work_flow'))
-        else:
-            # Render the form initially without processing
-            return render_template("material_reciever.html")
-
-    
-    elif workflow_name == "Visual Inspection":
-        return render_template("visual_type.html")
-        form = VisualInspection()
-        inspection_number = None
-        if form.validate_on_submit():
-            inspection_number = int(form.inspection_type.data)
-            if inspection_number == 1:
-                return redirect(url_for('sensor_inspection'))
-            elif inspection_number == 3:
-                return redirect(url_for('hybrid_inspection'))
-            elif inspection_number == 2:
-                return redirect(url_for('bridge_inspection'))
-        return render_template("visual_inspection.html", form=form, process_name=workflow_name) 
-            
-
-        return render_template("visual_type.html")
-
-    elif workflow_name == "Kapton Gluing":
-        form = KaptonGluing()
-        # add sensor ids from VisualInspectionsencor table to the sensor id choices 
-        #sensor_ids = db.session.query(VisualInspectionSensorTable.sensor_id).distinct().all()
-        # --------------- replace the below choices from the table -------------------
-        sensor_ids = [f"sensor_{i}" for i in range(1, 11)]
-        jig_ids = [f"jig_{i}" for i in range(1, 11)]
-        glue_ids = [f"glue_{i}" for i in range(1, 11)]
-        form.sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
-        form.part_A_batch_no.choices = [(glue_id, glue_id) for glue_id in glue_ids]
-        form.part_B_batch_no.choices = [(glue_id, glue_id) for glue_id in glue_ids]
-        form.jig_id.choices = [(jig_id, jig_id) for jig_id in jig_ids]
-        if form.validate_on_submit():
-            filename = "kapton_glue.png"
-            data_dict = get_dict_kapton_gluing_form(form,filename)
-            print(data_dict)
-            #SaveToDataBase().save_kapton_gluing_form(form,db, app.config['UPLOAD_WORKFLOW_FILES'])
-            return redirect(url_for('work_flow'))
-    elif workflow_name == "Hv Form":
-        form = HvForm()
-        sensor_ids = [f"sensor_{i}" for i in range(1, 11)]
-        form.sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
-        # form.sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
-        if form.validate_on_submit():
-            hv_csv_file_name = "hv_csv.csv"
-            other_file_name = "hv_other.csv"
-            dict_hv_data = get_dict_hv_form(form,hv_csv_file_name,other_file_name)
-            print(dict_hv_data)
-            #SaveToDataBase().save_hv_iv_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
-            return redirect(url_for('work_flow'))
-    elif workflow_name == "Iv Form":
-        form = IvForm()
-        sensor_ids = [f"sensor_{i}" for i in range(1, 11)]
-        form.sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
-        # form.sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
-        if form.validate_on_submit():
-            iv_csv_file_name = "iv_csv.csv"
-            other_file_name = "iv_other.png"
-            dict_iv_data = get_dict_iv_form(form,iv_csv_file_name,other_file_name)
-            print("iv test data ",dict_iv_data)
-            #SaveToDataBase().save_hv_iv_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
-            return redirect(url_for('work_flow'))
-    elif workflow_name == "Sensor Gluing":
-        form = SensorGluing()
-        sensor_ids = [f"sensor_{i}" for i in range(1, 11)]
-        jig_ids = [f"jig_{i}" for i in range(1, 11)]
-        glue_ids = [f"glue_{i}" for i in range(1, 11)]
-        main_bridge_ids = [f"main_bridge_{i}" for i in range(1, 11)]  # New list for main_bridge_ids
-        stump_bridge_ids = [f"stump_bridge_{i}" for i in range(1, 11)]  # New list for stump_bridge_ids
-
-        # Assigning choices to the form fields
-        form.part_A_batch_no.choices = [(glue_id, glue_id) for glue_id in glue_ids]
-        form.part_B_batch_no.choices = [(glue_id, glue_id) for glue_id in glue_ids]
-        form.jig_id.choices = [(jig_id, jig_id) for jig_id in jig_ids]
-        form.top_sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
-        form.bottom_sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
-
-        # Adding choices for main_bridge_id and stump_bridge_id
-        form.main_bridge_id.choices = [(main_bridge_id, main_bridge_id) for main_bridge_id in main_bridge_ids]
-        form.stump_bridge_id.choices = [(stump_bridge_id, stump_bridge_id) for stump_bridge_id in stump_bridge_ids]
-        if form.validate_on_submit():
-            image_name = "sensor_gluing_img.png"
-            dict_sensor_gluing_data = get_dict_sensor_gluing_form(form,image_name)
-            print(dict_sensor_gluing_data)
-            #SaveToDataBase().save_sensor_gluing_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
-            return redirect(url_for('work_flow'))
-    elif workflow_name =="Needle Metrology":
-        form = NeedleMetrologyForm()
-        bare_module_ids = [f"bare_module_{i}" for i in range(1, 11)]  # List for bare_module_ids
-
-        # Assigning choices to the bare_module_id field
-        form.bare_module_id.choices = [(bare_module_id, bare_module_id) for bare_module_id in bare_module_ids]
-        # form.bare_module_id.choices = [(bare_module.bare_module_id, bare_module.bare_module_id) for bare_module in bare_module_ids]
-        if form.validate_on_submit():
-            csv_excel_file = "Needle_csv_excel.png"
-            image_file = "image_file.png"
-            data_needle_form = get_dict_needle_metrology(form,csv_excel_file,image_file)
-            print(data_needle_form)
-            #SaveToDataBase().save_needle_metrology_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'])
-            return redirect(url_for('work_flow'))
-    elif workflow_name == "Skeleton Test":
-        form = SkeletonTestForm()
-        feh_l_ids = [f"FEH_L_{i}" for i in range(1, 11)]
-        feh_r_ids = [f"FEH_R_{i}" for i in range(1, 11)]
-        seh_ids = [f"SEH_{i}" for i in range(1, 11)]
-        vtrx_ids = [f"VTRx+_{i}" for i in range(1, 11)]
-        ground_balancer_ids = [f"ground_balancer_{i}" for i in range(1, 11)]
-        form.FEH_L.choices = [(feh_l_id, feh_l_id) for feh_l_id in feh_l_ids]
-        form.FEH_R.choices = [(feh_r_id, feh_r_id) for feh_r_id in feh_r_ids]
-        form.SEH.choices = [(seh_id, seh_id) for seh_id in seh_ids]
-        form.VTRx.choices = [(vtrx_id, vtrx_id) for vtrx_id in vtrx_ids]
-        form.ground_balancer_id.choices = [(ground_balancer_id, ground_balancer_id) for ground_balancer_id in ground_balancer_ids]
-        if form.validate_on_submit():
-            file_name = "skeleton.png"
-            skeleton_dict = get_skeleton_test_form_data(form,file_name)
-            print(skeleton_dict)
-            #SaveToDataBase().save_skeleton_test_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'])
-            return redirect(url_for('work_flow'))
-    elif workflow_name == "Hybrid Gluing":
-        form = HybridGluingForm()
-        # Example lists of options for each field (can be customized)
-        bare_module_ids = [f"bare_module_{i}" for i in range(1, 11)]
-        skeleton_ids = [f"skeleton_{i}" for i in range(1, 11)]
-        part_A_batch_nos = [f"partA_{i}" for i in range(1, 11)]  # Example values for part_A_batch_no
-        part_B_batch_nos = [f"partB_{i}" for i in range(1, 11)]  # Example values for part_B_batch_no
-
-        # Assigning choices to the form fields
-        form.bare_module_id.choices = [(bare_module_id, bare_module_id) for bare_module_id in bare_module_ids]
-        form.skeleton_id.choices = [(skeleton_id, skeleton_id) for skeleton_id in skeleton_ids]
-        form.part_A_batch_no.choices = [(part_A_batch_no, part_A_batch_no) for part_A_batch_no in part_A_batch_nos]
-        form.part_B_batch_no.choices = [(part_B_batch_no, part_B_batch_no) for part_B_batch_no in part_B_batch_nos]
-        if form.validate_on_submit():
-            image_name = "hybrid_gluing.png"
-            hybrid_data_dict = get_hybrid_gluing_form_data(form,image_name)
-            print(hybrid_data_dict)
-            #SaveToDataBase().save_hybrid_gluing_form( form ,db ,app.config['UPLOAD_WORKFLOW_FILES'])
-            return redirect(url_for('work_flow'))
-    elif workflow_name == "Module Encapsulation":
-        form = ModuleEncapsulationForm()
-        module_ids = [f"module_{i}" for i in range(1, 11)]
-        glue_a_ids = [f"glueA_{i}" for i in range(1, 11)]
-        glue_b_ids = [f"glueB_{i}" for i in range(1, 11)]
-        jig_ids = [f"jig_{i}" for i in range(1, 11)]
-        station_ids = [f"station_{i}" for i in range(1, 11)] 
-        form.module_id.choices = [(module_id, module_id) for module_id in module_ids]
-        form.glue_a.choices = [(glue_a, glue_a) for glue_a in glue_a_ids]
-        form.glue_b.choices = [(glue_b, glue_b) for glue_b in glue_b_ids]
-        form.jig.choices = [(jig, jig) for jig in jig_ids]
-        form.station.choices = [(station_id, station_id) for station_id in station_ids]
-        if form.validate_on_submit():
-            image_name = "module_enmcapsualtion.png"
-            module_encapsulation_data_dict = get_module_encapsulation_form_data(form,image_name)
-            print(module_encapsulation_data_dict)
-            return redirect(url_for('work_flow'))
-
-    elif workflow_name == "Wire Bonding": 
-        if request.method == 'POST':
-            img_name = "wire_bonding_img.png"
-            csv_name = "wire_bonding_data.csv"
-            wire_data_dict = wire_form_dict(request.form ,img_name , csv_name)
-            print(wire_data_dict)
-            return redirect(url_for('work_flow'))
-        form = WireBondingForm()
-        return render_template('wire_bonding.html', form=form)
-        
-    elif workflow_name =="Noise Test Ph2-ACF":
-        form = NoiseTestForm_Ph2_ACF()
-        module_ids = [f"module_{i}" for i in range(1, 11)]
-        form.module_id.choices = [(module_id, module_id) for module_id in module_ids]
-        #form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
-        if form.validate_on_submit():
-            file_dict = {
-    "aldrino_file": "aldrino.yml",
-    "hv_file": "hvfile.png",
-    "lv_file": "lvfile.csv",
-    "iv_file": "ivfile.txt",
-    "root_file": "data.root"
-}
-            dict_data = get_noise_test_Ph2_ACF_form_data(form,file_dict)
-            print(dict_data)
-            return redirect(url_for('work_flow'))
-    elif workflow_name == "Noise Test GIPHT":
-        form = NoiseTestForm_GIPHT()
-        # form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
-        # if form.validate_on_submit():
-        module_ids = [f"module_{i}" for i in range(1, 11)]
-        form.module_id.choices = [(module_id, module_id) for module_id in module_ids]
-        #form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
-        if form.validate_on_submit():
-            file_dict = {
-    "aldrino_file": "aldrino.yml",
-    "hv_file": "hvfile.png",
-    "lv_file": "lvfile.csv",
-    "iv_file": "ivfile.txt",
-    "root_file": "data.root"
-}
-            dict_data = get_noise_test_GIPHT_form_data(form,file_dict)
-            print(dict_data)
-            return redirect(url_for('work_flow'))
-    elif workflow_name == "Burnin Test":
-        if request.method =="POST":
-            file_dict  = {"tracker_root_file":"file1.png","tracker_monitor_root_file":"file2.png","press_supply_root_file":"file3.png",
-                          "burnnin_box_root_file" :"file4.png"}
-            def wire_form_dict(form, file_dict):
+def burnin_form_dict(form, file_dict):
                 data_dict = {
                     "temperature": form.get('temperature'),
                     "humidity": form.get('humidity'),
                     "dewPoint": form.get('dewPoint'),
                     "workingDate": form.get('workingDate'),
+                    "station_name":form.get("station_name"),
                     "module_id": form.getlist('module_id_left[]')+form.getlist('module_id_right[]'),
                      
                     "comment": form.get('comments'),
@@ -805,25 +615,287 @@ def add_data():
                     if burnin_box_file:
                         data_dict["burnnin_box_root_file"] = save_get_file_url(burnin_box_file, file_dict["burnnin_box_root_file"])
 
-                return data_dict
-            data_dict   = wire_form_dict(request.form, file_dict)
-            print(data_dict)
-            
+                return data_dict     
+@app.route('/add_data', methods=["GET", "POST"])
+def add_data():
+    
+    workflow_name = request.args.get('workflow_name', 'Workflow')
+    
+    sensor_ids = db.session.query(VisualInspectionSensorTable.sensor_id).distinct().all()
+    bare_module_ids = db.session.query(SensorGluingTable.bare_module_id).distinct().all()
+    module_ids = db.session.query(HybridGluingTable.module_id).distinct().all()
+    skeleton_ids = db.session.query(SkeletonTestTable.skeleton_id).distinct().all()
+
+    if workflow_name=="Material Receiver" :
+        station_names = [f"station_{i}" for i in range(1, 11)]
+        if request.method == "POST":
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            # Extract and validate form data on form submission
+            file_name = f"material_receiver_{request.form.getlist('material_type[]')[0]}_{time_stamp}"
+            form_data_dict = material_receiver_form_dict(request.form, file_name)
+            print("form data dict", form_data_dict)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(form_data_dict) + "\n") 
             return redirect(url_for('work_flow'))
-        return render_template("BurninTest.html",module_ids =[123,3224,33545,4546])
+        else:
+            # Render the form initially without processing
+            return render_template("material_reciever.html",station_names = station_names)
+
+    
+    elif workflow_name == "Visual Inspection":
+        return render_template("visual_type.html")
+
+    elif workflow_name == "Kapton Gluing":
+        form = KaptonGluing()
+        # add sensor ids from VisualInspectionsencor table to the sensor id choices 
+        #sensor_ids = db.session.query(VisualInspectionSensorTable.sensor_id).distinct().all()
+        # --------------- replace the below choices from the table -------------------
+        sensor_ids = [f"sensor_{i}" for i in range(1, 11)]
+        jig_ids = [f"jig_{i}" for i in range(1, 11)]
+        glue_ids = [f"glue_{i}" for i in range(1, 11)]
+        form.sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
+        form.part_A_batch_no.choices = [(glue_id, glue_id) for glue_id in glue_ids]
+        form.part_B_batch_no.choices = [(glue_id, glue_id) for glue_id in glue_ids]
+        form.jig_id.choices = [(jig_id, jig_id) for jig_id in jig_ids]
+        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.station.choices = [(station_id, station_id) for station_id in station_ids]
+        if form.validate_on_submit():
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            filename = f"kapton_glue{time_stamp}.png"
+            data_dict = get_dict_kapton_gluing_form(form,filename)
+            print(data_dict)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(data_dict) + "\n") 
+            #SaveToDataBase().save_kapton_gluing_form(form,db, app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
+    elif workflow_name == "Hv Form":
+        form = HvForm()
+        sensor_ids = [f"sensor_{i}" for i in range(1, 11)]
+        form.sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
+        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.station.choices = [(station_id, station_id) for station_id in station_ids]
+        # form.sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
+        if form.validate_on_submit():
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            hv_csv_file_name = f"hv_csv{time_stamp}.csv"
+            other_file_name =f"hv_other{time_stamp}.csv"
+            dict_hv_data = get_dict_hv_form(form,hv_csv_file_name,other_file_name)
+            print(dict_hv_data)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(dict_hv_data) + "\n") 
+            #SaveToDataBase().save_hv_iv_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
+    elif workflow_name == "Iv Form":
+        form = IvForm()
+        sensor_ids = [f"sensor_{i}" for i in range(1, 11)]
+        form.sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
+        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.station.choices = [(station_id, station_id) for station_id in station_ids]
+        # form.sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
+        if form.validate_on_submit():
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            iv_csv_file_name = f"iv_csv{time_stamp}.csv"
+            other_file_name = f"iv_other{time_stamp}.png"
+            dict_iv_data = get_dict_iv_form(form,iv_csv_file_name,other_file_name)
+            print("iv test data ",dict_iv_data)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(dict_iv_data) + "\n") 
+            #SaveToDataBase().save_hv_iv_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
+    elif workflow_name == "Sensor Gluing":
+        form = SensorGluing()
+        sensor_ids = [f"sensor_{i}" for i in range(1, 11)]
+        jig_ids = [f"jig_{i}" for i in range(1, 11)]
+        glue_ids = [f"glue_{i}" for i in range(1, 11)]
+        main_bridge_ids = [f"main_bridge_{i}" for i in range(1, 11)]  # New list for main_bridge_ids
+        stump_bridge_ids = [f"stump_bridge_{i}" for i in range(1, 11)]  # New list for stump_bridge_ids
+
+        # Assigning choices to the form fields
+        form.part_A_batch_no.choices = [(glue_id, glue_id) for glue_id in glue_ids]
+        form.part_B_batch_no.choices = [(glue_id, glue_id) for glue_id in glue_ids]
+        form.jig_id.choices = [(jig_id, jig_id) for jig_id in jig_ids]
+        form.top_sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
+        form.bottom_sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
+
+        # Adding choices for main_bridge_id and stump_bridge_id
+        form.main_bridge_id.choices = [(main_bridge_id, main_bridge_id) for main_bridge_id in main_bridge_ids]
+        form.stump_bridge_id.choices = [(stump_bridge_id, stump_bridge_id) for stump_bridge_id in stump_bridge_ids]
+        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.station.choices = [(station_id, station_id) for station_id in station_ids]
+        if form.validate_on_submit():
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            image_name = f"sensor_gluing_img_{time_stamp}.png"
+            dict_sensor_gluing_data = get_dict_sensor_gluing_form(form,image_name)
+            print(dict_sensor_gluing_data)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(dict_sensor_gluing_data) + "\n") 
+            #SaveToDataBase().save_sensor_gluing_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
+    elif workflow_name =="Needle Metrology":
+        form = NeedleMetrologyForm()
+        bare_module_ids = [f"bare_module_{i}" for i in range(1, 11)]  # List for bare_module_ids
+
+        # Assigning choices to the bare_module_id field
+        form.bare_module_id.choices = [(bare_module_id, bare_module_id) for bare_module_id in bare_module_ids]
+        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.station.choices = [(station_id, station_id) for station_id in station_ids]
+        # form.bare_module_id.choices = [(bare_module.bare_module_id, bare_module.bare_module_id) for bare_module in bare_module_ids]
+        if form.validate_on_submit():
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            csv_excel_file = f"Needle_csv_excel_{time_stamp}.png"
+            image_file = f"image_file_{time_stamp}.png"
+            data_needle_form = get_dict_needle_metrology(form,csv_excel_file,image_file)
+            print(data_needle_form)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(data_needle_form) + "\n") 
+            #SaveToDataBase().save_needle_metrology_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
+    elif workflow_name == "Skeleton Test":
+        form = SkeletonTestForm()
+        feh_l_ids = [f"FEH_L_{i}" for i in range(1, 11)]
+        feh_r_ids = [f"FEH_R_{i}" for i in range(1, 11)]
+        seh_ids = [f"SEH_{i}" for i in range(1, 11)]
+        vtrx_ids = [f"VTRx+_{i}" for i in range(1, 11)]
+        ground_balancer_ids = [f"ground_balancer_{i}" for i in range(1, 11)]
+        form.FEH_L.choices = [(feh_l_id, feh_l_id) for feh_l_id in feh_l_ids]
+        form.FEH_R.choices = [(feh_r_id, feh_r_id) for feh_r_id in feh_r_ids]
+        form.SEH.choices = [(seh_id, seh_id) for seh_id in seh_ids]
+        form.VTRx.choices = [(vtrx_id, vtrx_id) for vtrx_id in vtrx_ids]
+        form.ground_balancer_id.choices = [(ground_balancer_id, ground_balancer_id) for ground_balancer_id in ground_balancer_ids]
+        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.station.choices = [(station_id, station_id) for station_id in station_ids]
+        if form.validate_on_submit():
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            file_name = f"skeleton_{time_stamp}.png"
+            skeleton_dict = get_skeleton_test_form_data(form,file_name)
+            print(skeleton_dict)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(skeleton_dict) + "\n") 
+            #SaveToDataBase().save_skeleton_test_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
+    elif workflow_name == "Hybrid Gluing":
+        form = HybridGluingForm()
+        # Example lists of options for each field (can be customized)
+        bare_module_ids = [f"bare_module_{i}" for i in range(1, 11)]
+        skeleton_ids = [f"skeleton_{i}" for i in range(1, 11)]
+        part_A_batch_nos = [f"partA_{i}" for i in range(1, 11)]  # Example values for part_A_batch_no
+        part_B_batch_nos = [f"partB_{i}" for i in range(1, 11)]  # Example values for part_B_batch_no
+
+        # Assigning choices to the form fields
+        form.bare_module_id.choices = [(bare_module_id, bare_module_id) for bare_module_id in bare_module_ids]
+        form.skeleton_id.choices = [(skeleton_id, skeleton_id) for skeleton_id in skeleton_ids]
+        form.part_A_batch_no.choices = [(part_A_batch_no, part_A_batch_no) for part_A_batch_no in part_A_batch_nos]
+        form.part_B_batch_no.choices = [(part_B_batch_no, part_B_batch_no) for part_B_batch_no in part_B_batch_nos]
+        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.station.choices = [(station_id, station_id) for station_id in station_ids]
+        if form.validate_on_submit():
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            image_name = f"hybrid_gluing_{time_stamp}.png"
+            hybrid_data_dict = get_hybrid_gluing_form_data(form,image_name)
+            print(hybrid_data_dict)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(hybrid_data_dict) + "\n") 
+            #SaveToDataBase().save_hybrid_gluing_form( form ,db ,app.config['UPLOAD_WORKFLOW_FILES'])
+            return redirect(url_for('work_flow'))
+    elif workflow_name == "Module Encapsulation":
+        form = ModuleEncapsulationForm()
+        module_ids = [f"module_{i}" for i in range(1, 11)]
+        glue_a_ids = [f"glueA_{i}" for i in range(1, 11)]
+        glue_b_ids = [f"glueB_{i}" for i in range(1, 11)]
+        jig_ids = [f"jig_{i}" for i in range(1, 11)]
+        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.module_id.choices = [(module_id, module_id) for module_id in module_ids]
+        form.glue_a.choices = [(glue_a, glue_a) for glue_a in glue_a_ids]
+        form.glue_b.choices = [(glue_b, glue_b) for glue_b in glue_b_ids]
+        form.jig.choices = [(jig, jig) for jig in jig_ids] 
+        form.station.choices = [(station_id, station_id) for station_id in station_ids]
+        if form.validate_on_submit():
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            image_name = f"module_enmcapsualtion_{time_stamp}.png"
+            module_encapsulation_data_dict = get_module_encapsulation_form_data(form,image_name)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(module_encapsulation_data_dict) + "\n") 
+            print(module_encapsulation_data_dict)
+            return redirect(url_for('work_flow'))
+
+    elif workflow_name == "Wire Bonding": 
+        if request.method == 'POST':
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            img_name = f"wire_bonding_img_{time_stamp}.png"
+            csv_name = f"wire_bonding_data_{time_stamp}.csv"
+            wire_data_dict = wire_form_dict(request.form ,img_name , csv_name)
+            print(wire_data_dict)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(wire_data_dict) + "\n") 
+            return redirect(url_for('work_flow'))
+        form = WireBondingForm()
+        return render_template('wire_bonding.html', form=form,module_ids =[3463,35745,56778],station_names = ["station1","station2","station3"])
+        
+    elif workflow_name =="Noise Test Ph2-ACF":
+        form = NoiseTestForm_Ph2_ACF()
+        module_ids = [f"module_{i}" for i in range(1, 11)]
+        form.module_id.choices = [(module_id, module_id) for module_id in module_ids]
+        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.station.choices = [(station_id, station_id) for station_id in station_ids]
+        #form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
+        if form.validate_on_submit():
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            file_dict = {
+    "aldrino_file": f"aldrino{time_stamp}.yml",
+    "hv_file": f"hvfile{time_stamp}.png",
+    "lv_file": f"lvfile{time_stamp}.csv",
+    "iv_file": f"ivfile{time_stamp}.txt",
+    "root_file": f"data{time_stamp}.root"
+}
+            dict_data = get_noise_test_Ph2_ACF_form_data(form,file_dict)
+            print(dict_data)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(dict_data) + "\n") 
+            return redirect(url_for('work_flow'))
+    elif workflow_name == "Noise Test GIPHT":
+        form = NoiseTestForm_GIPHT()
+        # form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
+        # if form.validate_on_submit():
+        module_ids = [f"module_{i}" for i in range(1, 11)]
+        form.module_id.choices = [(module_id, module_id) for module_id in module_ids]
+        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.station.choices = [(station_id, station_id) for station_id in station_ids]
+        #form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
+        if form.validate_on_submit():
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            file_dict = {
+    "aldrino_file": f"aldrino{time_stamp}.yml",
+    "hv_file": f"hvfile{time_stamp}.png",
+    "lv_file": f"lvfile{time_stamp}.csv",
+    "iv_file": f"ivfile{time_stamp}.txt",
+    "root_file": f"data{time_stamp}.root"
+}
+            dict_data = get_noise_test_GIPHT_form_data(form,file_dict)
+            print(dict_data)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(dict_data) + "\n") 
+            return redirect(url_for('work_flow'))
+    elif workflow_name == "Burnin Test":
+        station_names = [f"station_{i}" for i in range(1, 11)] 
+        if request.method =="POST":
+            time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+            file_dict = {
+    "tracker_root_file": f"tracker_root_{time_stamp}.root",
+    "tracker_monitor_root_file": f"tracker_monitor_{time_stamp}.root",
+    "press_supply_root_file": f"press_supply_{time_stamp}.root",
+    "burnnin_box_root_file": f"burnin_box_{time_stamp}.root"
+}
+            data_dict   = burnin_form_dict(request.form, file_dict)
+            print(data_dict)
+            with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(data_dict) + "\n") 
+            return redirect(url_for('work_flow'))
+        return render_template("BurninTest.html",module_ids =[123,3224,33545,4546],station_names=station_names)
             
         
     
     return render_template("visual_inspection.html", form=form, process_name=workflow_name)
 
-# @app.route('/burninTest', methods=["GET", "POST"])
-# def burninTest():
-#     idx_num = int(request.args.get("num", 0))
-#     print(idx_num)
-#     if idx_num == 12:
-#         return render_template("BurninTest.html",module_ids =[123,3224,33545,4546])  
-#     else:
-#         return "Invalid step number"
 
 
 
@@ -833,6 +905,7 @@ def get_dict_form_visual(form,file_name,material_type):
     form_data_dict = {
             "material_type":material_type, 
             "material_id": form.material_id.data,
+            "station": form.station.data,
             "temp": form.temp.data,
             "humidity": form.humidity.data,
             "dew_point": form.dew_point.data,
@@ -844,17 +917,21 @@ def get_dict_form_visual(form,file_name,material_type):
 # < ---------------------- Visual Inspection Part ------------------------------
 @app.route('/visual_inspection_data', methods=["GET", "POST"])
 def visual_inspection_data():
-    # get the material type name from  visual_type.html 
     material_type = request.args.get("material_type")
-    # get the corresponding form from FORM_MAPPING_VISUAL_INSPECTION (dict)
     material_id_list = ["34rwgey","dgfrtrer3","dfgyuert46","rgf7457"]
+    
     visual_material_form = FORM_MAPPING_VISUAL_INSPECTION[material_type]()
+    station_ids = [f"station_{i}" for i in range(1, 11)] 
+    visual_material_form.station.choices = [(station_id, station_id) for station_id in station_ids]
     # get the material primaary key and id as (id,material_id)
     visual_material_form.material_id.choices = [(material_id, material_id) for material_id in material_id_list]
     if visual_material_form.validate_on_submit():
-        file_name = "visual.png"
+        time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+        file_name = f"visual_{material_type}_{time_stamp}.png"
         form_dict_data = get_dict_form_visual(visual_material_form,file_name,material_type)
         print(form_dict_data)
+        with open("form_data.jsonl", "a") as f:
+                f.write(json.dumps(form_dict_data) + "\n") 
         return redirect(url_for('work_flow'))
     return render_template("visual_inspection.html",form = visual_material_form)
     

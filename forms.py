@@ -46,139 +46,6 @@ class AddStationForm(FlaskForm):
     #operator: Mapped[str] = mapped_column(String(100), ForeignKey("Users.username"), nullable=False)
 #-------------------------- stations Form End -------------------------------->
 
-# <----------------------------- Workflow Material Receiver Form -----------------
-# List form for Sensor IDs
-class SensorIdListForm(FlaskForm):
-    Sensor_Ids = FieldList(StringField("Sensor ID", validators=[DataRequired()]), min_entries=1)
-class SensorForm(FlaskForm):
-    recieved_from = StringField(validators=[DataRequired()])
-    recieved_date = DateField(validators=[DataRequired()])
-    #sensor_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
-    # uploads = MultipleFileField('Upload Files', validators=[FileAllowed(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])])
-    sensor_img = FileField(validators=[DataRequired()])
-    Comment = CKEditorField("Comment")    
-    submit  = SubmitField('Add Sensor Ids')
-# List form for FEH IDs
-class FEHIdListForm(FlaskForm):
-    FEH_Ids = FieldList(StringField("FEH ID", validators=[DataRequired()]), min_entries=1)
-class FEHForm(FlaskForm):
-    received_from = StringField(validators=[DataRequired()])
-    received_date = DateField(validators=[DataRequired()])
-    feh_img = FileField(validators=[DataRequired()])
-    Comment = CKEditorField("Comment")
-    submit = SubmitField('Add FEH Ids')
-# List form for SEH IDs
-class SEHIdListForm(FlaskForm):
-    SEH_Ids = FieldList(StringField("SEH ID", validators=[DataRequired()]), min_entries=1)
-class SEHForm(FlaskForm):
-    received_from = StringField(validators=[DataRequired()])
-    received_date = DateField(validators=[DataRequired()])
-    seh_img = FileField(validators=[DataRequired()])
-    Comment = CKEditorField("Comment")
-    submit = SubmitField('Add SEH Ids')
-# List form for Main Bridge IDs
-class MainBridgeIdListForm(FlaskForm):
-    Main_Bridge_Ids = FieldList(StringField("Main Bridge ID", validators=[DataRequired()]), min_entries=1)
-class MainBridgeForm(FlaskForm):
-    received_from = StringField(validators=[DataRequired()])
-    received_date = DateField(validators=[DataRequired()])
-    main_bridge_img = FileField(validators=[DataRequired()])
-    Comment = CKEditorField("Comment")
-    submit = SubmitField('Add Main Bridge Ids')
-# List form for Stump Bridge IDs
-class StumpBridgeIdListForm(FlaskForm):
-    Stump_Bridge_Ids = FieldList(StringField("Stump Bridge ID", validators=[DataRequired()]), min_entries=1)
-class StumpBridgeForm(FlaskForm):
-    received_from = StringField(validators=[DataRequired()])
-    received_date = DateField(validators=[DataRequired()])
-    stump_bridge_img = FileField(validators=[DataRequired()])
-    Comment = CKEditorField("Comment")
-    submit = SubmitField('Add Stump Bridge Ids')
-# List form for Glue Batch IDs
-class Glue_id_exp(FlaskForm):
-    Glue_Batch_Ids = StringField("Glue Batch ID", validators=[DataRequired()])
-    Glue_Batch_Exp_Date = DateField("Glue Expiry Date",validators=[DataRequired()])
-class GlueBatchIdListForm(FlaskForm):
-    Glue_Batch = FieldList(FormField(Glue_id_exp), min_entries=1)
-class GlueForm(FlaskForm):
-    received_from = StringField(validators=[DataRequired()])
-    received_date = DateField(validators=[DataRequired()],format='%d/%m/%Y')
-    glue_img = FileField(validators=[DataRequired()])
-    Comment = CKEditorField("Comment")
-    submit = SubmitField("Add glueId and expDate")
-# List form for Kapton Tape IDs
-class KaptonTapeIdListForm(FlaskForm):
-    Kapton_Tape_Ids = FieldList(StringField("Kapton Tape ID", validators=[DataRequired()]), min_entries=1)
-class KaptonTapesForm(FlaskForm):
-    received_from = StringField(validators=[DataRequired()])
-    received_date = DateField(validators=[DataRequired()])
-    kapton_tape_img = FileField(validators=[DataRequired()])
-    Comment = CKEditorField("Comment")
-    submit = SubmitField('Add Kapton Tape Ids')
-# List form for Optical Fibre IDs
-class OpticalFibreIdListForm(FlaskForm):
-    Optical_Fibre_Ids = FieldList(StringField("Optical Fibre ID", validators=[DataRequired()]), min_entries=1)
-class OpticalFibreForm(FlaskForm):
-    received_from = StringField(validators=[DataRequired()])
-    received_date = DateField(validators=[DataRequired()])
-    #optical_fibre_id = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
-    optical_fibre_img = FileField(validators=[DataRequired()])
-    Comment = CKEditorField("Comment")
-    submit = SubmitField('Add Optical Fibre Ids')
-# List form for Wire Bonder Details
-class WireBonderIds(FlaskForm):
-    Spool_Numbers = StringField("Spool Number", validators=[DataRequired()])
-    Wedge_Tools_No = StringField("Wedge Tool", validators=[DataRequired()])
-    expiry_date = DateField("Wire Bond Expiry Date", validators=[DataRequired()])
-class WireBonderDetailsForm(FlaskForm):
-    Wire_Bonder_ids = FieldList(FormField(),min_entries=1)
-class WireBonderForm(FlaskForm):
-    received_from = StringField(validators=[DataRequired()])
-    received_date = DateField(validators=[DataRequired()])
-    #spool_no= FieldList(StringField(validators=[DataRequired()]), min_entries=1)
-    #wedge_tool = FieldList(StringField(validators=[DataRequired()]), min_entries=1)
-    #exp_date = DateField(validators=[DataRequired()])
-    wire_bonder_img = FileField()
-    Comment = CKEditorField("Comment")
-    submit = SubmitField('Add spoolNo and wedgeTool')
-class JigIDForm(FlaskForm):
-    jig_id = FieldList(StringField("Jig ID", validators=[DataRequired()]), min_entries=1)
-class AddJig(FlaskForm):
-    jig_name_id = StringField("Jig No. ",validators=[DataRequired()])
-    image = FileField("Upload Jig Image",validators=[DataRequired()])
-    comment= CKEditorField("Comment", validators=[DataRequired()])
-    submit = SubmitField("Save")
-# List form for Other Consumables
-class OtherConsumablesListForm(FlaskForm):
-    Other_Items = FieldList(StringField("Item Description", validators=[DataRequired()]), min_entries=1)
-class VTRxIDForm(FlaskForm):
-    VTRx_Ids = FieldList(StringField("VTRx ID", validators=[DataRequired()]), min_entries=1)
-class VTRxForm(FlaskForm):
-    recieved_from = StringField(validators=[DataRequired()])
-    recieved_date = DateField(validators=[DataRequired()])
-    VTRx_img = FileField(validators=[DataRequired()])
-    Comment = CKEditorField("Comment")    
-    submit  = SubmitField('Add VTRx Ids')  
-class GroundBalancerIDForm(FlaskForm):
-    ground_balancer_id = FieldList(StringField("Ground Balancer ID", validators=[DataRequired()]), min_entries=1)
-class GroundBalancerForm(FlaskForm):
-    recieved_from = StringField(validators=[DataRequired()])
-    recieved_date = DateField(validators=[DataRequired()])
-    ground_balancer_img = FileField(validators=[DataRequired()])
-    Comment = CKEditorField("Comment")    
-    submit  = SubmitField('Add Ground Balancer Ids')
-class OtherConsumablesForm(FlaskForm):
-    received_from = StringField(validators=[DataRequired()])
-    received_date = DateField(validators=[DataRequired()])
-    other_item_description = StringField(validators=[DataRequired()])
-    other_item_img = FileField(validators=[DataRequired()])
-    Comment = CKEditorField("Comment")
-    submit = SubmitField('Submit Other Consumables')
-
-
-
-
-# ------------------------- Material Receiver Form End --------------------------------->
 
 #---------------------- Visual Inspection Form Start(workflow ) -------------------------------------- 
 # VisualInspectionForm done
@@ -188,6 +55,7 @@ class SensorVisualForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
+    station = SelectField("Station", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     image = FileField("Upload Image", validators=[DataRequired()]) # compulsary 
     comment = CKEditorField("Comment", validators=[DataRequired()])
@@ -197,6 +65,7 @@ class FEHVisualForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
+    station = SelectField("Station", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     image = FileField("Upload Image", validators=[DataRequired()]) # compulsary 
     comment = CKEditorField("Comment", validators=[DataRequired()])
@@ -206,6 +75,7 @@ class SEHVisualForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
+    station = SelectField("Station", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     image = FileField("Upload Image", validators=[DataRequired()]) # compulsary 
     comment = CKEditorField("Comment", validators=[DataRequired()])
@@ -215,6 +85,7 @@ class MainBridgeVisualForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
+    station = SelectField("Station", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     image = FileField("Upload Image", validators=[DataRequired()]) # compulsary 
     comment = CKEditorField("Comment", validators=[DataRequired()])
@@ -224,6 +95,7 @@ class StumpBridgeVisualForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
+    station = SelectField("Station", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     image = FileField("Upload Image", validators=[DataRequired()]) # compulsary 
     comment = CKEditorField("Comment", validators=[DataRequired()])
@@ -242,7 +114,7 @@ class KaptonGluing(FlaskForm):
         choices=[('Top Sensor', 'Top Sensor'), ('Bottom Sensor', 'Bottom Sensor')],
         validators=[DataRequired()]
     )
-    
+    station = SelectField("Station", validators=[DataRequired()])
 
     cooling_points = SelectField(
         'Cooling Point',
@@ -254,6 +126,7 @@ class KaptonGluing(FlaskForm):
     part_B_batch_no = SelectField("Polytec 601 partB / Batch No :")
     # part_B_exp_date = DateField("part B Expiry Date", format='%Y-%m-%d', validators=[DataRequired()]) # auto fill
     jig_id = SelectField("Select Jig No.",validators=[DataRequired()])
+    station = SelectField("Station", validators=[DataRequired()])
     image = FileField("Upload Image (optional)" )
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
@@ -267,7 +140,7 @@ class HvForm(FlaskForm):
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     sensor_id = SelectField("Sensor ID", validators=[DataRequired()])
-    
+    station = SelectField("Station", validators=[DataRequired()])
     cooling_points = SelectField(
         'Cooling Point',
         choices=[('6 cp', '6 cp'), ('5 cp', '5 cp')],
@@ -285,7 +158,7 @@ class IvForm(FlaskForm):
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     sensor_id = SelectField("Sensor ID", validators=[DataRequired()])
-    
+    station = SelectField("Station", validators=[DataRequired()])
     cooling_points = SelectField(
         'Cooling Point',
         choices=[('6 cp', '6 cp'), ('5 cp', '5 cp')],
@@ -320,6 +193,7 @@ class SensorGluing(FlaskForm):
     jig_id  = SelectField("Jig Id.", validators=[DataRequired()])
     part_A_batch_no = SelectField("Polytec TC437 partA / Batch No :")
     part_B_batch_no = SelectField("Polytec TC437 partB / Batch No :")
+    station = SelectField("Station", validators=[DataRequired()])
     image = FileField("Upload Image")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
@@ -334,6 +208,7 @@ class NeedleMetrologyForm(FlaskForm):
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     bare_module_id = SelectField("Bare_Module ID", validators=[DataRequired()])
+    station = SelectField("Station", validators=[DataRequired()])
     x_coordinate = StringField("Delta x", validators=[DataRequired()])
     y_coordinate = StringField("Delta y", validators=[DataRequired()])
     del_theta = StringField("Rotation", validators=[DataRequired()])
@@ -357,6 +232,7 @@ class SkeletonTestForm(FlaskForm):
     SEH = SelectField("SEH",validators=[DataRequired()])
     VTRx = SelectField("VTRx+_ID", validators=[DataRequired()])
     ground_balancer_id = SelectField("Ground Balancer ID", validators=[DataRequired()])
+    station = SelectField("Station", validators=[DataRequired()])
     file = FileField("Upload File ",validators=[DataRequired()])
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
@@ -375,6 +251,7 @@ class HybridGluingForm(FlaskForm):
     skeleton_id = SelectField("Skeleton ID", validators=[DataRequired()])
     part_A_batch_no = SelectField("Polytec TC437 partA / Batch No :")
     part_B_batch_no = SelectField("Polytec TC437 partB / Batch No :")
+    station = SelectField("Station", validators=[DataRequired()])
     image = FileField("Upload Image (optional)")
     comment = CKEditorField("Comment", validators=[DataRequired()])
     submit = SubmitField("Save")
@@ -409,19 +286,7 @@ class ModuleData(FlaskForm):
 
 # <---------------------- Wire Bonding Form Start (workflow) -----------------------------
 
-class WireBond(FlaskForm):
-    delta_height = DecimalField("ΔHEIGHT", validators=[DataRequired()])
-    correction_factor_k1_sen = DecimalField("Correction Factor K1 (SEN)", validators=[DataRequired()])
-    correction_factor_k2_feh = DecimalField("Correction Factor K2 (FEH)", validators=[DataRequired()])
-    mean_force_1 = DecimalField("Mean Force 1 (g)", validators=[DataRequired()])
-    mean_force_2 = DecimalField("Mean Force 2 (g)", validators=[DataRequired()])
-    rms_value = DecimalField("RMS Value (%)", validators=[DataRequired()])
-    standard_deviation = DecimalField("Standard Deviation", validators=[DataRequired()])
-    extra_files = FileField("Upload Additional Files (PDF, etc.)")
-    comment = StringField("Comment", validators=[DataRequired()])
-    module_id = StringField("Module ID", validators=[DataRequired()])
-    action_type = SelectField("Action", choices=[('add', 'Add'), ('update', 'Update')], validators=[DataRequired()])
-    submit = SubmitField("Submit")
+
 class WireBondingForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
@@ -440,6 +305,7 @@ class NoiseTestForm_Ph2_ACF(FlaskForm):
     dew_point = FloatField("Dew Point:", validators=[DataRequired()])
     working_date = DateField("Working Date:", validators=[DataRequired()])
     module_id = SelectField("Module ID:",validators=[DataRequired()])
+    station = SelectField("Station", validators=[DataRequired()])
     upload_folder1 = FileField("Aldrino File:",validators=[DataRequired()])
     upload_folder2 = FileField("HV File:",validators=[DataRequired()])
     upload_folder3 = FileField("LV File:",validators=[DataRequired()])
@@ -453,6 +319,7 @@ class NoiseTestForm_GIPHT(FlaskForm):
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     module_id = SelectField("Module ID",validators=[DataRequired()])
+    station = SelectField("Station", validators=[DataRequired()])
     upload_folder1 = FileField("Aldrino File:",validators=[DataRequired()])
     upload_folder2 = FileField("HV File:",validators=[DataRequired()])
     upload_folder3 = FileField("LV File:",validators=[DataRequired()])
@@ -466,306 +333,4 @@ class NoiseTestForm_GIPHT(FlaskForm):
 
 
 # ------------------------- Noise Test form End ------------------------------------>
-
-# <------------------------ BurNimForm Start (workflow)------------------------------
-# not necessary ..........
-# class BurninForm(FlaskForm):
-#     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
-#     humidity = FloatField("Humidity", validators=[DataRequired()])
-#     dew_point = FloatField("Dew Point", validators=[DataRequired()])
-#     working_date = DateField("Working Date", validators=[DataRequired()])
-#     module_quantity = SelectField(
-#     "Module Quantity",
-#     choices=[(str(i), str(i)) for i in range(1, 11)], 
-#     validators=[DataRequired()]
-# )
-    # submit = SubmitField("Save")
-
-'''
-class BurninForm1(FlaskForm):
-
-    module1_id = SelectField("First Module ID", validators=[DataRequired()])
-    module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
-    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
-    image = FileField("Upload Image (optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
-    submit = SubmitField("Save")
-
-    def __init__(self, module_ids, *args, **kwargs):
-
-        super(BurninForm1, self).__init__(*args, **kwargs)
-        # Set the choices for the SelectField dynamically
-        self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
-
-
-class BurninForm2(FlaskForm):
-    module1_id = SelectField("First Module ID", validators=[DataRequired()])
-    module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
-    module2_id = SelectField("Second Module ID", validators=[DataRequired()])
-    module2_result = FileField("Upload Second Module Result (root)", validators=[DataRequired()])
-    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
-    image = FileField("Upload Image (optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
-    submit = SubmitField("Save")
-
-    def __init__(self, module_ids, *args, **kwargs):
-        super(BurninForm2, self).__init__(*args, **kwargs)
-        # Set the choices for the SelectField dynamically
-        self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
-
-
-class BurninForm3(FlaskForm):
-    module1_id = SelectField("First Module ID", validators=[DataRequired()])
-    module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
-    module2_id = SelectField("Second Module ID", validators=[DataRequired()])
-    module2_result = FileField("Upload Second Module Result (root)", validators=[DataRequired()])
-    module3_id = SelectField("Third Module ID", validators=[DataRequired()])
-    module3_result = FileField("Upload Third Module Result (root)", validators=[DataRequired()])
-    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
-    image = FileField("Upload Image (optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
-    submit = SubmitField("Save")
-
-    def __init__(self, module_ids, *args, **kwargs):
-        super(BurninForm3, self).__init__(*args, **kwargs)
-        # Set the choices for the SelectField dynamically
-        self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module3_id.choices = [(module_id, module_id) for module_id, in module_ids]
-
-
-class BurninForm4(FlaskForm):
-    module1_id = SelectField("First Module ID", validators=[DataRequired()])
-    module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
-    module2_id = SelectField("Second Module ID", validators=[DataRequired()])
-    module2_result = FileField("Upload Second Module Result (root)", validators=[DataRequired()])
-    module3_id = SelectField("Third Module ID", validators=[DataRequired()])
-    module3_result = FileField("Upload Third Module Result (root)", validators=[DataRequired()])
-    module4_id = SelectField("Fourth Module ID", validators=[DataRequired()])
-    module4_result = FileField("Upload Fourth Module Result (root)", validators=[DataRequired()])
-    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
-    image = FileField("Upload Image (optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
-    submit = SubmitField("Save")
-
-    def __init__(self, module_ids, *args, **kwargs):
-        super(BurninForm4, self).__init__(*args, **kwargs)
-        # Set the choices for the SelectField dynamically
-        self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module3_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module4_id.choices = [(module_id, module_id) for module_id, in module_ids]
-
-
-class BurninForm5(FlaskForm):
-    module1_id = SelectField("First Module ID", validators=[DataRequired()])
-    module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
-    module2_id = SelectField("Second Module ID", validators=[DataRequired()])
-    module2_result = FileField("Upload Second Module Result (root)", validators=[DataRequired()])
-    module3_id = SelectField("Third Module ID", validators=[DataRequired()])
-    module3_result = FileField("Upload Third Module Result (root)", validators=[DataRequired()])
-    module4_id = SelectField("Fourth Module ID", validators=[DataRequired()])
-    module4_result = FileField("Upload Fourth Module Result (root)", validators=[DataRequired()])
-    module5_id = SelectField("Fifth Module ID", validators=[DataRequired()])
-    module5_result = FileField("Upload Fifth Module Result (root)", validators=[DataRequired()])
-    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
-    image = FileField("Upload Image (optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
-    submit = SubmitField("Save")
-
-    def __init__(self, module_ids, *args, **kwargs):
-        super(BurninForm5, self).__init__(*args, **kwargs)
-        # Set the choices for the SelectField dynamically
-        self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module3_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module4_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module5_id.choices = [(module_id, module_id) for module_id, in module_ids]
-
-
-class BurninForm6(FlaskForm):
-    module1_id = SelectField("First Module ID", validators=[DataRequired()])
-    module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
-    module2_id = SelectField("Second Module ID", validators=[DataRequired()])
-    module2_result = FileField("Upload Second Module Result (root)", validators=[DataRequired()])
-    module3_id = SelectField("Third Module ID", validators=[DataRequired()])
-    module3_result = FileField("Upload Third Module Result (root)", validators=[DataRequired()])
-    module4_id = SelectField("Fourth Module ID", validators=[DataRequired()])
-    module4_result = FileField("Upload Fourth Module Result (root)", validators=[DataRequired()])
-    module5_id = SelectField("Fifth Module ID", validators=[DataRequired()])
-    module5_result = FileField("Upload Fifth Module Result (root)", validators=[DataRequired()])
-    module6_id = SelectField("Sixth Module ID", validators=[DataRequired()])
-    module6_result = FileField("Upload Sixth Module Result (root)", validators=[DataRequired()])
-    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
-    image = FileField("Upload Image (optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
-    submit = SubmitField("Save")
-
-    def __init__(self, module_ids, *args, **kwargs):
-        super(BurninForm6, self).__init__(*args, **kwargs)
-        # Set the choices for the SelectField dynamically
-        self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module3_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module4_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module5_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module6_id.choices = [(module_id, module_id) for module_id, in module_ids]
-
-
-class BurninForm7(FlaskForm):
-    module1_id = SelectField("First Module ID", validators=[DataRequired()])
-    module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
-    module2_id = SelectField("Second Module ID", validators=[DataRequired()])
-    module2_result = FileField("Upload Second Module Result (root)", validators=[DataRequired()])
-    module3_id = SelectField("Third Module ID", validators=[DataRequired()])
-    module3_result = FileField("Upload Third Module Result (root)", validators=[DataRequired()])
-    module4_id = SelectField("Fourth Module ID", validators=[DataRequired()])
-    module4_result = FileField("Upload Fourth Module Result (root)", validators=[DataRequired()])
-    module5_id = SelectField("Fifth Module ID", validators=[DataRequired()])
-    module5_result = FileField("Upload Fifth Module Result (root)", validators=[DataRequired()])
-    module6_id = SelectField("Sixth Module ID", validators=[DataRequired()])
-    module6_result = FileField("Upload Sixth Module Result (root)", validators=[DataRequired()])
-    module7_id = SelectField("Seventh Module ID", validators=[DataRequired()])
-    module7_result = FileField("Upload Seventh Module Result (root)", validators=[DataRequired()])
-    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
-    image = FileField("Upload Image (optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
-    submit = SubmitField("Save")
-
-    def __init__(self, module_ids, *args, **kwargs):
-        super(BurninForm7, self).__init__(*args, **kwargs)
-        # Set the choices for the SelectField dynamically
-        self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module3_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module4_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module5_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module6_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module7_id.choices = [(module_id, module_id) for module_id, in module_ids]
-
-
-class BurninForm8(FlaskForm):
-    module1_id = SelectField("First Module ID", validators=[DataRequired()])
-    module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
-    module2_id = SelectField("Second Module ID", validators=[DataRequired()])
-    module2_result = FileField("Upload Second Module Result (root)", validators=[DataRequired()])
-    module3_id = SelectField("Third Module ID", validators=[DataRequired()])
-    module3_result = FileField("Upload Third Module Result (root)", validators=[DataRequired()])
-    module4_id = SelectField("Fourth Module ID", validators=[DataRequired()])
-    module4_result = FileField("Upload Fourth Module Result (root)", validators=[DataRequired()])
-    module5_id = SelectField("Fifth Module ID", validators=[DataRequired()])
-    module5_result = FileField("Upload Fifth Module Result (root)", validators=[DataRequired()])
-    module6_id = SelectField("Sixth Module ID", validators=[DataRequired()])
-    module6_result = FileField("Upload Sixth Module Result (root)", validators=[DataRequired()])
-    module7_id = SelectField("Seventh Module ID", validators=[DataRequired()])
-    module7_result = FileField("Upload Seventh Module Result (root)", validators=[DataRequired()])
-    module8_id = SelectField("Eighth Module ID", validators=[DataRequired()])
-    module8_result = FileField("Upload Eighth Module Result (root)", validators=[DataRequired()])
-    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
-    image = FileField("Upload Image (optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
-    submit = SubmitField("Save")
-
-    def __init__(self, module_ids, *args, **kwargs):
-        super(BurninForm8, self).__init__(*args, **kwargs)
-        # Set the choices for the SelectField dynamically
-        self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module3_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module4_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module5_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module6_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module7_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module8_id.choices = [(module_id, module_id) for module_id, in module_ids]
-
-
-class BurninForm9(FlaskForm):
-    module1_id = SelectField("First Module ID", validators=[DataRequired()])
-    module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
-    module2_id = SelectField("Second Module ID", validators=[DataRequired()])
-    module2_result = FileField("Upload Second Module Result (root)", validators=[DataRequired()])
-    module3_id = SelectField("Third Module ID", validators=[DataRequired()])
-    module3_result = FileField("Upload Third Module Result (root)", validators=[DataRequired()])
-    module4_id = SelectField("Fourth Module ID", validators=[DataRequired()])
-    module4_result = FileField("Upload Fourth Module Result (root)", validators=[DataRequired()])
-    module5_id = SelectField("Fifth Module ID", validators=[DataRequired()])
-    module5_result = FileField("Upload Fifth Module Result (root)", validators=[DataRequired()])
-    module6_id = SelectField("Sixth Module ID", validators=[DataRequired()])
-    module6_result = FileField("Upload Sixth Module Result (root)", validators=[DataRequired()])
-    module7_id = SelectField("Seventh Module ID", validators=[DataRequired()])
-    module7_result = FileField("Upload Seventh Module Result (root)", validators=[DataRequired()])
-    module8_id = SelectField("Eighth Module ID", validators=[DataRequired()])
-    module8_result = FileField("Upload Eighth Module Result (root)", validators=[DataRequired()])
-    module9_id = SelectField("Ninth Module ID", validators=[DataRequired()])
-    module9_result = FileField("Upload Ninth Module Result (root)", validators=[DataRequired()])
-    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
-    image = FileField("Upload Image (optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
-    submit = SubmitField("Save")
-
-    def __init__(self, module_ids, *args, **kwargs):
-        super(BurninForm9, self).__init__(*args, **kwargs)
-        # Set the choices for the SelectField dynamically
-        self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module3_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module4_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module5_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module6_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module7_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module8_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module9_id.choices = [(module_id, module_id) for module_id, in module_ids]
-
-
-class BurninForm10(FlaskForm):
-    module1_id = SelectField("First Module ID", validators=[DataRequired()])
-    module1_result = FileField("Upload First Module Result (root)", validators=[DataRequired()])
-    module2_id = SelectField("Second Module ID", validators=[DataRequired()])
-    module2_result = FileField("Upload Second Module Result (root)", validators=[DataRequired()])
-    module3_id = SelectField("Third Module ID", validators=[DataRequired()])
-    module3_result = FileField("Upload Third Module Result (root)", validators=[DataRequired()])
-    module4_id = SelectField("Fourth Module ID", validators=[DataRequired()])
-    module4_result = FileField("Upload Fourth Module Result (root)", validators=[DataRequired()])
-    module5_id = SelectField("Fifth Module ID", validators=[DataRequired()])
-    module5_result = FileField("Upload Fifth Module Result (root)", validators=[DataRequired()])
-    module6_id = SelectField("Sixth Module ID", validators=[DataRequired()])
-    module6_result = FileField("Upload Sixth Module Result (root)", validators=[DataRequired()])
-    module7_id = SelectField("Seventh Module ID", validators=[DataRequired()])
-    module7_result = FileField("Upload Seventh Module Result (root)", validators=[DataRequired()])
-    module8_id = SelectField("Eighth Module ID", validators=[DataRequired()])
-    module8_result = FileField("Upload Eighth Module Result (root)", validators=[DataRequired()])
-    module9_id = SelectField("Ninth Module ID", validators=[DataRequired()])
-    module9_result = FileField("Upload Ninth Module Result (root)", validators=[DataRequired()])
-    module10_id = SelectField("Tenth Module ID", validators=[DataRequired()])
-    module10_result = FileField("Upload Tenth Module Result (root)", validators=[DataRequired()])
-    burnin_box_result = FileField("Upload Burnin Box Result (root)", validators=[DataRequired()])
-    image = FileField("Upload Image (optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
-    submit = SubmitField("Save")
-
-    def __init__(self, module_ids, *args, **kwargs):
-        super(BurninForm10, self).__init__(*args, **kwargs)
-        # Set the choices for the SelectField dynamically
-        self.module1_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module2_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module3_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module4_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module5_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module6_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module7_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module8_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module9_id.choices = [(module_id, module_id) for module_id, in module_ids]
-        self.module10_id.choices = [(module_id, module_id) for module_id, in module_ids]
-'''
-
-
-
-
-
-
-
-
-
-
 

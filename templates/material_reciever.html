@@ -64,6 +64,15 @@
               <label for="dew-point" class="form-label">Dew Point (°C)</label>
               <input type="number" name="dew_point" id="dew-point" step="0.1" class="form-control" required />
             </div>
+            <div class="col">
+              <label for="station_name" class="form-label">Station</label>
+              <select name="station_name" id="station_name" class="form-control" required>
+                <option value="" disabled selected>Select a Station</option>
+                {% for station_name in station_names %}
+                  <option value="{{ station_name }}">{{ station_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
 
           <!-- Image Upload and Comment -->

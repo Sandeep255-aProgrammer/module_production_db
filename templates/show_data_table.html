@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Data Table</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="mb-4">Upload JSON File</h2>
+        <form action="/" method="post" enctype="multipart/form-data" class="mb-4">
+            <input type="file" name="file" class="form-control mb-2" required>
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+        
+        {% if tables %}
+            {% for category, table in tables.items() %}
+                <h3 class="mt-4">{{ category }}</h3>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                {% for header in table.headers %}
+                                    <th>{{ header }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in table.rows %}
+                                <tr>
+                                    {% for header in table.headers %}
+                                        <td>{{ row[header] }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</body>
+</html>
+
