@@ -47,25 +47,12 @@ class UserTable(UserMixin, db.Model):
     noise_test1 = relationship("NoiseTest1Table", back_populates="user" )
     noise_test2 = relationship("NoiseTest2Table", back_populates="user" )
     burnin_test = relationship("BurninTestTable", back_populates="user" )
-    @classmethod
-    def add_user(cls, user_data: dict):
-        try:
-            # Ensure that the dictionary has all necessary fields (including required ones)
-            user = cls(**user_data)
-            db.session.add(user)
-            db.session.commit()
-            return user  # Return the added user instance
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"An error occurred while adding the user: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
 class DateTimeTable(db.Model):
     __tablename__ = "DateTimeTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True) 
     # --------------------------Fields------------------------------------------------ 
-    date_time: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False)  
+    working_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
+    current_datetime: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
     # ------------------------- Child Tables ------------------------------------------
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="date_time" )
     v_sensor = relationship("VSensorTable", back_populates="date_time" )
@@ -86,30 +73,11 @@ class DateTimeTable(db.Model):
     noise_test2 = relationship("NoiseTest2Table", back_populates="date_time" )
     burnin_test = relationship("BurninTestTable", back_populates="date_time" )
 
-    
-    @classmethod
-    def add_date_time(cls, date_time_data: dict):
-        # Check if the date_time already exists in the database
-        
-        try:
-            # Ensure that the dictionary has all necessary fields (including required ones)
-            date_time_entry = cls(**date_time_data)
-            db.session.add(date_time_entry)
-            db.session.commit()
-            return date_time_entry  # Return the added date_time instance
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"An error occurred while adding the DateTime entry: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-# -------------------------------------- Station Table ---------------------------
-
 class StationTable(db.Model):
     __tablename__ = "StationTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     # ------------------------------- Fields ---------------------------
-    station_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    station_name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     station_location: Mapped[str] = mapped_column(String(100), nullable=False)
     remarks: Mapped[str] = mapped_column(String(4000))
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow, nullable=False)  # Timestamp
@@ -138,26 +106,7 @@ class StationTable(db.Model):
     noise_test1 = relationship("NoiseTest1Table", back_populates="station")
     noise_test2 = relationship("NoiseTest2Table", back_populates="station")
     burnin_test = relationship("BurninTestTable", back_populates="station")
-    @classmethod
-    def add_station(cls, station_data: dict):
-        # Check if the station name already exists in the database
-        existing_station = cls.query.filter_by(station_name=station_data['station_name']).first()
-        if existing_station:
-            raise ValueError(f"Station with name '{station_data['station_name']}' already exists.")
-        
-        try:
-            # Ensure that the dictionary has all necessary fields (including required ones)
-            station_entry = cls(**station_data)
-            db.session.add(station_entry)
-            db.session.commit()
-            return station_entry  # Return the added station instance
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"An error occurred while adding the station: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 # --------------------------- Basic Form ---------------------------------------------!
 
 class TempHumiDewTable(db.Model):
@@ -187,21 +136,7 @@ class TempHumiDewTable(db.Model):
     v_main_bridge = relationship("VMainBridgeTable", back_populates="temp_humi_dew" )
     kapton_gluing = relationship("KaptonGluingTable", back_populates="temp_humi_dew")
     v_stump_bridge = relationship("VStumpBridgeTable", back_populates="temp_humi_dew" )
-    @classmethod
-    def add_temp_humi_dew(cls, temp_humi_dew_data: dict):
-        try:
-            # Create a new TempHumiDewTable instance using the provided data
-            temp_humi_dew_entry = cls(**temp_humi_dew_data)
-            db.session.add(temp_humi_dew_entry)
-            db.session.commit()
-            return temp_humi_dew_entry  # Return the created entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"An error occurred while adding the temperature, humidity, and dew point data: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 # ----------------  All tables linked to Material Receiver _--------------------------!
 # ---- will be refered to the material table -----------------
 # material id , 
@@ -210,7 +145,7 @@ class MaterialReceivingCommonTable(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
     # Fields
     received_from: Mapped[str] = mapped_column(String(255), nullable=False)  # Who the material was received from
-    received_date: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False)  # Date received
+    received_date:Mapped[datetime.date] = mapped_column(Date, nullable=False)
     material_name: Mapped[str] = mapped_column(String(255), nullable=False)  # Name of the material
     img: Mapped[str] = mapped_column(String(1000), nullable=True)  # Image path
     comment: Mapped[str] = mapped_column(String(4000), nullable=True)  # Any additional comments
@@ -236,35 +171,8 @@ class MaterialReceivingCommonTable(db.Model):
     glue = relationship("GlueTable", back_populates="material_receiver_common" )
     wire_bonder = relationship("WireBonderTable", back_populates="material_receiver_common" )
     other = relationship("OtherTable", back_populates="material_receiver_common" )
-    @classmethod
-    def add_material_receiving_entry(cls, entry_data: dict):
-        """
-        Adds a new material receiving entry to the database.
-        
-        Parameters:
-        entry_data (dict): A dictionary containing keys that match the columns of the MaterialReceivingCommonTable.
-
-        Returns:
-        MaterialReceivingCommonTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in entry_data
-            required_fields = {"received_from", "received_date", "material_name", "user_id", "datetime_id", "temp_humi_dew_id", "station_id"}
-            missing_fields = required_fields - entry_data.keys()
-            
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            entry = cls(**entry_data)
-            db.session.add(entry)
-            db.session.commit()
-            return entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+    jig = relationship("JigTable", back_populates="material_receiver_common" )
+   
 
 #---------------------------------------------------------------------------------------
 # ----------------------------- Material Table -------------------
@@ -275,8 +183,9 @@ class JigTable(db.Model):
     # fields
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str] = mapped_column(String(200), nullable=True)
-
+    
+    material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
+    material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="jig")
     # Define relationships to child tables
     user_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
     user = relationship("UserTable", back_populates="jig")
@@ -287,36 +196,7 @@ class JigTable(db.Model):
     needle_metrology= relationship("NeedleMetrologyTable", back_populates="jig")
     kapton_gluing = relationship("KaptonGluingTable", back_populates="jig")
     module_encapsulation = relationship("ModuleEncapsulationTable", back_populates="jig")
-    @classmethod
-    def add_jig_entry(cls, jig_data: dict):
-        """
-        Adds a new jig entry to the database.
-        
-        Parameters:
-        jig_data (dict): A dictionary containing keys that match the columns of the JigTable.
-
-        Returns:
-        JigTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in jig_data
-            required_fields = {"name", "user_id"}
-            missing_fields = required_fields - jig_data.keys()
-            
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            jig_entry = cls(**jig_data)
-            db.session.add(jig_entry)
-            db.session.commit()
-            return jig_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 class SensorTable(db.Model):
     __tablename__ = "SensorTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
@@ -332,36 +212,7 @@ class SensorTable(db.Model):
     # ----------------------------- Parent Tables ------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="sensor")
-    @classmethod
-    def add_sensor_entry(cls, sensor_data: dict):
-        """
-        Adds a new sensor entry to the database.
-        
-        Parameters:
-        sensor_data (dict): A dictionary containing keys that match the columns of the SensorTable.
-
-        Returns:
-        SensorTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in sensor_data
-            required_fields = {"sensor_id", "material_receiver_common_id"}
-            missing_fields = required_fields - sensor_data.keys()
-            
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            sensor_entry = cls(**sensor_data)
-            db.session.add(sensor_entry)
-            db.session.commit()
-            return sensor_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 class FEHTable(db.Model):
     __tablename__ = "FEHTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
@@ -374,35 +225,7 @@ class FEHTable(db.Model):
     # ----------------------------------- Parent Tables -----------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="feh")
-    @classmethod
-    def add_feh_entry(cls, feh_data: dict):
-        """
-        Adds a new FEH entry to the database.
-        
-        Parameters:
-        feh_data (dict): A dictionary containing keys that match the columns of the FEHTable.
-
-        Returns:
-        FEHTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in feh_data
-            required_fields = {"feh_id", "material_receiver_common_id"}
-            missing_fields = required_fields - feh_data.keys()
-            
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            feh_entry = cls(**feh_data)
-            db.session.add(feh_entry)
-            db.session.commit()
-            return feh_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+   
 
 class SEHTable(db.Model):
     __tablename__ = "SEHTable"
@@ -415,35 +238,7 @@ class SEHTable(db.Model):
     # ---------------------------- Parent Tables -----------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="seh")
-    @classmethod
-    def add_seh_entry(cls, seh_data: dict):
-        """
-        Adds a new SEH entry to the database.
-        
-        Parameters:
-        seh_data (dict): A dictionary containing keys that match the columns of the SEHTable.
-
-        Returns:
-        SEHTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in seh_data
-            required_fields = {"seh_id", "material_receiver_common_id"}
-            missing_fields = required_fields - seh_data.keys()
-            
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            seh_entry = cls(**seh_data)
-            db.session.add(seh_entry)
-            db.session.commit()
-            return seh_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+    
 
 class MainBridgeTable(db.Model):
     __tablename__ = "MainBridgeTable"
@@ -456,36 +251,7 @@ class MainBridgeTable(db.Model):
     # ------------------------------- Parent Tables ------------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="main_bridge")
-    @classmethod
-    def add_main_bridge_entry(cls, main_bridge_data: dict):
-        """
-        Adds a new Main Bridge entry to the database.
-        
-        Parameters:
-        main_bridge_data (dict): A dictionary containing keys that match the columns of the MainBridgeTable.
-
-        Returns:
-        MainBridgeTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in main_bridge_data
-            required_fields = {"main_bridge_id", "material_receiver_common_id"}
-            missing_fields = required_fields - main_bridge_data.keys()
-            
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            main_bridge_entry = cls(**main_bridge_data)
-            db.session.add(main_bridge_entry)
-            db.session.commit()
-            return main_bridge_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 class StumpBridgeTable(db.Model):
     __tablename__ = "StumpBridgeTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
@@ -574,36 +340,7 @@ class OtherTable(db.Model):
     # -------------------------------------- parent tables ------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="other")
-    @classmethod
-    def add_other_entry(cls, other_data: dict):
-        """
-        Adds a new Other entry to the database.
-        
-        Parameters:
-        other_data (dict): A dictionary containing keys that match the columns of the OtherTable.
-
-        Returns:
-        OtherTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in other_data
-            required_fields = {"material_id", "material_receiver_common_id"}
-            missing_fields = required_fields - other_data.keys()
-            
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            other_entry = cls(**other_data)
-            db.session.add(other_entry)
-            db.session.commit()
-            return other_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 class VTRxTable(db.Model):
     __tablename__ = "VTRxTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
@@ -614,36 +351,7 @@ class VTRxTable(db.Model):
     # ------------------------------ Parent Tables ----------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="vtrx")
-    @classmethod
-    def add_vtrx_entry(cls, vtrx_data: dict):
-        """
-        Adds a new VTRx entry to the database.
-
-        Parameters:
-        vtrx_data (dict): A dictionary containing keys that match the columns of the VTRxTable.
-
-        Returns:
-        VTRxTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in vtrx_data
-            required_fields = {"vt_rx_id", "material_receiver_common_id"}
-            missing_fields = required_fields - vtrx_data.keys()
-            
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            vtrx_entry = cls(**vtrx_data)
-            db.session.add(vtrx_entry)
-            db.session.commit()
-            return vtrx_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 class GroundBalancerTable(db.Model):
     __tablename__ = "GroundBalancerTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
@@ -654,35 +362,7 @@ class GroundBalancerTable(db.Model):
     # ----------------------------  parent tables -------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="ground_balancer")
-    @classmethod
-    def add_ground_balancer_entry(cls, ground_balancer_data: dict):
-        """
-        Adds a new Ground Balancer entry to the database.
-
-        Parameters:
-        ground_balancer_data (dict): A dictionary containing keys that match the columns of the GroundBalancerTable.
-
-        Returns:
-        GroundBalancerTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in ground_balancer_data
-            required_fields = {"ground_balancer_id", "material_receiver_common_id"}
-            missing_fields = required_fields - ground_balancer_data.keys()
-            
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            ground_balancer_entry = cls(**ground_balancer_data)
-            db.session.add(ground_balancer_entry)
-            db.session.commit()
-            return ground_balancer_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+    
 
 class GlueTable(db.Model):
     __tablename__ = "GlueTable"

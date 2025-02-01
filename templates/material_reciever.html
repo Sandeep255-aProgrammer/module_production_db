@@ -20,7 +20,10 @@
             <option value="Jig">Jig</option>
             <option value="Glue">Glue</option>
             <option value="Kapton Tapes">Kapton Tapes</option>
-            <option value="Optical Fibre">Optical Fibre</option>
+            <option value="VTRx">VTRx</option>
+            <option value="Ground Balancer">Ground Balancer</option>
+            <option value="Kapton Tapes">Kapton Tapes</option>
+            <!-- <option value="Optical Fibre">Optical Fibre</option> -->
             <option value="Wire Bonder">Wire Bonder</option>
             <option value="Other">Other (Specify Material)</option>
           </select>
@@ -69,7 +72,7 @@
               <select name="station_name" id="station_name" class="form-control" required>
                 <option value="" disabled selected>Select a Station</option>
                 {% for station_name in station_names %}
-                  <option value="{{ station_name }}">{{ station_name }}</option>
+                  <option value="{{ station_name[0] }}">{{ station_name[1] }}</option>
                 {% endfor %}
               </select>
             </div>

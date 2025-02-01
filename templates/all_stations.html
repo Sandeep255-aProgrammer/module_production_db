@@ -87,7 +87,8 @@
             {% for station in all_stations %}
                 <div class="station-card">
                     <!-- Station Image -->
-                    <img src="{{ station.img_path }}" alt="Station Image">
+                    <img src="{{ url_for('static', filename='WORKFLOW_FILES/' + station.img_path) }}" alt="Station Image">
+
 
                     <!-- Station Info -->
                     <div class="station-info">

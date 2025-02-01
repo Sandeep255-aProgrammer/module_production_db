@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, MultipleFileField
-from wtforms import Form , DecimalField ,IntegerField ,StringField, SubmitField, PasswordField ,FileField ,DateField , BooleanField , SelectField,  DateTimeField,FormField, FloatField , FieldList
+from wtforms import Form , DecimalField ,IntegerField ,StringField, SubmitField, PasswordField ,FileField ,DateField , BooleanField , SelectField,  DateTimeField,FormField, FloatField , FieldList,TextAreaField
 from wtforms.validators import DataRequired, URL, Optional
 from flask_ckeditor import CKEditorField
 
@@ -33,13 +33,13 @@ class LoginForm(FlaskForm):
 class AddStationForm(FlaskForm):
     station_name = StringField("Station Name", validators=[DataRequired()])
     station_img = FileField("Upload the Station Image", validators=[DataRequired()])
-    station_remarks = CKEditorField("Remarks", validators=[DataRequired()])
-    station_created_at = DateTimeField("Created At", format='%Y-%m-%d %H:%M:%S')
+    
+    station_created_at = DateTimeField("Created At (%Y-%m-%d %H:%M:%S)", format='%Y-%m-%d %H:%M:%S')
     station_location = StringField("Station Location", validators=[DataRequired()])
     station_is_active = BooleanField("Is station active in this status")
     station_operator = StringField("Operator", validators=[DataRequired()])
     station_iteration_number = StringField("Iteration Number", validators=[DataRequired()])
-
+    station_remarks = TextAreaField("Remarks", validators=[DataRequired()])
     submit= SubmitField("Save Station")
 
     # Link to the User table via the `username` field
