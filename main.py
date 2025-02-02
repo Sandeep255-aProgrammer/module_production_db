@@ -16,7 +16,7 @@ import datetime
 from sqlalchemy import inspect
 import csv
 import json
-
+from sqlalchemy import func
 utc_now = datetime.datetime.now()
 current_date =f"{utc_now.year}-{utc_now.month}-{utc_now.day}" 
 ''' 
@@ -45,20 +45,6 @@ from forms import (
     NoiseTestForm_Ph2_ACF,
     NoiseTestForm_GIPHT
 )
-#      SensorForm  ,
-#     VTRxIDForm ,VTRxForm,GroundBalancerIDForm ,  GroundBalancerForm,
-#     FEHForm, SEHForm, MainBridgeForm, StumpBridgeForm, GlueForm, KaptonTapesForm, OpticalFibreForm, WireBonderForm, OtherConsumablesForm
-#       ,SensorIdListForm, FEHIdListForm, SEHIdListForm, MainBridgeIdListForm, StumpBridgeIdListForm, GlueBatchIdListForm, KaptonTapeIdListForm, OpticalFibreIdListForm, WireBonderDetailsForm, JigIDForm , OtherConsumablesListForm
-# )
-
-# material_receiver_data_dict = [{"sensor_id":[]},{"FEH_id":[]},{"SEH_id":[]},
-#                                {"main_bridge_id":[]},{"stump_bridge_id":[]},
-#                                {"glue_batch_id":[],"glue_expiry_date":[]},{"kapton_id":[]},{"optical_fibre_id":[]},
-#                                {"spool_no":[],"wedge_tool_no":[],"expiry_date":[]},{"jig_id":[]},{"other_id":[]}]
-# current_material_data = material_receiver_data_dict[0]
-# Material_receiver_ids_forms = [SensorIdListForm, FEHIdListForm, SEHIdListForm, MainBridgeIdListForm, StumpBridgeIdListForm, 
-#                                GlueBatchIdListForm, KaptonTapeIdListForm, OpticalFibreIdListForm, WireBonderDetailsForm,  
-#                                JigIDForm,OtherConsumablesListForm,VTRxIDForm,GroundBalancerIDForm]
 
 ''' 
 now import all the stups related to the database tike the table and db , all are defined in the database_table.html
@@ -87,6 +73,7 @@ app.config['SECRET_KEY'] = 'secret-key-goes-here_a'
 # app.config['UPLOAD_FOLDER'] = "static/uploads"
 
 app.config["UPLOAD_WORKFLOW_FILES"]= "static/WORKFLOW_FILES"
+os.makedirs(app.config["UPLOAD_WORKFLOW_FILES"], exist_ok=True)
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 
@@ -149,13 +136,11 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# create all the tables 
 
 with app.app_context():
     db.create_all()
 
 
-# this is the home part for unauthenticated user
 @app.route('/')
 def home():
     if not current_user.is_authenticated:
@@ -163,29 +148,45 @@ def home():
     else:
         return redirect(url_for('secrets'))
 
-# login part login.html is rendered 
 @app.route('/login',methods =["GET","POST"])
 def login():
     if request.method =="POST":
         username = request.form.get("username")
         password = request.form.get("password")
         # Query the Users table based on the username
-        result = db.session.execute(db.select(UserTable).where(UserTable.username == username))
+        result = db.session.execute(db.select(UserTable).where(UserTable.username == username)) # change niser to username later 
         user = result.scalar()
-        # Check if user exists and is active
-        if not user:
+        count_result = db.session.execute(db.select(func.count()).select_from(UserTable))
+        count = count_result.scalar()
+        if count == 0 :
+            hashed_password = generate_password_hash("niser123@")
             new_user_data = {
-                "username": "john_doe",
-                "password": "securepassword123",
-                "name": "John Doe",
+                "username": "niser",
+                "password": hashed_password,
+                "name": "NISER",
                 "is_active": True
             }
             new_user = save_user_to_db(new_user_data)
-            login_user(new_user)
-            return redirect(url_for('secrets'))
-        else :
-            login_user(user) # ---------------------- work on this if it works -----
-            return redirect(url_for('secrets'))
+            if not user :
+                print("no user")
+                return redirect(url_for('login'))
+        else:
+            print(f"There are {count} users in the database.")
+            
+            if user:
+                if not user.is_active:
+                    flash("Your account is inactive. Please contact support.")
+                    return redirect(url_for('login'))
+
+                # Verify password
+                if check_password_hash(user.password, password):
+                    login_user(user)
+                    return redirect(url_for('secrets'))
+                else:
+                    flash("Incorrect password, please try again.")
+            else:
+                flash("User does not exist, please check your email.")
+
         # if user:
         #     if not user.is_active:
         #         flash("Your account is inactive. Please contact support.")
@@ -201,13 +202,11 @@ def login():
         #     flash("User does not exist, please check your email.")
     return render_template("login.html")
 
-# once the user is authenticated this is the home page , home.html is rendered 
 @app.route('/secrets')
 @login_required
 def secrets():
     return render_template("home.html")
 
-# when you click on the workflow button in the home page this method is called and workflow.html is rendered 
 @app.route('/workflow')
 @login_required
 def work_flow():
@@ -227,6 +226,7 @@ def show_module():
     return render_template("modules.html")
 # TABLES = {'Users': UserTable, "material_receiver" : MaterialReceivingCommonTable}
 @app.route("/show_database_table", methods=["GET", "POST"])
+@login_required
 def show_database_table():
     selected_table = request.form.get("table_name", "Users")  
     model = TABLES.get(selected_table, UserTable) 
@@ -290,6 +290,7 @@ def show_form():
     return render_template("add_station_form.html",form = form)
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('home'))
@@ -307,6 +308,7 @@ def download():
 '''
 
 @app.route('/add_data', methods=["GET", "POST"])
+@login_required
 def add_data():
     workflow_name = request.args.get('workflow_name', 'Workflow')
     if workflow_name=="Material Receiver" :
@@ -572,6 +574,7 @@ def get_dict_form_visual(form,file_name,material_type):
     return form_data_dict
 # < ---------------------- Visual Inspection Part ------------------------------
 @app.route('/visual_inspection_data', methods=["GET", "POST"])
+@login_required
 def visual_inspection_data():
     material_type = request.args.get("material_type")
     material_list = FORM_MAPPING_VISUAL_INSPECTION[material_type]
