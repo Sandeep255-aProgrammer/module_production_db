@@ -34,7 +34,7 @@
             <select name="station_name" id="station_name" class="form-control" required>
               <option value="" disabled selected>Select a Station</option>
               {% for station_name in station_names %}
-                <option value="{{ station_name }}">{{ station_name }}</option>
+                <option value="{{ station_name[0] }}">{{ station_name[1] }}</option>
               {% endfor %}
             </select>
           </div>
@@ -54,7 +54,7 @@
                   <select name="module_id_left[]" required class="form-control">
                     <option value="">Select Module ID</option>
                     {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
+                    <option value="{{ module_id[0] }}">{{ module_id[1] }}</option>
                     {% endfor %}
                   </select>
                 </td>
@@ -62,7 +62,7 @@
                   <select name="module_id_right[]" required class="form-control">
                     <option value="">Select Module ID</option>
                     {% for module_id in module_ids %}
-                    <option value="{{ module_id }}">{{ module_id }}</option>
+                    <option value="{{ module_id[0] }}">{{ module_id[1] }}</option>
                     {% endfor %}
                   </select>
                 </td>

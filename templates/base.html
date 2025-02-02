@@ -23,6 +23,12 @@
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('secrets') }}">Home</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('show_database_table') }}">DataBase</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('work_flow') }}">WorkFlow</a>
+          </li>
           <!-- TODO: Hide the Login/Registration navigation for logged-in users -->
           {% if not current_user.is_authenticated: %}
           <li class="nav-item">
@@ -30,12 +36,13 @@
           </li>
           {% else: %}
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
+            <a class="nav-link" href="{{ url_for('logout') }}">LogOut</a>
           </li>
           {% endif %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('stations') }}">Stations</a>
-          </li>
+          </li> 
+          
         </ul>
       </div>
     </nav>

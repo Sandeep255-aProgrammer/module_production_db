@@ -1,0 +1,87 @@
+{% extends "base1.html" %}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Viewer</title>
+    <script>
+        function toggleColumns() {
+            let checkboxes = document.querySelectorAll('input[name="columns"]');
+            checkboxes.forEach(checkbox => {
+                let columnClass = document.getElementsByClassName(checkbox.value);
+                for (let i = 0; i < columnClass.length; i++) {
+                    columnClass[i].style.display = checkbox.checked ? "table-cell" : "none";
+                }
+            });
+        }
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <h2>Database Table Viewer</h2>
+    
+    <!-- Table Selection -->
+    <form method="POST">
+        <label for="table_name">Select Table:</label>
+        <select name="table_name" onchange="this.form.submit()">
+            {% for table in tables %}
+                <option value="{{ table }}" {% if table == selected_table %}selected{% endif %}>{{ table }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <div>
+        <h4>Select Fields to Display:</h4>
+        <form>
+            {% for column in columns %}
+                <label>
+                    <input type="checkbox" name="columns" value="{{ column }}" checked onchange="toggleColumns()">
+                    {{ column }}
+                </label>
+            {% endfor %}
+        </form>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                {% for column in columns %}
+                    <th class="{{ column }}">{{ column }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+                <tr>
+                    {% for column in columns %}
+                        <td class="{{ column }}">{{ row[column] }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+{% endblock %}
+

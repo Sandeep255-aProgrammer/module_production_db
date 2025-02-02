@@ -13,7 +13,7 @@ from flask_ckeditor import CKEditor
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 import json
 import datetime
-
+from sqlalchemy import inspect
 import csv
 import json
 
@@ -70,7 +70,7 @@ now import all the stups related to the database tike the table and db , all are
 from database_table1 import (db , UserTable , DateTimeTable , StationTable , TempHumiDewTable ,MaterialReceivingCommonTable , SensorTable , FEHTable , SEHTable , MainBridgeTable , StumpBridgeTable ,
 KaptonTapeTable , OtherTable , VTRxTable , GroundBalancerTable , GlueTable , WireBonderTable,JigTable, VSensorTable, VFEHTable , VSEHTable,
 VMainBridgeTable , VStumpBridgeTable , KaptonGluingTable , HVTable , IVTable , SensorGluingTable , NeedleMetrologyTable , SkeletonTestTable,
-HybridGluingTable , ModuleEncapsulationTable , WireBondingTable , NoiseTest1Table , NoiseTest2Table , BurninTestTable )
+HybridGluingTable , ModuleEncapsulationTable , WireBondingTable , NoiseTestPh2ACFTable , NoiseTestGIPHTTable , BurninTestTable )
 
 from save_form_database import SaveToDataBase
 
@@ -101,25 +101,28 @@ def save_get_file_url(file):
     file.save(file_path)
     return file_path
 
-# FORM_MAPPING_MATERIAL_RECEIVER = {
-#     "sensor": SensorForm,
-#     "FEH": FEHForm,
-#     "SEH": SEHForm,
-#     "main_bridge": MainBridgeForm,
-#     "stump_bridge": StumpBridgeForm,
-#     "glue": GlueForm,
-#     "kapton_tapes": KaptonTapesForm,
-#     "optical_fibre": OpticalFibreForm,
-#     "wire_bonder": WireBonderForm,
-#     "other": OtherConsumablesForm,
-# }
+TABLES = {
+    'User Table': UserTable, 'DateTime Table': DateTimeTable, 'Station Table': StationTable, 
+    'TempHumiDew Table': TempHumiDewTable, 'Material Receiver Common Table': MaterialReceivingCommonTable, 
+    'Sensor Table': SensorTable, 'FEH Table': FEHTable, 'SEH Table': SEHTable, 'Main Bridge Table': MainBridgeTable, 
+    'Stump Bridge Table': StumpBridgeTable, 'Kapton Tape Table': KaptonTapeTable, 'Other Table': OtherTable, 
+    'VTRx Table': VTRxTable, 'Ground Balancer Table': GroundBalancerTable, 'Glue Table': GlueTable, 
+    'Wire Bonder Table': WireBonderTable, 'Jig Table': JigTable, 'VSensor Table': VSensorTable, 
+    'VFEH Table': VFEHTable, 'VSEH Table': VSEHTable, 'VMain Bridge Table': VMainBridgeTable, 
+    'VStump Bridge Table': VStumpBridgeTable, 'Kapton Gluing Table': KaptonGluingTable, 
+    'HV Table': HVTable, 'IV Table': IVTable, 'Sensor Gluing Table': SensorGluingTable, 
+    'Needle Metrology Table': NeedleMetrologyTable, 'Skeleton Test Table': SkeletonTestTable, 
+    'Hybrid Gluing Table': HybridGluingTable, 'Module Encapsulation Table': ModuleEncapsulationTable, 
+    'Wire Bonding Table': WireBondingTable, 'Noise Test Ph2 ACF Table': NoiseTestPh2ACFTable, 
+    'Noise Test GIPHT Table': NoiseTestGIPHTTable, 'Burn-in Test Table': BurninTestTable
+}
 
 FORM_MAPPING_VISUAL_INSPECTION = {
-   "sensor_visual": SensorVisualForm,
-    "FEH_visual": FEHVisualForm,
-    "SEH_visual": SEHVisualForm,
-    "main_bridge_visual": MainBridgeVisualForm,
-    "stump_bridge_visual": StumpBridgeVisualForm,
+   "sensor_visual": [SensorVisualForm,"sensor_id",SensorTable,VSensorTable],
+    "FEH_visual": [FEHVisualForm,"feh_id",FEHTable,VFEHTable],
+    "SEH_visual": [SEHVisualForm,"seh_id",SEHTable,VSEHTable],
+    "main_bridge_visual": [MainBridgeVisualForm,"main_bridge_id",MainBridgeTable,VMainBridgeTable],
+    "stump_bridge_visual": [StumpBridgeVisualForm,"stump_bridge_id",StumpBridgeTable,VStumpBridgeTable]
 }
 
     
@@ -220,18 +223,17 @@ def work_flow():
 #     return render_template("modules.html")
 @app.route('/modules')
 @login_required
-def show_data():
-    tables = {}
-    file_path = "form_data.jsonl"
-    
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            data = [json.loads(line) for line in file]  # Read JSON Lines format properly
-        tables = process_data(data)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Error loading file: {e}")
-
-    return render_template('show_data_table.html', tables=tables)
+def show_module():
+    return render_template("modules.html")
+# TABLES = {'Users': UserTable, "material_receiver" : MaterialReceivingCommonTable}
+@app.route("/show_database_table", methods=["GET", "POST"])
+def show_database_table():
+    selected_table = request.form.get("table_name", "Users")  
+    model = TABLES.get(selected_table, UserTable) 
+    columns = [column.name for column in model.__table__.columns]
+    rows = model.query.all()
+    rows_data = [{column: getattr(row, column) for column in columns} for row in rows]
+    return render_template("show_db_table.html", tables=TABLES.keys(), selected_table=selected_table, columns=columns, rows=rows_data)
 
 def process_data(data):
     tables = {}
@@ -306,35 +308,19 @@ def download():
 
 @app.route('/add_data', methods=["GET", "POST"])
 def add_data():
-    
     workflow_name = request.args.get('workflow_name', 'Workflow')
-    
-    # sensor_ids = db.session.query(VisualInspectionSensorTable.sensor_id).distinct().all()
-    # bare_module_ids = db.session.query(SensorGluingTable.bare_module_id).distinct().all()
-    # module_ids = db.session.query(HybridGluingTable.module_id).distinct().all()
-    # skeleton_ids = db.session.query(SkeletonTestTable.skeleton_id).distinct().all()
-
     if workflow_name=="Material Receiver" :
-        
-        station_names = [f"station_{i}" for i in range(1, 11)]
         if request.method == "POST":
             time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
-            # Extract and validate form data on form submission
             file_name = f"material_receiver_{request.form.getlist('material_type[]')[0]}_{time_stamp}"
             form_data_dict = material_receiver_form_dict(request.form, file_name)
-            # datetime_id = save_datetime_to_db(form_data_dict["date"])
-            # temp_humi_dew_id = save_temp_humi_dew_to_db({"temperature": form_data_dict["temperature"], "dew_point":form_data_dict["dew_point"] , "humidity": form_data_dict["humidity"]})
-            # user_id = get_current_user_id()
             print("form data dict", form_data_dict)
             save_material_receiving_data_to_db(form_data_dict)
             with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(form_data_dict) + "\n") 
             return redirect(url_for('work_flow'))
         else:
-            # Render the form initially without processing
-            return render_template("material_reciever.html",station_names = get_station_info())
-
-    
+            return render_template("material_reciever.html",select_material="Jig",station_names = get_station_info())
     elif workflow_name == "Visual Inspection":
         datetime_data ='2025-02-07'
         record_id = save_datetime_to_db(datetime_data)
@@ -344,41 +330,36 @@ def add_data():
     "dew_point": 15.3,
     "humidity": 65.4
 }
-
         new_temp_humi_dew_record_id = save_temp_humi_dew_to_db(temp_humi_dew_data)
         print(new_temp_humi_dew_record_id)
         return render_template("visual_type.html")
 
     elif workflow_name == "Kapton Gluing":
-        stations =get_station_info()
-        print(stations)
-        print(type(stations[0][0]))
         form = KaptonGluing()
-        # add sensor ids from VisualInspectionsencor table to the sensor id choices 
-        #sensor_ids = db.session.query(VisualInspectionSensorTable.sensor_id).distinct().all()
-        # --------------- replace the below choices from the table -------------------
-        sensor_ids = [f"sensor_{i}" for i in range(1, 11)]
-        jig_ids = [f"jig_{i}" for i in range(1, 11)]
-        glue_ids = [f"glue_{i}" for i in range(1, 11)]
-        form.sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
-        form.part_A_batch_no.choices = [(glue_id, glue_id) for glue_id in glue_ids]
-        form.part_B_batch_no.choices = [(glue_id, glue_id) for glue_id in glue_ids]
-        form.jig_id.choices = [(jig_id, jig_id) for jig_id in jig_ids]
+        form.sensor_id.choices = get_field_values_with_id(SensorTable, "sensor_id")
+        form.part_A_batch_no.choices = get_field_values_with_id(GlueTable,"glue_batch_id")
+        form.part_B_batch_no.choices =  get_field_values_with_id(GlueTable,"glue_batch_id")
+        form.jig_id.choices = get_field_values_with_id(JigTable,"name")
         form.station.choices = get_station_info()
+        if is_choise_empty(workflow_name,form):
+            workflow_name=="Material Receiver"
+            return redirect(url_for('add_data',workflow_name="Material Receiver"))
+
+        #add_choise_not_go_add_material(workflow_name)
         if form.validate_on_submit():
             time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
             filename = f"kapton_glue{time_stamp}.png"
             data_dict = get_dict_kapton_gluing_form(form,filename)
             print(data_dict)
+            save_kapton_data(data_dict)
             with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(data_dict) + "\n") 
             #SaveToDataBase().save_kapton_gluing_form(form,db, app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
     elif workflow_name == "Hv Form":
         form = HvForm()
-        sensor_ids = [f"sensor_{i}" for i in range(1, 11)]
-        form.sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
-        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        sensor_type_ids = [(sensor[0],f"{sensor[1]} ({sensor[2]})") for sensor in get_field_values_with_id(SensorTable, "sensor_id","sensor_type") if sensor[2]]
+        form.sensor_id.choices = sensor_type_ids
         form.station.choices = get_station_info()
         # form.sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
         if form.validate_on_submit():
@@ -387,22 +368,23 @@ def add_data():
             other_file_name =f"hv_other{time_stamp}.csv"
             dict_hv_data = get_dict_hv_form(form,hv_csv_file_name,other_file_name)
             print(dict_hv_data)
+            save_hv_data(dict_hv_data)
             with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(dict_hv_data) + "\n") 
             #SaveToDataBase().save_hv_iv_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
     elif workflow_name == "Iv Form":
+        
         form = IvForm()
-        sensor_ids = [f"sensor_{i}" for i in range(1, 11)]
-        form.sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
-        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        
+        form.sensor_id.choices = get_field_values_with_id(SensorTable, "sensor_id","sensor_type")
         form.station.choices = get_station_info()
-        # form.sensor_id.choices = [(sensor.sensor_id, sensor.sensor_id) for sensor in sensor_ids]
         if form.validate_on_submit():
             time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
             iv_csv_file_name = f"iv_csv{time_stamp}.csv"
             other_file_name = f"iv_other{time_stamp}.png"
             dict_iv_data = get_dict_iv_form(form,iv_csv_file_name,other_file_name)
+            save_iv_data(dict_iv_data)
             print("iv test data ",dict_iv_data)
             with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(dict_iv_data) + "\n") 
@@ -410,40 +392,29 @@ def add_data():
             return redirect(url_for('work_flow'))
     elif workflow_name == "Sensor Gluing":
         form = SensorGluing()
-        sensor_ids = [f"sensor_{i}" for i in range(1, 11)]
-        jig_ids = [f"jig_{i}" for i in range(1, 11)]
-        glue_ids = [f"glue_{i}" for i in range(1, 11)]
-        main_bridge_ids = [f"main_bridge_{i}" for i in range(1, 11)]  # New list for main_bridge_ids
-        stump_bridge_ids = [f"stump_bridge_{i}" for i in range(1, 11)]  # New list for stump_bridge_ids
-
-        # Assigning choices to the form fields
-        form.part_A_batch_no.choices = [(glue_id, glue_id) for glue_id in glue_ids]
-        form.part_B_batch_no.choices = [(glue_id, glue_id) for glue_id in glue_ids]
-        form.jig_id.choices = [(jig_id, jig_id) for jig_id in jig_ids]
-        form.top_sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
-        form.bottom_sensor_id.choices = [(sensor_id, sensor_id) for sensor_id in sensor_ids]
-
-        # Adding choices for main_bridge_id and stump_bridge_id
-        form.main_bridge_id.choices = [(main_bridge_id, main_bridge_id) for main_bridge_id in main_bridge_ids]
-        form.stump_bridge_id.choices = [(stump_bridge_id, stump_bridge_id) for stump_bridge_id in stump_bridge_ids]
-        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.part_A_batch_no.choices = get_field_values_with_id(GlueTable, "glue_batch_id")
+        form.part_B_batch_no.choices = get_field_values_with_id(GlueTable, "glue_batch_id")
+        form.jig_id.choices = get_field_values_with_id(JigTable, "name")
+        form.top_sensor_id.choices = sensor_type_ids = [(sensor[0],f"{sensor[1]} ({sensor[2]})") for sensor in get_field_values_with_id(SensorTable, "sensor_id","sensor_type") 
+                                                        if sensor[2]=="Top Sensor"]
+        form.bottom_sensor_id.choices = sensor_type_ids = [(sensor[0],f"{sensor[1]} ({sensor[2]})") for sensor in get_field_values_with_id(SensorTable, "sensor_id","sensor_type") 
+                                                        if sensor[2]=="Bottom Sensor"]
+        form.main_bridge_id.choices = get_field_values_with_id(MainBridgeTable, "main_bridge_id")
+        form.stump_bridge_id.choices = get_field_values_with_id(StumpBridgeTable, "stump_bridge_id")
         form.station.choices = get_station_info()
         if form.validate_on_submit():
             time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
             image_name = f"sensor_gluing_img_{time_stamp}.png"
             dict_sensor_gluing_data = get_dict_sensor_gluing_form(form,image_name)
             print(dict_sensor_gluing_data)
+            save_sens_gluing(dict_sensor_gluing_data)
             with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(dict_sensor_gluing_data) + "\n") 
             #SaveToDataBase().save_sensor_gluing_form(form, db, app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
     elif workflow_name =="Needle Metrology":
         form = NeedleMetrologyForm()
-        bare_module_ids = [f"bare_module_{i}" for i in range(1, 11)]  # List for bare_module_ids
-
-        # Assigning choices to the bare_module_id field
-        form.bare_module_id.choices = [(bare_module_id, bare_module_id) for bare_module_id in bare_module_ids]
-        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.bare_module_id.choices = get_field_values_with_id(SensorGluingTable, "bare_module_id")
         form.station.choices = get_station_info()
         # form.bare_module_id.choices = [(bare_module.bare_module_id, bare_module.bare_module_id) for bare_module in bare_module_ids]
         if form.validate_on_submit():
@@ -452,73 +423,58 @@ def add_data():
             image_file = f"image_file_{time_stamp}.png"
             data_needle_form = get_dict_needle_metrology(form,csv_excel_file,image_file)
             print(data_needle_form)
+            save_needle_data(data_needle_form)
             with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(data_needle_form) + "\n") 
             #SaveToDataBase().save_needle_metrology_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
     elif workflow_name == "Skeleton Test":
         form = SkeletonTestForm()
-        feh_l_ids = [f"FEH_L_{i}" for i in range(1, 11)]
-        feh_r_ids = [f"FEH_R_{i}" for i in range(1, 11)]
-        seh_ids = [f"SEH_{i}" for i in range(1, 11)]
-        vtrx_ids = [f"VTRx+_{i}" for i in range(1, 11)]
-        ground_balancer_ids = [f"ground_balancer_{i}" for i in range(1, 11)]
-        form.FEH_L.choices = [(feh_l_id, feh_l_id) for feh_l_id in feh_l_ids]
-        form.FEH_R.choices = [(feh_r_id, feh_r_id) for feh_r_id in feh_r_ids]
-        form.SEH.choices = [(seh_id, seh_id) for seh_id in seh_ids]
-        form.VTRx.choices = [(vtrx_id, vtrx_id) for vtrx_id in vtrx_ids]
-        form.ground_balancer_id.choices = [(ground_balancer_id, ground_balancer_id) for ground_balancer_id in ground_balancer_ids]
-        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.FEH_L.choices = get_field_values_with_id(FEHTable, "feh_id")
+        form.FEH_R.choices = get_field_values_with_id(FEHTable, "feh_id")
+        form.SEH.choices = get_field_values_with_id(SEHTable, "seh_id")
+        form.VTRx.choices = get_field_values_with_id(VTRxTable, "vt_rx_id")
+        form.ground_balancer_id.choices = get_field_values_with_id(GroundBalancerTable, "ground_balancer_id")
         form.station.choices = get_station_info()
         if form.validate_on_submit():
             time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
             file_name = f"skeleton_{time_stamp}.png"
             skeleton_dict = get_skeleton_test_form_data(form,file_name)
             print(skeleton_dict)
+            save_skeleton_data(skeleton_dict)
             with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(skeleton_dict) + "\n") 
             #SaveToDataBase().save_skeleton_test_form( form, db, app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
     elif workflow_name == "Hybrid Gluing":
         form = HybridGluingForm()
-        # Example lists of options for each field (can be customized)
-        bare_module_ids = [f"bare_module_{i}" for i in range(1, 11)]
-        skeleton_ids = [f"skeleton_{i}" for i in range(1, 11)]
-        part_A_batch_nos = [f"partA_{i}" for i in range(1, 11)]  # Example values for part_A_batch_no
-        part_B_batch_nos = [f"partB_{i}" for i in range(1, 11)]  # Example values for part_B_batch_no
-
-        # Assigning choices to the form fields
-        form.bare_module_id.choices = [(bare_module_id, bare_module_id) for bare_module_id in bare_module_ids]
-        form.skeleton_id.choices = [(skeleton_id, skeleton_id) for skeleton_id in skeleton_ids]
-        form.part_A_batch_no.choices = [(part_A_batch_no, part_A_batch_no) for part_A_batch_no in part_A_batch_nos]
-        form.part_B_batch_no.choices = [(part_B_batch_no, part_B_batch_no) for part_B_batch_no in part_B_batch_nos]
-        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.bare_module_id.choices = get_field_values_with_id(SensorGluingTable,"bare_module_id")
+        form.skeleton_id.choices = get_field_values_with_id(SkeletonTestTable,"skeleton_id")
+        form.part_A_batch_no.choices = get_field_values_with_id(GlueTable, "glue_batch_id")
+        form.part_B_batch_no.choices = get_field_values_with_id(GlueTable, "glue_batch_id")
         form.station.choices = get_station_info()
         if form.validate_on_submit():
             time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
             image_name = f"hybrid_gluing_{time_stamp}.png"
             hybrid_data_dict = get_hybrid_gluing_form_data(form,image_name)
             print(hybrid_data_dict)
+            save_hybrid_gluing_data(hybrid_data_dict)
             with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(hybrid_data_dict) + "\n") 
             #SaveToDataBase().save_hybrid_gluing_form( form ,db ,app.config['UPLOAD_WORKFLOW_FILES'])
             return redirect(url_for('work_flow'))
     elif workflow_name == "Module Encapsulation":
         form = ModuleEncapsulationForm()
-        module_ids = [f"module_{i}" for i in range(1, 11)]
-        glue_a_ids = [f"glueA_{i}" for i in range(1, 11)]
-        glue_b_ids = [f"glueB_{i}" for i in range(1, 11)]
-        jig_ids = [f"jig_{i}" for i in range(1, 11)]
-        station_ids = [f"station_{i}" for i in range(1, 11)] 
-        form.module_id.choices = [(module_id, module_id) for module_id in module_ids]
-        form.glue_a.choices = [(glue_a, glue_a) for glue_a in glue_a_ids]
-        form.glue_b.choices = [(glue_b, glue_b) for glue_b in glue_b_ids]
-        form.jig.choices = [(jig, jig) for jig in jig_ids] 
+        form.module_id.choices = get_field_values_with_id(HybridGluingTable,"module_id")
+        form.glue_a.choices = get_field_values_with_id(GlueTable, "glue_batch_id")
+        form.glue_b.choices = get_field_values_with_id(GlueTable, "glue_batch_id")
+        form.jig.choices = get_field_values_with_id(JigTable,"name")
         form.station.choices = get_station_info()
         if form.validate_on_submit():
             time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
             image_name = f"module_enmcapsualtion_{time_stamp}.png"
             module_encapsulation_data_dict = get_module_encapsulation_form_data(form,image_name)
+            save_module_encapsulation_data(module_encapsulation_data_dict)
             with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(module_encapsulation_data_dict) + "\n") 
             print(module_encapsulation_data_dict)
@@ -531,17 +487,16 @@ def add_data():
             csv_name = f"wire_bonding_data_{time_stamp}.csv"
             wire_data_dict = wire_form_dict(request.form ,img_name , csv_name)
             print(wire_data_dict)
+            save_wire_bonding_data(wire_data_dict)
             with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(wire_data_dict) + "\n") 
             return redirect(url_for('work_flow'))
         form = WireBondingForm()
-        return render_template('wire_bonding.html', form=form,module_ids =[3463,35745,56778],station_names = ["station1","station2","station3"])
+        return render_template('wire_bonding.html', form=form,module_ids =get_field_values_with_id(HybridGluingTable,"module_id"),station_names = get_station_info())
         
     elif workflow_name =="Noise Test Ph2-ACF":
         form = NoiseTestForm_Ph2_ACF()
-        module_ids = [f"module_{i}" for i in range(1, 11)]
-        form.module_id.choices = [(module_id, module_id) for module_id in module_ids]
-        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.module_id.choices = get_field_values_with_id(HybridGluingTable,"module_id")
         form.station.choices = get_station_info()
         #form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
         if form.validate_on_submit():
@@ -555,18 +510,14 @@ def add_data():
 }
             dict_data = get_noise_test_Ph2_ACF_form_data(form,file_dict)
             print(dict_data)
+            save_noise_ph2ACF_data(dict_data)
             with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(dict_data) + "\n") 
             return redirect(url_for('work_flow'))
     elif workflow_name == "Noise Test GIPHT":
         form = NoiseTestForm_GIPHT()
-        # form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
-        # if form.validate_on_submit():
-        module_ids = [f"module_{i}" for i in range(1, 11)]
-        form.module_id.choices = [(module_id, module_id) for module_id in module_ids]
-        station_ids = [f"station_{i}" for i in range(1, 11)] 
+        form.module_id.choices = get_field_values_with_id(HybridGluingTable,"module_id")
         form.station.choices = get_station_info()
-        #form.module_id.choices = [(module.module_id, module.module_id) for module in module_ids]
         if form.validate_on_submit():
             time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
             file_dict = {
@@ -576,13 +527,13 @@ def add_data():
     "iv_file": f"ivfile{time_stamp}.txt",
     "root_file": f"data{time_stamp}.root"
 }
-            dict_data = get_noise_test_GIPHT_form_data(form,file_dict)
-            print(dict_data)
+            data_dict = get_noise_test_GIPHT_form_data(form,file_dict)
+            save_noise_GIPHT_data(data_dict)
+            print(data_dict)
             with open("form_data.jsonl", "a") as f:
-                f.write(json.dumps(dict_data) + "\n") 
+                f.write(json.dumps(data_dict) + "\n") 
             return redirect(url_for('work_flow'))
     elif workflow_name == "Burnin Test":
-        station_names = [f"station_{i}" for i in range(1, 11)] 
         if request.method =="POST":
             time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
             file_dict = {
@@ -592,14 +543,12 @@ def add_data():
     "burnnin_box_root_file": f"burnin_box_{time_stamp}.root"
 }
             data_dict   = burnin_form_dict(request.form, file_dict)
+            save_burnin_test_data(data_dict)
             print(data_dict)
             with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(data_dict) + "\n") 
             return redirect(url_for('work_flow'))
-        return render_template("BurninTest.html",module_ids =[123,3224,33545,4546],station_names=station_names)
-            
-        
-    
+        return render_template("BurninTest.html",module_ids =get_field_values_with_id(HybridGluingTable,"module_id"),station_names=get_station_info())
     return render_template("visual_inspection.html", form=form, process_name=workflow_name)
 
 
@@ -610,8 +559,8 @@ def get_dict_form_visual(form,file_name,material_type):
     #                   'stump_bridge_visual':"stump_bridge_id"}
     form_data_dict = {
             "material_type":material_type, 
-            "material_id": form.material_id.data,
-            "station": form.station.data,
+            "material_id": int(form.material_id.data),
+            "station": int(form.station.data),
             "temp": form.temp.data,
             "humidity": form.humidity.data,
             "dew_point": form.dew_point.data,
@@ -619,23 +568,23 @@ def get_dict_form_visual(form,file_name,material_type):
             "image_url": save_get_file_url(form.image.data,file_name),  # Save file and get the URL
             "comment": form.comment.data
         }
+    print(type(form_data_dict["material_id"]))
     return form_data_dict
 # < ---------------------- Visual Inspection Part ------------------------------
 @app.route('/visual_inspection_data', methods=["GET", "POST"])
 def visual_inspection_data():
     material_type = request.args.get("material_type")
-    material_id_list = ["34rwgey","dgfrtrer3","dfgyuert46","rgf7457"]
-    
-    visual_material_form = FORM_MAPPING_VISUAL_INSPECTION[material_type]()
-    station_ids = [f"station_{i}" for i in range(1, 11)] 
-    visual_material_form.station.choices = [(station_id, station_id) for station_id in station_ids]
-    # get the material primaary key and id as (id,material_id)
-    visual_material_form.material_id.choices = [(material_id, material_id) for material_id in material_id_list]
+    material_list = FORM_MAPPING_VISUAL_INSPECTION[material_type]
+    visual_material_form = material_list[0]()
+    visual_material_form.station.choices = get_station_info()
+    visual_material_form.material_id.choices = get_field_values_with_id(material_list[2], material_list[1])
     if visual_material_form.validate_on_submit():
         time_stamp = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
         file_name = f"visual_{material_type}_{time_stamp}.png"
         form_dict_data = get_dict_form_visual(visual_material_form,file_name,material_type)
         print(form_dict_data)
+        print(save_datetime_to_db(form_dict_data["working_date"]))
+        save_visual_data_to_db(form_dict_data,material_list)
         with open("form_data.jsonl", "a") as f:
                 f.write(json.dumps(form_dict_data) + "\n") 
         return redirect(url_for('work_flow'))
@@ -645,7 +594,86 @@ def get_station_info():
     stations = db.session.query(StationTable.id, StationTable.station_name).all()
     formatted_stations = [(station_id,station_name) for station_id, station_name in stations]
     return formatted_stations
+def get_field_values_with_id(model, *field_names):
+    try:
+        # Get the primary key field name dynamically
+        primary_key = inspect(model).primary_key[0].name  
+        
+        # Ensure all requested fields exist in the model
+        fields = [getattr(model, field_name) for field_name in field_names]
+        
+        # Query the database for the primary key and requested fields
+        query_results = db.session.query(getattr(model, primary_key), *fields).all()
+        
+        return [tuple(record) for record in query_results]
+    
+    except AttributeError as e:
+        raise ValueError(f"One or more fields do not exist in {model.__name__}: {e}")
 
+def is_choise_empty(workflow_name: str, form: object) -> bool:
+    workflows_choices = {
+"Visual Inspection": [
+    "sensor_id", "feh_id", "seh_id", "main_bridge_id", "stump_bridge_id"
+],
+"Kapton Gluing": [
+    "sensor_id", "part_A_batch_no", "part_B_batch_no", 
+    "jig_id", "station"
+],
+"Hv Form": [
+    "sensor_id", "station"
+],
+"Iv Form": [
+    "sensor_id", "station"
+],
+"Sensor Gluing": [
+    "part_A_batch_no", "part_B_batch_no", "jig_id", 
+    "top_sensor_id", "bottom_sensor_id", "main_bridge_id", 
+    "stump_bridge_id", "station"
+],
+"Needle Metrology": [
+    "bare_module_id", "station"
+],
+"Skeleton Test": [
+    "FEH_L", "FEH_R", "SEH", "VTRx", 
+    "ground_balancer_id", "station"
+],
+"Hybrid Gluing": [
+    "bare_module_id", "skeleton_id", 
+    "part_A_batch_no", "part_B_batch_no", "station"
+],
+"Module Encapsulation": [
+    "module_id", "glue_a", "glue_b", 
+    "jig", "station"
+],
+"Wire Bonding": [
+    "module_ids", "station_names"
+],
+"Noise Test Ph2-ACF": [
+    "module_id", "station"
+],
+"Noise Test GIPHT": [
+    "module_id", "station"
+],
+"Burnin Test": [
+    "module_ids", "station_names"
+]
+}
+    required_fields = workflows_choices.get(workflow_name)
+
+    if required_fields is None:
+        return True 
+
+    if isinstance(required_fields, dict):
+        for field in required_fields:
+            if hasattr(form, field) and getattr(form, field).choices == []:
+                return True  
+
+    if isinstance(required_fields, list):
+        for field in required_fields:
+            if hasattr(form, field) and getattr(form, field).choices == []:
+                return True 
+
+    return False 
 def save_get_file_url(file,file_name):
     file_name = secure_filename(file_name)
     try:
@@ -811,6 +839,9 @@ def get_hybrid_gluing_form_data(form,image_name):
     }
 def get_module_encapsulation_form_data(form,image_name):
     return {
+        "temp":form.temp.data,
+        "humidity": form.humidity.data,
+        "dew_point": form.dew_point.data,
         "working_date": form.working_date.data.strftime('%Y-%m-%d') if form.working_date.data else None,
         "module_id": form.module_id.data,
         "glue_a": form.glue_a.data,
@@ -854,9 +885,10 @@ def get_noise_test_GIPHT_form_data(form,file_dict):
         "comment": form.comment.data,
     }
 def wire_form_dict(form ,img_name , csv_name):
-    data_dict = {"module_id":form.get('module_id'),"station_name":form.get("station_name"),"temparature":form.get('temperature'),"dewpoint":form.get('dewpoint'),"humidity":form.get('humidity'),
+    data_dict = {"module_id":form.get('module_id'),"station_name":form.get("station_name"),"temparature":form.get('temperature'),"dewpoint":form.get('dewpoint'),"humidity":form.get('humidity'),"working_date":form.get('date', 'Unknown'),
                  "comment":form.get('comment'),"img_url":None,"top_parameter":None, "bottom_parameter":None , "csv_file":None
                  }
+    # data_dict["working_date"]=form.working_date.data.strftime('%Y-%m-%d') if form.working_date.data else None
     if 'image' in request.files:
             image = request.files['image']
             if image :
@@ -926,7 +958,6 @@ def burnin_form_dict(form, file_dict):
                     "press_supply_root_file":None,
                     "burnnin_box_root_file":None
                 }
-                #Tracker ROOT File ,Tracker Monitor ROOT File ,Press Supply ROOT File,Burnin Box ROOT File
                 
                 if 'Tracker ROOT File' in request.files:
                     tracker_root = request.files['Tracker ROOT File']
@@ -951,10 +982,6 @@ def burnin_form_dict(form, file_dict):
 
 
 def save_user_to_db(user_data: dict):
-    """
-    Saves a user record to the database.
-    :param user_data: Dictionary containing user fields and values.
-    """
     valid_fields = {column.name for column in UserTable.__table__.columns}
     filtered_data = {k: v for k, v in user_data.items() if k in valid_fields}
     
@@ -985,7 +1012,6 @@ def save_datetime_to_db(working_date):
         db.session.rollback()
         raise e
 def save_temp_humi_dew_to_db(temp_humi_dew_data: dict):
-
     valid_fields = {column.name for column in TempHumiDewTable.__table__.columns}
     filtered_data = {k: v for k, v in temp_humi_dew_data.items() if k in valid_fields}
     
@@ -998,20 +1024,336 @@ def save_temp_humi_dew_to_db(temp_humi_dew_data: dict):
     except Exception as e:
         db.session.rollback()
         raise e
-#     #e.g        temp_humi_dew_data = {
-#     "temperature": 22.5,
-#     "dew_point": 15.3,
-#     "humidity": 65.4
-# }
 def get_current_user_id():
-    """
-    Returns the ID of the currently authenticated user.
-    Assumes Flask-Login is being used for user management.
-    """
     if current_user.is_authenticated:
         return current_user.id
     else:
         return None  # Or raise an exception if preferred
+def save_visual_data_to_db(form_dict, material_list):
+    visual_data = {
+        "image": form_dict.get("image_url", None),
+        "comment": form_dict.get("comment", ""),
+        "datetime_id":save_datetime_to_db(form_dict.get("working_date")),
+        "user_id": get_current_user_id(),
+        material_list[1]: form_dict.get("material_id"),
+        "station_id": form_dict.get("station"),
+        "temp_humi_dewid": save_temp_humi_dew_to_db({
+            "temperature": form_dict.get("temp", 0.0),
+            "dew_point": form_dict.get("dew_point", 0.0),
+            "humidity": form_dict.get("humidity", 0.0)
+        })
+    }
+    print(visual_data["temp_humi_dewid"])
+    print(save_datetime_to_db(form_dict.get("working_date")))
+    valid_fields = {column.name for column in material_list[3].__table__.columns}
+    print(valid_fields)
+    if material_list[1] not in valid_fields:
+        raise ValueError(f"Invalid field name '{material_list[1]}' for table {material_list[3].__name__}")
+    filtered_data = {k: v for k, v in visual_data.items() if k in valid_fields}
+    visual_record = material_list[3](**filtered_data)
+
+    try:
+        db.session.add(visual_record)
+        db.session.commit()
+        return visual_record
+    except Exception as e:
+        db.session.rollback()
+        raise e
+from sqlalchemy.exc import SQLAlchemyError
+
+def save_kapton_data(data_dict):
+    datetime_id = save_datetime_to_db(data_dict.get("working_date")) 
+    temp_humi_dew_id = save_temp_humi_dew_to_db({
+        "temperature": data_dict.get("temp", 0.0),
+        "dew_point": data_dict.get("dew_point", 0.0),
+        "humidity": data_dict.get("humidity", 0.0)
+    })
+    user_id = get_current_user_id() 
+    kapton_record = KaptonGluingTable(
+    cooling_point=data_dict.get("cooling_points").replace(" ", ""),  # Fix space issue
+    image=data_dict.get("image", None),
+    comment=data_dict.get("comment", ""),
+    glue_idA=int(data_dict.get("part_A_batch_no")),  # Convert to int
+    glue_idB=int(data_dict.get("part_B_batch_no")),  # Convert to int
+    date_time_id=datetime_id,  # Ensure this is correctly set
+    user_id=user_id,  # Ensure this is correctly set
+    temp_humi_dew_id=temp_humi_dew_id,  # Ensure this is correctly set
+    sensor_id=int(data_dict.get("sensor_id")),  # Convert to int
+    jig_id=int(data_dict.get("jig_no")),  # Convert to int
+    station_id=int(data_dict.get("station_id"))  # Ensure correct type
+)
+
+    try:
+        db.session.add(kapton_record)  
+        db.session.commit()
+        update_record(SensorTable,kapton_record.sensor_id,"sensor_type",data_dict.get("sensor_type"))  
+        return kapton_record
+    except Exception as e:
+        db.session.rollback()
+        raise e
+def save_hv_data(data_dict):
+    temp_humi_dew_id = save_temp_humi_dew_to_db({
+        "temperature": data_dict.get("temp", 0.0),
+        "dew_point": data_dict.get("dew_point", 0.0),
+        "humidity": data_dict.get("humidity", 0.0)
+    })
+    hv_record = HVTable(
+        cooling_point=data_dict.get("cooling_points").replace(" ", ""),  # Fix space issue
+        hv_csv=data_dict.get("hv_csv", None),
+        optional_file=data_dict.get("image", None),  # Mapping 'image' to 'optional_file'
+        comment=data_dict.get("comment", ""),
+        datetime_id=save_datetime_to_db(data_dict.get("working_date")),  
+        user_id=get_current_user_id() ,  
+          
+        station_id=int(data_dict.get("station_id")),  
+        temp_humi_dewid=temp_humi_dew_id  
+    )
+
+    db.session.add(hv_record) 
+    db.session.commit() 
+def save_iv_data(data_dict):
+    temp_humi_dew_id = save_temp_humi_dew_to_db({
+        "temperature": data_dict.get("temp", 0.0),
+        "dew_point": data_dict.get("dew_point", 0.0),
+        "humidity": data_dict.get("humidity", 0.0)
+    })
+    iv_record = IVTable(
+        cooling_point=data_dict.get("cooling_points").replace(" ", ""),  
+        iv_csv=data_dict.get("iv_csv", None),
+        optional_file=data_dict.get("image", None), 
+        comment=data_dict.get("comment", ""),
+        datetime_id=save_datetime_to_db(data_dict.get("working_date")),  
+        user_id=get_current_user_id() ,  
+        sensor_id=int(data_dict.get("sensor_id")),  
+        station_id=int(data_dict.get("station_id")),  
+        temp_humi_dewid=temp_humi_dew_id  
+    )
+
+    db.session.add(iv_record) 
+    db.session.commit()  
+def save_sens_gluing(data_dict):
+    module_spacing = float(data_dict.get("module_spacing").replace("mm", ""))
+    temp_humi_dew_id = save_temp_humi_dew_to_db({
+        "temperature": data_dict.get("temp", 0.0),
+        "dew_point": data_dict.get("dew_point", 0.0),
+        "humidity": data_dict.get("humidity", 0.0)
+    })
+    sensor_gluing_record = SensorGluingTable(
+        bare_module_id=data_dict.get("bare_module_id"),
+        module_spacing=module_spacing,
+        cooling_point=data_dict.get("cooling_points").replace(" ", ""),  
+        image=data_dict.get("image", None),
+        comment=data_dict.get("comment", ""),
+        bottom_sensor_id=int(data_dict.get("bottom_sensor_id")),  # Convert to int
+        top_sensor_id=int(data_dict.get("top_sensor_id")),  # Convert to int
+        mainbridgeid=int(data_dict.get("main_bridge_id")),  # Convert to int
+        stumpbridge_id=int(data_dict.get("stump_bridge_id")),  # Convert to int
+        jig_id=int(data_dict.get("jig_id")),  # Convert to int
+        station_id=int(data_dict.get("station_id")),  # Convert to int
+        glue_idA=int(data_dict.get("part_A_batch_no")),  # Convert to int
+        glue_idB=int(data_dict.get("part_B_batch_no")),  # Convert to int
+        datetimeid=save_datetime_to_db(data_dict.get("working_date")),  # Ensure this is correctly set
+        user_id=get_current_user_id(),  # Ensure this is correctly set
+        temp_humi_dewid=temp_humi_dew_id  # Ensure this is correctly set
+    )
+
+    db.session.add(sensor_gluing_record)  # Add record to session
+    db.session.commit()  # Commit transaction
+def save_needle_data(data_dict):
+    temp_humi_dew_id = save_temp_humi_dew_to_db({
+        "temperature": data_dict.get("temp", 0.0),
+        "dew_point": data_dict.get("dew_point", 0.0),
+        "humidity": data_dict.get("humidity", 0.0)
+    })
+    delta_x = float(data_dict.get("x_coordinate"))
+    delta_y = float(data_dict.get("y_coordinate"))
+    rotation = float(data_dict.get("del_theta"))
+
+    needle_metrology_record = NeedleMetrologyTable(
+        user_id=get_current_user_id(),  # Ensure this is correctly set
+        delta_x=delta_x,
+        delta_y=delta_y,
+        rotation=rotation,
+        data_file=data_dict.get("csv_excel", None),  # Store CSV/Excel file path
+        image=data_dict.get("image", None),
+        comment=data_dict.get("comment", ""),
+        datetime_id=save_datetime_to_db(data_dict.get("working_date")),  # Ensure this is correctly set
+        temp_humi_dew_id=temp_humi_dew_id,  # Ensure this is correctly set
+        sensor_gluing_id=int(data_dict.get("bare_module_id")),  # Convert to int
+        jig_id=1,  # Convert to int if available
+        station_id=int(data_dict.get("station_id")),  # Convert to int
+    )
+
+    db.session.add(needle_metrology_record)  # Add to session
+    db.session.commit()  # Commit transaction
+def save_skeleton_data(data_dict):
+    temp_humi_dew_id = save_temp_humi_dew_to_db({
+        "temperature": data_dict.get("temp", 0.0),
+        "dew_point": data_dict.get("dew_point", 0.0),
+        "humidity": data_dict.get("humidity", 0.0)
+    })
+    skeleton_test_record = SkeletonTestTable( 
+        skeleton_id=data_dict.get("skeleton_id"),
+        upload_img=data_dict.get("file", None),  # Map file → upload_img
+        comment=data_dict.get("comment", ""),
+        feh_idL=int(data_dict.get("FEH_L")),
+        feh_idR=int(data_dict.get("FEH_R")),
+        seh_id=int(data_dict.get("SEH")),
+        vtrxid=int(data_dict.get("VTRx")),
+        groundebalancer_id=int(data_dict.get("ground_balancer_id")),
+        station_id=int(data_dict.get('station_id')),
+        jigid=1,
+        datetimeid=save_datetime_to_db(data_dict.get("working_date")),  # Ensure this is correctly set
+        temp_humi_id=temp_humi_dew_id,  # Ensure this is correctly set
+        userid=get_current_user_id() # Ensure this is correctly set
+    )
+    update_record(FEHTable,int(data_dict.get("FEH_L")),"feh_type","LEFT")
+    update_record(FEHTable,int(data_dict.get("FEH_R")),"feh_type","RIGHT")
+    db.session.add(skeleton_test_record)  # Add to session
+    db.session.commit()
+def save_hybrid_gluing_data(data_dict):
+    temp_humi_dew_id = save_temp_humi_dew_to_db({
+        "temperature": data_dict.get("temp", 0.0),
+        "dew_point": data_dict.get("dew_point", 0.0),
+        "humidity": data_dict.get("humidity", 0.0)
+    })
+    hybrid_gluing_record = HybridGluingTable(
+        upload_img=data_dict.get("image", None),  # Map image → upload_img
+        comment=data_dict.get("comment", ""),
+        module_id=data_dict.get("module_id"),  # If module_id should be bare_module_id
+        sensorgluing_id=data_dict.get("bare_module_id"),
+        skeletontest_id=data_dict.get("skeleton_id"),
+        glue_idA=int(data_dict.get("part_A_batch_no", 0)),  # Convert to int
+        glue_idB=int(data_dict.get("part_B_batch_no", 0)),  # Convert to int
+        station_id=int(data_dict.get("station_id")),
+        jig_id =1, # not included in forms 
+        datetimeid=save_datetime_to_db(data_dict.get("working_date")),  # Ensure datetime_id is correctly set
+        temp_humi_dew_id=temp_humi_dew_id,  # Ensure tempid is correctly set
+        userid=get_current_user_id() # Ensure userid is correctly set
+    )
+
+    db.session.add(hybrid_gluing_record)  # Add to session
+    db.session.commit()  # Commit transaction
+def save_module_encapsulation_data(data_dict):
+    temp_humi_dew_id = save_temp_humi_dew_to_db({
+        "temperature": data_dict.get("temp", 0.0),
+        "dew_point": data_dict.get("dew_point", 0.0),
+        "humidity": data_dict.get("humidity", 0.0)
+    })
+
+    # Create a new database entry for Module Encapsulation
+    module_encapsulation_record = ModuleEncapsulationTable(
+        glue_idA=int(data_dict.get("glue_a")),  
+        glue_idB=int(data_dict.get("glue_b")), 
+        preparation_time = float(data_dict.get("glue_preparation_time", 0)),
+        comment=data_dict.get("comment", ""),
+        image=data_dict.get("img", None),  
+        date_time_id=save_datetime_to_db(data_dict.get("working_date")),  
+        user_id=get_current_user_id(),  
+        temp_humi_dew_id=temp_humi_dew_id,  
+        hybrid_gluing_id=int(data_dict['module_id']),  
+        jig_id=int(data_dict.get("jig", 0)),
+        station_id=int(data_dict.get("station", 0))
+    )
+
+    # Add to session and commit
+    db.session.add(module_encapsulation_record)
+    db.session.commit()  # Commit transaction
+def save_wire_bonding_data(data_dict):
+    # Save temperature, humidity, and dewpoint data
+    temp_humi_dew_id = save_temp_humi_dew_to_db({
+        "temperature": data_dict.get("temparature", 0.0),
+        "dew_point": data_dict.get("dewpoint", 0.0),
+        "humidity": data_dict.get("humidity", 0.0)
+    })
+
+    date_time_id = save_datetime_to_db(data_dict.get("working_date"))
+
+    # Create a new database entry for Wire Bonding
+    wire_bonding_record = WireBondingTable(
+        comment=data_dict.get("comment", ""),
+        upload_img=data_dict.get("img_url", None),
+        excel_file=data_dict.get("csv_file", None),
+        
+        # Delta heights
+        delta_height_top=float(data_dict.get("top_parameter", {}).get("delta_height", 0.0)),
+        delta_height_bottom=float(data_dict.get("bottom_parameter", {}).get("delta_height", 0.0)),
+
+        # Correction factors
+        correction_factor_K1_top=float(data_dict.get("top_parameter", {}).get("correction_factor_k1", 0.0)),
+        correction_factor_K1_bottom=float(data_dict.get("bottom_parameter", {}).get("correction_factor_k1", 0.0)),
+
+        correction_factor_K2_top=float(data_dict.get("top_parameter", {}).get("correction_factor_k2", 0.0)),
+        correction_factor_K2_bottom=float(data_dict.get("bottom_parameter", {}).get("correction_factor_k2", 0.0)),
+
+        # Mean force values
+        mean_force_1_top=float(data_dict.get("top_parameter", {}).get("mean_force_1", 0.0)),
+        mean_force_1_bottom=float(data_dict.get("bottom_parameter", {}).get("mean_force_1", 0.0)),
+        mean_force_2_top=float(data_dict.get("top_parameter", {}).get("mean_force_2", 0.0)),
+        mean_force_2_bottom=float(data_dict.get("bottom_parameter", {}).get("mean_force_2", 0.0)),
+
+        # RMS values
+        rms_value_top=float(data_dict.get("top_parameter", {}).get("rms_value", 0.0)),
+        rms_value_bottom=float(data_dict.get("bottom_parameter", {}).get("rms_value", 0.0)),
+
+        # Standard Deviation values
+        std_deviation_top=float(data_dict.get("top_parameter", {}).get("standard_deviation", 0.0)),
+        std_deviation_bottom=float(data_dict.get("bottom_parameter", {}).get("standard_deviation", 0.0)),
+
+        # Relations to other tables
+        date_time_id=date_time_id,
+        userid=get_current_user_id(),  # Assuming a function to get current user ID
+        temp_humi_dew_id=temp_humi_dew_id,
+        hybrid_gluing_id=int(data_dict.get("module_id", 0)),
+        jig_id=int(data_dict.get("jig", 0)),
+        station_id=int(data_dict.get("station_name", 0))
+    )
+
+    
+    db.session.add(wire_bonding_record)
+    db.session.commit()  
+def save_noise_ph2ACF_data(data_dict):
+    temp_humi_dew_id = save_temp_humi_dew_to_db({
+        "temperature": data_dict.get("temp", 0.0),
+        "dew_point": data_dict.get("dew_point", 0.0),
+        "humidity": data_dict.get("humidity", 0.0)
+    })
+    noise_test_ph2ACF_record = NoiseTestPh2ACFTable(
+       aldrino_file=data_dict.get("aldrino_file", None),
+        hv_file=data_dict.get("hv_file", None),
+        lv_file=data_dict.get("lv_file", None),
+        iv_file=data_dict.get("iv_file", None),
+        root_file=data_dict.get("root_file", None),
+        comment=data_dict.get("comment", ""),
+        datetimeid=save_datetime_to_db(data_dict.get("working_date")),
+        user_id=get_current_user_id(), 
+        temp_id=temp_humi_dew_id,
+        hybrid_gluing_id=int(data_dict.get("module_id", 0)),
+        station_id=int(data_dict.get("station_id", 0))
+    )
+    db.session.add(noise_test_ph2ACF_record)
+    db.session.commit()  
+def save_noise_GIPHT_data(data_dict):
+    temp_humi_dew_id = save_temp_humi_dew_to_db({
+        "temperature": data_dict.get("temp", 0.0),
+        "dew_point": data_dict.get("dew_point", 0.0),
+        "humidity": data_dict.get("humidity", 0.0)
+    })
+    noise_test_GIPHIT_record = NoiseTestGIPHTTable(
+       aldrino_file=data_dict.get("aldrino_file", None),
+        hv_file=data_dict.get("hv_file", None),
+        lv_file=data_dict.get("lv_file", None),
+        iv_file=data_dict.get("iv_file", None),
+        root_file=data_dict.get("root_file", None),
+        comment=data_dict.get("comment", ""),
+        datetimeid=save_datetime_to_db(data_dict.get("working_date")),
+        user_id=get_current_user_id(), 
+        temp_humi_dew_id=temp_humi_dew_id,
+        hybrid_gluing_id=int(data_dict.get("module_id", 0)),
+        station_id=int(data_dict.get("station_id", 0))
+    )
+    db.session.add(noise_test_GIPHIT_record)
+    db.session.commit()  
 def save_station_to_db(form_dict):
             station_data = {
     "station_name": form_dict["station_name"],
@@ -1032,8 +1374,7 @@ def save_station_to_db(form_dict):
             except Exception as e:
                 db.session.rollback()
                 raise e
-def get_station_id_by_name(station_name):
-    pass
+
 def save_material_receiving_data_to_db(form_data_dict):
     received_date_value = form_data_dict["common_data"].get("date")
     if received_date_value:
@@ -1185,38 +1526,55 @@ def save_material_receiving_data_to_db(form_data_dict):
     except Exception as e:
         db.session.rollback()
         raise e
-    # users = [User(name=name) for name in names]
-    # db.session.add_all(users)  # Add multiple rows at once
-    # db.session.commit() 
+def save_burnin_test_data(data_dict):
+    working_date = data_dict.get("workingDate")
+    if not working_date:
+        raise ValueError("Working date is required!")
+    temp_humi_dew_id = save_temp_humi_dew_to_db({
+        "temperature": float(data_dict.get("temperature", 0.0)),
+        "dew_point": float(data_dict.get("dewPoint", 0.0)),
+        "humidity": float(data_dict.get("humidity", 0.0))
+    })
 
-# Example form_data_dict to test the function
-form_data_dict = {
-    "received_from": "Supplier X",
-    "received_date": "2025-02-12",  # Received date in 'YYYY-MM-DD' format
-    "material_name": "Material A",
-    "img": "/path/to/image.jpg",
-    "comment": "Material received in good condition",
-    "user_id": 1,  
-    "datetime_id": 1, 
-    "temp_humi_dew_id": 1, 
-    "station_id": 1  
-}
+    date_time_id = save_datetime_to_db(working_date)
 
-# Save to the database
-#record = save_material_receiving_common_to_db(form_data_dict)
+    module_id = int(data_dict["module_id"][0]) if isinstance(data_dict["module_id"], list) else int(data_dict["module_id"])
 
-material_data = {
-    "received_from": "Supplier X",
-    "received_date": datetime.datetime(2025, 2, 1, 9, 0, 0),
-    "material_name": "Material A",
-    "img": "/path/to/image.jpg",
-    "comment": "Material received in good condition",
-    "user_id": 1,  # Example user ID
-    "datetime_id": 1,  # Example DateTime ID
-    "temp_humi_dew_id": 1,  # Example TempHumiDew ID
-    "station_id": 1  # Example Station ID
-}
+    # Create a new BurninTestTable record
+    burnin_test_record = BurninTestTable(
+        tracker_monitor_root_file=data_dict.get("tracker_monitor_root_file", None),
+        tracker_root_file=data_dict.get("tracker_root_file", None),
+        press_supply_root_file=data_dict.get("press_supply_root_file", None),
+        burnin_box_root_file=data_dict.get("burnnin_box_root_file", None),
+        comment=data_dict.get("comment", ""),
+        all_module = str(data_dict["module_id"]),
+        userid=get_current_user_id(),  # Function to fetch current user ID
+        date_time_id=date_time_id,
+        temp_humi_dew_id=temp_humi_dew_id,
+        hybri_gluing_id=module_id,  # Hybrid gluing foreign key
+        station_id=int(data_dict.get("station_name", 0))  # Convert station name to ID
+    )
 
+    # Add to session and commit
+    db.session.add(burnin_test_record)
+    db.session.commit()
+
+    return burnin_test_record
+
+def update_record(model, primary_id, field_name, new_value):
+    try:
+        record = db.session.get(model, primary_id) 
+        if not record:
+            return None  
+        if not hasattr(record, field_name):
+            raise AttributeError(f"Field '{field_name}' does not exist in {model.__name__}")
+        
+        setattr(record, field_name, new_value)  
+        db.session.commit()  
+        return record
+    except Exception as e:
+        db.session.rollback()
+        raise e  
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=9999, debug=True)
 

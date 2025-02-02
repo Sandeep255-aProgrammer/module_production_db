@@ -58,7 +58,7 @@ class SensorVisualForm(FlaskForm):
     station = SelectField("Station", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     image = FileField("Upload Image", validators=[DataRequired()]) # compulsary 
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 class FEHVisualForm(FlaskForm):
     material_id = SelectField("FEH ID", validators=[DataRequired()])
@@ -68,7 +68,7 @@ class FEHVisualForm(FlaskForm):
     station = SelectField("Station", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     image = FileField("Upload Image", validators=[DataRequired()]) # compulsary 
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 class SEHVisualForm(FlaskForm):
     material_id = SelectField("SEH ID", validators=[DataRequired()])
@@ -78,7 +78,7 @@ class SEHVisualForm(FlaskForm):
     station = SelectField("Station", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     image = FileField("Upload Image", validators=[DataRequired()]) # compulsary 
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 class MainBridgeVisualForm(FlaskForm):
     material_id = SelectField("Main Bridge ID", validators=[DataRequired()])
@@ -88,7 +88,7 @@ class MainBridgeVisualForm(FlaskForm):
     station = SelectField("Station", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     image = FileField("Upload Image", validators=[DataRequired()]) # compulsary 
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 class StumpBridgeVisualForm(FlaskForm):
     material_id = SelectField("Stump Bridge ID", validators=[DataRequired()])
@@ -98,7 +98,7 @@ class StumpBridgeVisualForm(FlaskForm):
     station = SelectField("Station", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     image = FileField("Upload Image", validators=[DataRequired()]) # compulsary 
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 
 # <-------------------------- Kapton Gluing Form (workflow ) ------------------------------------
@@ -128,7 +128,7 @@ class KaptonGluing(FlaskForm):
     jig_id = SelectField("Select Jig No.",validators=[DataRequired()])
     station = SelectField("Station", validators=[DataRequired()])
     image = FileField("Upload Image (optional)" )
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 
 # ------------------------------Kapton Gluing End Form --------------------------------->
@@ -150,7 +150,7 @@ class HvForm(FlaskForm):
   # upload csv
     
     image = FileField("Upload Image(optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 class IvForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
@@ -168,7 +168,7 @@ class IvForm(FlaskForm):
   # upload csv
     
     image = FileField("Upload Image(optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 # ---------------------  HVIV form End------------------------------------------------>
 
@@ -195,7 +195,7 @@ class SensorGluing(FlaskForm):
     part_B_batch_no = SelectField("Polytec TC437 partB / Batch No :")
     station = SelectField("Station", validators=[DataRequired()])
     image = FileField("Upload Image")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 
 # -------------------------- Sensor Gluing Form End --------------------------->
@@ -214,7 +214,7 @@ class NeedleMetrologyForm(FlaskForm):
     del_theta = StringField("Rotation", validators=[DataRequired()])
     csv_excel= FileField("Upload Data (csv/excel)" ,validators=[DataRequired()])
     image = FileField("Upload Image (optional)" )
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 
 # --------------------------  Needle Metrology Form End (workflow)--------------------->
@@ -234,7 +234,7 @@ class SkeletonTestForm(FlaskForm):
     ground_balancer_id = SelectField("Ground Balancer ID", validators=[DataRequired()])
     station = SelectField("Station", validators=[DataRequired()])
     file = FileField("Upload File ",validators=[DataRequired()])
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 
 # ----------------------- SkeletonTest End ---------------------------------------- >
@@ -253,7 +253,7 @@ class HybridGluingForm(FlaskForm):
     part_B_batch_no = SelectField("Polytec TC437 partB / Batch No :")
     station = SelectField("Station", validators=[DataRequired()])
     image = FileField("Upload Image (optional)")
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 
 # ------------------------ Hybrid Test Form End ---------------------------------------->
@@ -261,6 +261,9 @@ class HybridGluingForm(FlaskForm):
 #------------------------- Moudle Encapsulation Form ----------------------------------
 
 class ModuleEncapsulationForm(FlaskForm):
+    temp = FloatField("Temperature (°C)", validators=[DataRequired()])
+    humidity = FloatField("Humidity", validators=[DataRequired()])
+    dew_point = FloatField("Dew Point", validators=[DataRequired()])
     working_date = DateField("Working Date", validators=[DataRequired()])
     module_id = SelectField("Module ID (Select)", validators=[DataRequired()])
     glue_a = SelectField("Glue A", validators=[DataRequired()])
@@ -268,7 +271,7 @@ class ModuleEncapsulationForm(FlaskForm):
     glue_preparation_time = StringField("Glue Preparation Time", validators=[DataRequired()])
     jig = SelectField("Jig", validators=[DataRequired()])
     station = SelectField("Station", validators=[DataRequired()])
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     img = FileField("Upload Image (Optional)")
     submit = SubmitField("Save")
 
@@ -279,7 +282,7 @@ class ModuleEncapsulationForm(FlaskForm):
 class ModuleData(FlaskForm):
     working_date = DateField("Working Date", validators=[DataRequired()])
     module_id = SelectField("Module_ID", validators=[DataRequired()])
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 
 # --------------------- Module Save form End -------------------------------------------->
@@ -291,8 +294,8 @@ class WireBondingForm(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
     humidity = FloatField("Humidity", validators=[DataRequired()])
     dew_point = FloatField("Dew Point", validators=[DataRequired()])
-    working_date = DateField("Working Date", validators=[DataRequired()])
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    working_date = DateField('Working Date', format='%Y-%m-%d', validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit = SubmitField("Save")
 
 # ------------------------- Wire Bond Form End ----------------------------------------->
@@ -311,7 +314,7 @@ class NoiseTestForm_Ph2_ACF(FlaskForm):
     upload_folder3 = FileField("LV File:",validators=[DataRequired()])
     upload_folder4 = FileField("IV File:",validators=[DataRequired()])
     upload_folder5 = FileField("ROOT File:",validators=[DataRequired()])
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit= SubmitField("Save")
 class NoiseTestForm_GIPHT(FlaskForm):
     temp = FloatField("Temperature (°C)", validators=[DataRequired()])
@@ -325,7 +328,7 @@ class NoiseTestForm_GIPHT(FlaskForm):
     upload_folder3 = FileField("LV File:",validators=[DataRequired()])
     upload_folder4 = FileField("IV File:",validators=[DataRequired()])
     upload_folder5 = FileField("ROOT File:",validators=[DataRequired()])
-    comment = CKEditorField("Comment", validators=[DataRequired()])
+    comment = TextAreaField("Comments", validators=[DataRequired()])
     submit= SubmitField("Save")
 
 # add two a table with 2 column 5 rows with module id field and add 4 root file

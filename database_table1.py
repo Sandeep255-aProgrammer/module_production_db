@@ -44,8 +44,8 @@ class UserTable(UserMixin, db.Model):
     hybrid_gluing = relationship("HybridGluingTable", back_populates="user" )
     module_encapsulation = relationship("ModuleEncapsulationTable", back_populates="user" )
     wire_bonding = relationship("WireBondingTable", back_populates="user" )
-    noise_test1 = relationship("NoiseTest1Table", back_populates="user" )
-    noise_test2 = relationship("NoiseTest2Table", back_populates="user" )
+    noise_test1 = relationship("NoiseTestPh2ACFTable", back_populates="user" )
+    noise_test2 = relationship("NoiseTestGIPHTTable", back_populates="user" )
     burnin_test = relationship("BurninTestTable", back_populates="user" )
 class DateTimeTable(db.Model):
     __tablename__ = "DateTimeTable"
@@ -69,8 +69,8 @@ class DateTimeTable(db.Model):
     hybrid_gluing = relationship("HybridGluingTable", back_populates="date_time" )
     module_encapsulation = relationship("ModuleEncapsulationTable", back_populates="date_time" )
     wire_bonding = relationship("WireBondingTable", back_populates="date_time" )
-    noise_test1 = relationship("NoiseTest1Table", back_populates="date_time" )
-    noise_test2 = relationship("NoiseTest2Table", back_populates="date_time" )
+    noise_test1 = relationship("NoiseTestPh2ACFTable", back_populates="date_time" )
+    noise_test2 = relationship("NoiseTestGIPHTTable", back_populates="date_time" )
     burnin_test = relationship("BurninTestTable", back_populates="date_time" )
 
 class StationTable(db.Model):
@@ -103,8 +103,8 @@ class StationTable(db.Model):
     hybrid_gluing = relationship("HybridGluingTable", back_populates="station")
     module_encapsulation = relationship("ModuleEncapsulationTable", back_populates="station")
     wire_bonding = relationship("WireBondingTable", back_populates="station")
-    noise_test1 = relationship("NoiseTest1Table", back_populates="station")
-    noise_test2 = relationship("NoiseTest2Table", back_populates="station")
+    noise_test1 = relationship("NoiseTestPh2ACFTable", back_populates="station")
+    noise_test2 = relationship("NoiseTestGIPHTTable", back_populates="station")
     burnin_test = relationship("BurninTestTable", back_populates="station")
     
 # --------------------------- Basic Form ---------------------------------------------!
@@ -123,8 +123,8 @@ class TempHumiDewTable(db.Model):
     sensor_gluing = relationship("SensorGluingTable", back_populates="temp_humi_dew")
     module_encapsulation = relationship("ModuleEncapsulationTable", back_populates="temp_humi_dew")
     wire_bonding = relationship("WireBondingTable", back_populates="temp_humi_dew")
-    noise_test1 = relationship("NoiseTest1Table", back_populates="temp_humi_dew")
-    noise_test2 = relationship("NoiseTest2Table", back_populates="temp_humi_dew")
+    noise_test1 = relationship("NoiseTestPh2ACFTable", back_populates="temp_humi_dew")
+    noise_test2 = relationship("NoiseTestGIPHTTable", back_populates="temp_humi_dew")
     burnin_test = relationship("BurninTestTable", back_populates="temp_humi_dew")
     needle_metrology = relationship("NeedleMetrologyTable", back_populates="temp_humi_dew")
     skeleton_test = relationship("SkeletonTestTable", back_populates="temp_humi_dew")
@@ -263,35 +263,7 @@ class StumpBridgeTable(db.Model):
     # ------------------------------- Parent Tables --------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="stump_bridge")
-    @classmethod
-    def add_stump_bridge_entry(cls, stump_bridge_data: dict):
-        """
-        Adds a new Stump Bridge entry to the database.
-        
-        Parameters:
-        stump_bridge_data (dict): A dictionary containing keys that match the columns of the StumpBridgeTable.
-
-        Returns:
-        StumpBridgeTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in stump_bridge_data
-            required_fields = {"stump_bridge_id", "material_receiver_common_id"}
-            missing_fields = required_fields - stump_bridge_data.keys()
-            
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            stump_bridge_entry = cls(**stump_bridge_data)
-            db.session.add(stump_bridge_entry)
-            db.session.commit()
-            return stump_bridge_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+    
 
 class KaptonTapeTable(db.Model):
     __tablename__ = "KaptonTapeTable"
@@ -301,36 +273,7 @@ class KaptonTapeTable(db.Model):
     # ----------------------------------- parent tables ------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="kapton_tape")
-    @classmethod
-    def add_kapton_tape_entry(cls, kapton_tape_data: dict):
-        """
-        Adds a new Kapton Tape entry to the database.
-        
-        Parameters:
-        kapton_tape_data (dict): A dictionary containing keys that match the columns of the KaptonTapeTable.
-
-        Returns:
-        KaptonTapeTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in kapton_tape_data
-            required_fields = {"kapton_id", "material_receiver_common_id"}
-            missing_fields = required_fields - kapton_tape_data.keys()
-            
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            kapton_tape_entry = cls(**kapton_tape_data)
-            db.session.add(kapton_tape_entry)
-            db.session.commit()
-            return kapton_tape_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
    
 class OtherTable(db.Model):
     __tablename__ = "OtherTable"
@@ -378,35 +321,7 @@ class GlueTable(db.Model):
     # ----------------------------------- parent tables ----------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="glue")
-    @classmethod
-    def add_glue_entry(cls, glue_data: dict):
-        """
-        Adds a new Glue entry to the database.
-
-        Parameters:
-        glue_data (dict): A dictionary containing keys that match the columns of the GlueTable.
-
-        Returns:
-        GlueTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in glue_data
-            required_fields = {"glue_batch_id", "expiry_date", "material_receiver_common_id"}
-            missing_fields = required_fields - glue_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            glue_entry = cls(**glue_data)
-            db.session.add(glue_entry)
-            db.session.commit()
-            return glue_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+    
 
 class WireBonderTable(db.Model):
     __tablename__ = "WireBonderTable"
@@ -418,36 +333,6 @@ class WireBonderTable(db.Model):
     # -------------------- Parent Tables --------------------------------
     material_receiver_common_id: Mapped[int] = mapped_column(ForeignKey("MaterialReceivingCommonTable.id"), nullable=False)
     material_receiver_common = relationship("MaterialReceivingCommonTable", back_populates="wire_bonder")
-    @classmethod
-    def add_wire_bonder_entry(cls, wire_bonder_data: dict):
-        """
-        Adds a new Wire Bonder entry to the database.
-
-        Parameters:
-        wire_bonder_data (dict): A dictionary containing keys that match the columns of the WireBonderTable.
-
-        Returns:
-        WireBonderTable instance of the added entry.
-        """
-        try:
-            # Ensure the required keys are provided in wire_bonder_data
-            required_fields = {"spool_no", "wedge_no", "expiry_date", "material_receiver_common_id"}
-            missing_fields = required_fields - wire_bonder_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            wire_bonder_entry = cls(**wire_bonder_data)
-            db.session.add(wire_bonder_entry)
-            db.session.commit()
-            return wire_bonder_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
     
    
 # ---------------------- Visual Inspection Tables ----------------------------
@@ -460,7 +345,7 @@ class VSensorTable(db.Model):
     image: Mapped[str] = mapped_column(String(1000), nullable=True)  # Image of the visual inspection result
     comment: Mapped[str] = mapped_column(String(4000), nullable=True)  # Any additional comments or notes
     # --------------------------- Parent Tables -------------------------------
-    date_time_id: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)
+    datetime_id: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)
     date_time = relationship("DateTimeTable", back_populates="v_sensor")
     user_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
     user = relationship("UserTable", back_populates="v_sensor")
@@ -470,35 +355,7 @@ class VSensorTable(db.Model):
     station =relationship("StationTable",back_populates="v_sensor")
     temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="v_sensor")
-    @classmethod
-    def add_v_sensor_entry(cls, v_sensor_data: dict):
-        """
-        Adds a new VSensor entry to the database.
-
-        Parameters:
-        v_sensor_data (dict): A dictionary containing the fields required for a VSensorTable entry.
-
-        Returns:
-        VSensorTable instance of the added entry.
-        """
-        try:
-            # Ensure the required fields are present in v_sensor_data
-            required_fields = {"date_time_id", "user_id", "sensor_id", "station_id", "temp_humi_dewid"}
-            missing_fields = required_fields - v_sensor_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            v_sensor_entry = cls(**v_sensor_data)
-            db.session.add(v_sensor_entry)
-            db.session.commit()
-            return v_sensor_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+    
 
 class VFEHTable(db.Model):
     __tablename__ = "VFEHTable"
@@ -517,36 +374,7 @@ class VFEHTable(db.Model):
     station =relationship("StationTable",back_populates="v_feh")
     temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="v_feh")
-    @classmethod
-    def add_v_feh_entry(cls, v_feh_data: dict):
-        """
-        Adds a new VFEH entry to the database.
-
-        Parameters:
-        v_feh_data (dict): A dictionary containing the fields required for a VFEHTable entry.
-
-        Returns:
-        VFEHTable instance of the added entry.
-        """
-        try:
-            # Ensure the required fields are present in v_feh_data
-            required_fields = {"datetime_id", "user_id", "feh_id", "station_id", "temp_humi_dewid"}
-            missing_fields = required_fields - v_feh_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            v_feh_entry = cls(**v_feh_data)
-            db.session.add(v_feh_entry)
-            db.session.commit()
-            return v_feh_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 class VSEHTable(db.Model):
     __tablename__ = "VSEHTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
@@ -565,36 +393,7 @@ class VSEHTable(db.Model):
     station =relationship("StationTable",back_populates="v_seh")
     temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="v_seh")
-    @classmethod
-    def add_v_seh_entry(cls, v_seh_data: dict):
-        """
-        Adds a new VSEH entry to the database.
-
-        Parameters:
-        v_seh_data (dict): A dictionary containing the fields required for a VSEHTable entry.
-
-        Returns:
-        VSEHTable instance of the added entry.
-        """
-        try:
-            # Ensure the required fields are present in v_seh_data
-            required_fields = {"datetime_id", "user_id", "seh_id", "station_id", "temp_humi_dewid"}
-            missing_fields = required_fields - v_seh_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Create and commit the entry
-            v_seh_entry = cls(**v_seh_data)
-            db.session.add(v_seh_entry)
-            db.session.commit()
-            return v_seh_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+    
 
 class VMainBridgeTable(db.Model):
     __tablename__ = "VMainBridgeTable"
@@ -614,37 +413,7 @@ class VMainBridgeTable(db.Model):
     station =relationship("StationTable",back_populates="v_main_bridge")
     temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="v_main_bridge")
-    @classmethod
-    def add_v_main_bridge_entry(cls, v_main_bridge_data: dict):
-        """
-        Adds a new VMainBridgeTable entry to the database.
-
-        Parameters:
-        v_main_bridge_data (dict): A dictionary containing the fields required for a VMainBridgeTable entry.
-
-        Returns:
-        VMainBridgeTable instance of the added entry.
-        """
-        try:
-            # Ensure the required fields are present in v_main_bridge_data
-            required_fields = {"datetime_id", "user_id", "main_bridge_id", "station_id", "temp_humi_dewid"}
-            missing_fields = required_fields - v_main_bridge_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Create and commit the entry
-            v_main_bridge_entry = cls(**v_main_bridge_data)
-            db.session.add(v_main_bridge_entry)
-            db.session.commit()
-            return v_main_bridge_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 class VStumpBridgeTable(db.Model):
     __tablename__ = "VStumpBridgeTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
@@ -657,42 +426,13 @@ class VStumpBridgeTable(db.Model):
 
     user_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
     user = relationship("UserTable", back_populates="v_stump_bridge")
-    stumpbridge_id: Mapped[int] = mapped_column(ForeignKey("StumpBridgeTable.id"), nullable=False)
+    stump_bridge_id: Mapped[int] = mapped_column(ForeignKey("StumpBridgeTable.id"), nullable=False)
     stump_bridge = relationship("StumpBridgeTable", back_populates="v_stump_bridge")
     station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
     station =relationship("StationTable",back_populates="v_stump_bridge")
     temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="v_stump_bridge")
-    @classmethod
-    def add_v_stump_bridge_entry(cls, v_stump_bridge_data: dict):
-        """
-        Adds a new entry to the VStumpBridgeTable.
-
-        Parameters:
-        v_stump_bridge_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        VStumpBridgeTable instance of the added entry.
-        """
-        try:
-            # Ensure all required fields are present
-            required_fields = {"datetime_id", "user_id", "stumpbridge_id", "station_id", "temp_humi_dewid"}
-            missing_fields = required_fields - v_stump_bridge_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Create and commit the entry
-            v_stump_bridge_entry = cls(**v_stump_bridge_data)
-            db.session.add(v_stump_bridge_entry)
-            db.session.commit()
-            return v_stump_bridge_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+    
 
 #------------------------- Kapton Gluing Tables ----------------------------
 class KaptonGluingTable(db.Model):
@@ -702,7 +442,7 @@ class KaptonGluingTable(db.Model):
     cooling_point: Mapped[str] = mapped_column(Enum('5cp', '6cp', name='cooling_point_enum'), nullable=False)
     image: Mapped[str] = mapped_column(String(1000), nullable=True)  # Image path or URL
     comment: Mapped[str] = mapped_column(Text, nullable=True)  # Comment field
-
+    glue_idB:Mapped[int] = mapped_column(Integer,nullable=False)
 
     # ---------------------------- Parent Tables ---------------------------
     date_time_id: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)
@@ -717,7 +457,7 @@ class KaptonGluingTable(db.Model):
     sensor_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=False)
     sensor = relationship("SensorTable", back_populates="kapton_gluing")
 
-    glue_id: Mapped[int] = mapped_column(ForeignKey("GlueTable.id"), nullable=False)
+    glue_idA: Mapped[int] = mapped_column(ForeignKey("GlueTable.id"), nullable=False)
     glue = relationship("GlueTable", back_populates="kapton_gluing")
 
     jig_id: Mapped[int] = mapped_column(ForeignKey("JigTable.id"), nullable=False)
@@ -725,43 +465,7 @@ class KaptonGluingTable(db.Model):
 
     station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
     station =relationship("StationTable",back_populates="kapton_gluing")
-    @classmethod
-    def add_kapton_gluing_entry(cls, kapton_gluing_data: dict):
-        """
-        Adds a new entry to the KaptonGluingTable.
-
-        Parameters:
-        kapton_gluing_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        KaptonGluingTable instance of the added entry.
-        """
-        try:
-            # Validate required fields
-            required_fields = {"cooling_point", "date_time_id", "user_id", "temp_humi_dew_id", 
-                                "sensor_id", "glue_id", "jig_id", "station_id"}
-            missing_fields = required_fields - kapton_gluing_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Check if `cooling_point` has a valid enum value
-            valid_cooling_points = {'5cp', '6cp'}
-            if kapton_gluing_data.get("cooling_point") not in valid_cooling_points:
-                raise ValueError(f"Invalid cooling point value. Allowed values: {', '.join(valid_cooling_points)}")
-
-            # Create and commit the entry
-            kapton_gluing_entry = cls(**kapton_gluing_data)
-            db.session.add(kapton_gluing_entry)
-            db.session.commit()
-            return kapton_gluing_entry
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 
 # ---------------------------  HV & IV Table -------------------------------
 # Foreign key : temp_dew , datetime , sensor ,  station id
@@ -781,7 +485,7 @@ class HVTable(db.Model):
     user_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
     user = relationship("UserTable", back_populates="hv")
 
-    sensor_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=False)
+    sensor_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=True)
     sensor = relationship("SensorTable", back_populates="hv")
 
     station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
@@ -789,44 +493,7 @@ class HVTable(db.Model):
 
     temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="hv")
-    @classmethod
-    def add_hv_entry(cls, hv_data: dict):
-        """
-        Adds a new entry to the HVTable.
-
-        Parameters:
-        hv_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        HVTable instance of the added entry.
-        """
-        try:
-            # Validate required fields
-            required_fields = {"cooling_point", "datetime_id", "user_id", 
-                                "sensor_id", "station_id", "temp_humi_dewid"}
-            missing_fields = required_fields - hv_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Validate cooling point
-            valid_cooling_points = {'5cp', '6cp'}
-            if hv_data.get("cooling_point") not in valid_cooling_points:
-                raise ValueError(f"Invalid cooling point value. Allowed values: {', '.join(valid_cooling_points)}")
-
-            # Create and commit the entry
-            hv_entry = cls(**hv_data)
-            db.session.add(hv_entry)
-            db.session.commit()
-            return hv_entry
-
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 class IVTable(db.Model):
     __tablename__ = "IVTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
@@ -849,44 +516,7 @@ class IVTable(db.Model):
     station =relationship("StationTable",back_populates="iv")
     temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="iv")
-    @classmethod
-    def add_iv_entry(cls, iv_data: dict):
-        """
-        Adds a new entry to the IVTable.
-
-        Parameters:
-        iv_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        IVTable instance of the added entry.
-        """
-        try:
-            # Validate required fields
-            required_fields = {"cooling_point", "datetime_id", "user_id",
-                                "sensor_id", "station_id", "temp_humi_dewid"}
-            missing_fields = required_fields - iv_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Validate cooling point
-            valid_cooling_points = {'5cp', '6cp'}
-            if iv_data.get("cooling_point") not in valid_cooling_points:
-                raise ValueError(f"Invalid cooling point value. Allowed values: {', '.join(valid_cooling_points)}")
-
-            # Create and commit the entry
-            iv_entry = cls(**iv_data)
-            db.session.add(iv_entry)
-            db.session.commit()
-            return iv_entry
-
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 
 # -----------------------Sensor Gluing Table -------------------------------
 #foreign key , Temp , datetime , station id , jig , 
@@ -894,12 +524,13 @@ class SensorGluingTable(db.Model):
     __tablename__ = "SensorGluingTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
     # fields 
-    bare_module_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    bare_module_id: Mapped[str] = mapped_column(String(1000), nullable=False)
     module_spacing: Mapped[float] = mapped_column(Integer, nullable=False)
     cooling_point: Mapped[str] = mapped_column(Enum('5cp', '6cp', name='cooling_point_enum'), nullable=False)
     image: Mapped[str] = mapped_column(String(1000), nullable=True)  # Image path or URL
     comment: Mapped[str] = mapped_column(Text, nullable=True)  # Comment field
-
+    bottom_sensor_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    glue_idB: Mapped[int] = mapped_column(Integer, nullable=False)
     # ------------------------- Parent Tables ------------------------------
     datetimeid: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)
     date_time = relationship("DateTimeTable", back_populates="sensor_gluing")
@@ -910,7 +541,7 @@ class SensorGluingTable(db.Model):
     temp_humi_dewid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="sensor_gluing")
 
-    sensor_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=False)
+    top_sensor_id: Mapped[int] = mapped_column(ForeignKey("SensorTable.id"), nullable=False)
     sensor = relationship("SensorTable", back_populates="sensor_gluing")
 
     mainbridgeid: Mapped[int] = mapped_column(ForeignKey("MainBridgeTable.id"), nullable=False)
@@ -922,52 +553,15 @@ class SensorGluingTable(db.Model):
     jig_id: Mapped[int] = mapped_column(ForeignKey("JigTable.id"), nullable=False)
     jig = relationship("JigTable", back_populates="sensor_gluing")
 
-    glue_id: Mapped[int] = mapped_column(ForeignKey("GlueTable.id"), nullable=False)
+    glue_idA: Mapped[int] = mapped_column(ForeignKey("GlueTable.id"), nullable=False)
     glue = relationship("GlueTable", back_populates="sensor_gluing")
-
+   
     station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
     station =relationship("StationTable",back_populates="sensor_gluing")
     # ------------------------------ child Tables -----------------------------
     needle_metrology = relationship("NeedleMetrologyTable", back_populates="sensor_gluing")
     hybrid_gluing = relationship("HybridGluingTable", back_populates="sensor_gluing")
-    @classmethod
-    def add_sensor_gluing_entry(cls, sensor_gluing_data: dict):
-        """
-        Adds a new entry to the SensorGluingTable.
-
-        Parameters:
-        sensor_gluing_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        SensorGluingTable instance of the added entry.
-        """
-        try:
-            # Validate required fields
-            required_fields = {"bare_module_id", "module_spacing", "cooling_point", "datetimeid", 
-                                "user_id", "temp_humi_dewid", "sensor_id", "mainbridgeid", 
-                                "stumpbridge_id", "jig_id", "glue_id", "station_id"}
-            missing_fields = required_fields - sensor_gluing_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Validate cooling point
-            valid_cooling_points = {'5cp', '6cp'}
-            if sensor_gluing_data.get("cooling_point") not in valid_cooling_points:
-                raise ValueError(f"Invalid cooling point value. Allowed values: {', '.join(valid_cooling_points)}")
-
-            # Create and commit the entry
-            sensor_gluing_entry = cls(**sensor_gluing_data)
-            db.session.add(sensor_gluing_entry)
-            db.session.commit()
-            return sensor_gluing_entry
-
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+    
 
 class NeedleMetrologyTable(db.Model):
     __tablename__ = "NeedleMetrologyTable"
@@ -998,46 +592,15 @@ class NeedleMetrologyTable(db.Model):
 
     station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
     station =relationship("StationTable",back_populates="needle_metrology")
-    @classmethod
-    def add_needle_metrology_entry(cls, needle_metrology_data: dict):
-        """
-        Adds a new entry to the NeedleMetrologyTable.
-
-        Parameters:
-        needle_metrology_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        NeedleMetrologyTable instance of the added entry.
-        """
-        try:
-            # Validate required fields
-            required_fields = {"user_id", "delta_x", "delta_y", "rotation", "datetime_id", 
-                                "temp_humi_dew_id", "sensor_gluing_id", "jig_id", "station_id"}
-            missing_fields = required_fields - needle_metrology_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Create and commit the entry
-            needle_metrology_entry = cls(**needle_metrology_data)
-            db.session.add(needle_metrology_entry)
-            db.session.commit()
-            return needle_metrology_entry
-
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+    
 
 class SkeletonTestTable(db.Model):
     __tablename__ = "SkeletonTestTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
-    # fields
-    skeleton_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    skeleton_id: Mapped[str] = mapped_column(String, nullable=False)
     upload_img: Mapped[str] = mapped_column(String, nullable=True)  
     comment: Mapped[str] = mapped_column(String, nullable=True) 
+    feh_idL: Mapped[int] = mapped_column(Integer, nullable=False)
     # --------------------------------- parent tables ---------------------------
     userid: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
     user = relationship("UserTable", back_populates="skeleton_test")
@@ -1057,7 +620,7 @@ class SkeletonTestTable(db.Model):
     groundebalancer_id: Mapped[int] = mapped_column(ForeignKey("GroundBalancerTable.id"), nullable=False)
     ground_balancer = relationship("GroundBalancerTable", back_populates="skeleton_test")
 
-    feh_id: Mapped[int] = mapped_column(ForeignKey("FEHTable.id"), nullable=False)
+    feh_idR: Mapped[int] = mapped_column(ForeignKey("FEHTable.id"), nullable=False)
     feh= relationship("FEHTable", back_populates="skeleton_test")
 
     seh_id: Mapped[int] = mapped_column(ForeignKey("SEHTable.id"), nullable=False)
@@ -1067,45 +630,16 @@ class SkeletonTestTable(db.Model):
     station =relationship("StationTable",back_populates="skeleton_test")
     # -------------------- child table ------------------------------
     hybrid_gluing = relationship("HybridGluingTable", back_populates="skeleton_test")
-    @classmethod
-    def add_skeleton_test_entry(cls, skeleton_test_data: dict):
-        """
-        Adds a new entry to the SkeletonTestTable.
-
-        Parameters:
-        skeleton_test_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        SkeletonTestTable instance of the added entry.
-        """
-        try:
-            # Validate required fields
-            required_fields = {"skeleton_id", "userid", "datetimeid", "temp_humi_id", "vtrxid", 
-                                "jigid", "groundebalancer_id", "feh_id", "seh_id", "station_id"}
-            missing_fields = required_fields - skeleton_test_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Create and commit the entry
-            skeleton_test_entry = cls(**skeleton_test_data)
-            db.session.add(skeleton_test_entry)
-            db.session.commit()
-            return skeleton_test_entry
-
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+    
 
 class HybridGluingTable(db.Model):
     __tablename__ = "HybridGluingTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
     # fields
+    module_id: Mapped[str] = mapped_column(String, nullable=False)
     upload_img: Mapped[str] = mapped_column(String, nullable=True)  # Optional image upload
     comment: Mapped[str] = mapped_column(String, nullable=True) 
+    glue_idB: Mapped[int] = mapped_column(Integer, nullable=False)
     # ------------------------------- parent tables----------------------
     userid: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
     user = relationship("UserTable", back_populates="hybrid_gluing")
@@ -1113,10 +647,10 @@ class HybridGluingTable(db.Model):
     datetimeid: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)
     date_time = relationship("DateTimeTable", back_populates="hybrid_gluing")
 
-    tempid: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
+    temp_humi_dew_id: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="hybrid_gluing")
 
-    glue_id: Mapped[int] = mapped_column(ForeignKey("GlueTable.id"), nullable=False)
+    glue_idA: Mapped[int] = mapped_column(ForeignKey("GlueTable.id"), nullable=False)
     glue = relationship("GlueTable", back_populates="hybrid_gluing")
 
     sensorgluing_id: Mapped[int] = mapped_column(ForeignKey("SensorGluingTable.id"), nullable=False)
@@ -1133,98 +667,35 @@ class HybridGluingTable(db.Model):
     # ------------------------- child tables ---------------------------------
     module_encapsulation = relationship("ModuleEncapsulationTable", back_populates="hybrid_gluing")
     wire_bonding = relationship("WireBondingTable", back_populates="hybrid_gluing")
-    noise_test1 = relationship("NoiseTest1Table", back_populates="hybrid_gluing")
-    noise_test2 = relationship("NoiseTest2Table", back_populates="hybrid_gluing")
+    noise_test1 = relationship("NoiseTestPh2ACFTable", back_populates="hybrid_gluing")
+    noise_test2 = relationship("NoiseTestGIPHTTable", back_populates="hybrid_gluing")
     burnin_test = relationship("BurninTestTable", back_populates="hybrid_gluing")
-    @classmethod
-    def add_hybrid_gluing_entry(cls, hybrid_gluing_data: dict):
-        """
-        Adds a new entry to the HybridGluingTable.
-
-        Parameters:
-        hybrid_gluing_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        HybridGluingTable instance of the added entry.
-        """
-        try:
-            # Validate required fields
-            required_fields = {"userid", "datetimeid", "tempid", "glue_id", "sensorgluing_id", 
-                            "skeletontest_id", "jig_id", "station_id"}
-            missing_fields = required_fields - hybrid_gluing_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Create and commit the entry
-            hybrid_gluing_entry = cls(**hybrid_gluing_data)
-            db.session.add(hybrid_gluing_entry)
-            db.session.commit()
-            return hybrid_gluing_entry
-
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
 
 class ModuleEncapsulationTable(db.Model):
     __tablename__ = "ModuleEncapsulationTable"
     primary: Mapped[int] = mapped_column(Integer, primary_key=True )
     #fields 
     preparation_time: Mapped[float] = mapped_column(Float, nullable=False)  # Time for glue preparation
+    glue_idB: Mapped[int] = mapped_column(Integer, nullable=False)
     comment: Mapped[str] = mapped_column(String, nullable=True)  # Optional comment
     image: Mapped[str] = mapped_column(String, nullable=True)  # Optional image (path or URL)
-
+     
     #foreigntables ---------------------- parent tables ----------------------------
-    datetimeid: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)
+    date_time_id: Mapped[int] = mapped_column(ForeignKey("DateTimeTable.id"), nullable=False)
     date_time = relationship("DateTimeTable", back_populates="module_encapsulation")
-    userid: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
     user  = relationship("UserTable", back_populates="module_encapsulation")
     temp_humi_dew_id: Mapped[int] = mapped_column(ForeignKey("TempHumiDewTable.id"), nullable=False)
     temp_humi_dew = relationship("TempHumiDewTable", back_populates="module_encapsulation")
-    hybridgluing_id: Mapped[int] = mapped_column(ForeignKey("HybridGluingTable.id"), nullable=False)
+    hybrid_gluing_id: Mapped[int] = mapped_column(ForeignKey("HybridGluingTable.id"), nullable=False)
     hybrid_gluing = relationship("HybridGluingTable", back_populates="module_encapsulation")
     jig_id: Mapped[int] = mapped_column(ForeignKey("JigTable.id"), nullable=False)
     jig = relationship("JigTable", back_populates="module_encapsulation")
-    glue_id: Mapped[int] = mapped_column(ForeignKey("GlueTable.id"), nullable=False)
+    glue_idA: Mapped[int] = mapped_column(ForeignKey("GlueTable.id"), nullable=False)
     glue = relationship("GlueTable", back_populates="module_encapsulation")
     station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
     station =relationship("StationTable",back_populates="module_encapsulation")
-    @classmethod
-    def add_module_encapsulation_entry(cls, module_encapsulation_data: dict):
-        """
-        Adds a new entry to the ModuleEncapsulationTable.
-
-        Parameters:
-        module_encapsulation_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        ModuleEncapsulationTable instance of the added entry.
-        """
-        try:
-            # Validate required fields
-            required_fields = {"preparation_time", "datetimeid", "userid", "temp_humi_dew_id", 
-                            "hybridgluing_id", "jig_id", "glue_id", "station_id"}
-            missing_fields = required_fields - module_encapsulation_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Create and commit the entry
-            module_encapsulation_entry = cls(**module_encapsulation_data)
-            db.session.add(module_encapsulation_entry)
-            db.session.commit()
-            return module_encapsulation_entry
-
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 class WireBondingTable(db.Model):
     __tablename__ = "WireBondingTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
@@ -1272,48 +743,17 @@ class WireBondingTable(db.Model):
     jig = relationship("JigTable", back_populates="wire_bonding")
     station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
     station =relationship("StationTable",back_populates="wire_bonding")
-    @classmethod
-    def add_wire_bonding_entry(cls, wire_bonding_data: dict):
-        """
-        Adds a new entry to the WireBondingTable.
-
-        Parameters:
-        wire_bonding_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        WireBondingTable instance of the added entry.
-        """
-        try:
-            # Validate required fields
-            required_fields = {"userid", "date_time_id", "temp_humi_dew_id", 
-                            "hybrid_gluing_id", "jig_id", "station_id"}
-            missing_fields = required_fields - wire_bonding_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Create and commit the entry
-            wire_bonding_entry = cls(**wire_bonding_data)
-            db.session.add(wire_bonding_entry)
-            db.session.commit()
-            return wire_bonding_entry
-
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
-class NoiseTest1Table(db.Model):
-    __tablename__ = "NoiseTest1Table"
+    
+#ASF
+class NoiseTestPh2ACFTable(db.Model):
+    __tablename__ = "NoiseTestPh2ACFTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
     # fields 
-    file_1: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 1
-    file_2: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 2
-    file_3: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 3
-    file_4: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 4
-    file_5: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 5
+    aldrino_file: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 1
+    hv_file: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 2
+    lv_file: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 3
+    iv_file: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 4
+    root_file: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 5
     comment: Mapped[str] = mapped_column(String, nullable=True)  # Optional comment
     # Relationship with othertables 
     # --------------- parents--------------------------------
@@ -1327,47 +767,16 @@ class NoiseTest1Table(db.Model):
     hybrid_gluing = relationship("HybridGluingTable", back_populates="noise_test1")
     station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
     station =relationship("StationTable",back_populates="noise_test1")
-    @classmethod
-    def add_noise_test1_entry(cls, noise_test1_data: dict):
-        """
-        Adds a new entry to the NoiseTest1Table.
-
-        Parameters:
-        noise_test1_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        NoiseTest1Table instance of the added entry.
-        """
-        try:
-            # Validate required fields
-            required_fields = {"user_id", "datetimeid", "temp_id", "hybrid_gluing_id", "station_id"}
-            missing_fields = required_fields - noise_test1_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Create and commit the entry
-            noise_test1_entry = cls(**noise_test1_data)
-            db.session.add(noise_test1_entry)
-            db.session.commit()
-            return noise_test1_entry
-
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
-class NoiseTest2Table(db.Model):
-    __tablename__ = "NoiseTest2Table"
+  
+class NoiseTestGIPHTTable(db.Model):
+    __tablename__ = "NoiseTestGIPHTTable"
     id: Mapped[int] = mapped_column(Integer, primary_key=True )
     # fields 
-    file_1: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 1
-    file_2: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 2
-    file_3: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 3
-    file_4: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 4
-    file_5: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 5
+    aldrino_file: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 1
+    hv_file: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 2
+    lv_file: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 3
+    iv_file: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 4
+    root_file: Mapped[str] = mapped_column(String, nullable=True)  # Optional file upload 5
     comment: Mapped[str] = mapped_column(String, nullable=True)  # Optional comment
     # Relationship with othertables
     # ------------------- parents ------------------------------------
@@ -1381,38 +790,7 @@ class NoiseTest2Table(db.Model):
     hybrid_gluing = relationship("HybridGluingTable", back_populates="noise_test2")
     station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
     station =relationship("StationTable",back_populates="noise_test2")
-    @classmethod
-    def add_noise_test2_entry(cls, noise_test2_data: dict):
-        """
-        Adds a new entry to the NoiseTest2Table.
-
-        Parameters:
-        noise_test2_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        NoiseTest2Table instance of the added entry.
-        """
-        try:
-            # Validate required fields
-            required_fields = {"user_id", "datetimeid", "temp_humi_dew_id", "hybrid_gluing_id", "station_id"}
-            missing_fields = required_fields - noise_test2_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Create and commit the entry
-            noise_test2_entry = cls(**noise_test2_data)
-            db.session.add(noise_test2_entry)
-            db.session.commit()
-            return noise_test2_entry
-
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
-
+    
 class BurninTestTable(db.Model):
     __tablename__ = "BurninTestTable"
     primary_id: Mapped[int] = mapped_column(Integer, primary_key=True )
@@ -1422,7 +800,7 @@ class BurninTestTable(db.Model):
     tracker_root_file: Mapped[str] = mapped_column(String, nullable=True)  # Tracker Root File
     press_supply_root_file: Mapped[str] = mapped_column(String, nullable=True)  # Press Supply Root File
     burnin_box_root_file: Mapped[str] = mapped_column(String, nullable=True)  # Burnin Box Root File
-
+    all_module: Mapped[str] = mapped_column(String, nullable=True) #  [module_id] later change it and build better relation
     # ------------------------ parent tables -------------------------------
     userid: Mapped[int] = mapped_column(ForeignKey("UserTable.id"), nullable=False)
     user = relationship("UserTable", back_populates="burnin_test")
@@ -1434,37 +812,7 @@ class BurninTestTable(db.Model):
     hybrid_gluing = relationship("HybridGluingTable", back_populates="burnin_test")
     station_id: Mapped[int] = mapped_column(ForeignKey("StationTable.id"), nullable=False)
     station =relationship("StationTable",back_populates="burnin_test")
-    @classmethod
-    def add_burnin_test_entry(cls, burnin_test_data: dict):
-        """
-        Adds a new entry to the BurninTestTable.
-
-        Parameters:
-        burnin_test_data (dict): A dictionary containing the fields for the new entry.
-
-        Returns:
-        BurninTestTable instance of the added entry.
-        """
-        try:
-            # Validate required fields
-            required_fields = {"userid", "date_time_id", "temp_humi_dew_id", "hybri_gluing_id", "station_id"}
-            missing_fields = required_fields - burnin_test_data.keys()
-
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-
-            # Create and commit the entry
-            burnin_test_entry = cls(**burnin_test_data)
-            db.session.add(burnin_test_entry)
-            db.session.commit()
-            return burnin_test_entry
-
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ValueError(f"Integrity error: {str(e)}")
-        except Exception as e:
-            db.session.rollback()
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+    
 
 # ------------------ remove ---------------------------------------
 
